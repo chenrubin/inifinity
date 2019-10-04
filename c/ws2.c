@@ -118,56 +118,50 @@ void Sevenboom(int from, int to)
 
 void Swapptr(int **p1, int **p2)
 {
-	long int tmp_addr = **p1;
+	int *p;
+	int **tmp_addr = &p;
 	
 	assert(NULL != p1);
 	assert(NULL != p2);
 	
-	**p1 = **p2;
-	**p2 = tmp_addr;
+	*tmp_addr = *p1;
+	*p1 = *p2;
+	*p2 = *tmp_addr;
 }
 
-void RmSpaces(char *str)
+void Rmspaces(char *str)
 {
-	int len = strlen(str);
-	char *res_str = (char *)malloc(len + 1);
-	char *run_str = str;
-	char *run_res_str = res_str;
+	char *read = str;
+	char *write = str;
 	
-	assert(NULL != str);
-	
-	while (' ' == *run_str || '\t' == *run_str) /* getting rid of start spaces */
+	while (isspace(*read) != 0) /* there are spaces */
 	{
-		++run_str;
+		++read;
 	}
-		
-	while (*run_str != '\0')
-	{ 
-		if (		((' ' != *run_str) && ('\t' != *run_str)) || /* not a space */
-			  		(	((' ' == *run_str) || ('\t' == *run_str)) &&  
-			  			((' ' != *(run_str + 1)) && ('\t' != *(run_str + 1))) && /* space not followed by another space */ 
-			  			('\0' != *(run_str + 1)))) /* space not followed by a '\0' */
-
+	
+	while ('\0' != *read)
+	{
+		if ((isspace(*read) == 0) || /* no spaces */
+			((isspace(*read) != 0) && (isspace(*(write-1)) == 0))) /* there is a space but it is the first */
 		{
-			*run_res_str = *run_str;
-			++run_res_str;
-			++run_str;
+			*write = *read;
+			++read;
+			++write;
 		}
 		else
 		{
-			++run_str;
+			++read;
 		}
-	}	
-	
-	*run_res_str = '\0';
-	
-	while (*res_str != '\0') /* copy back to original */
-	{
-		*str = *res_str;
-		++str;
-		++res_str;
 	}
-	*str = '\0';	
+	
+	if (isspace(*(write - 1)) == 0)
+	{
+		*write = '\0';
+	}
+	else
+	{
+		*(write - 1) = '\0';
+	}
 }
 
 char *sumnum(char *str1, char *str2)
@@ -177,7 +171,9 @@ char *sumnum(char *str1, char *str2)
 	int max = 0; /* calculate max size between strings */
 	char *str1end = str1;
 	char *str2end = str2;
-	char *res_str, *res_str_end;
+	char *res_str = NULL;
+	char *res_str_final = NULL;
+	char *res_str_end = NULL;
 	int is_str1_finished = 0;
 	int is_str2_finished = 0;
 	char buf[2];
@@ -206,7 +202,7 @@ char *sumnum(char *str1, char *str2)
 		max = str2end - str2;
 	}
 
-	res_str = (char *)malloc(max+ 2);
+	res_str = (char *)calloc(max + 2, sizeof(char));
 	res_str_end = res_str + max + 1;
 	*res_str_end = '\0';
 	--res_str_end;
@@ -270,13 +266,17 @@ char *sumnum(char *str1, char *str2)
 	{
 		sprintf(buf, "%d", mem);
 		*res_str_end = *buf;
+		return res_str_end;
 	}
 	else
 	{
 		++res_str_end;
+		res_str_final = (char *)calloc(strlen(res_str_end) + 1, sizeof(char));
+		res_str_final = strcpy(res_str_final, res_str_end);
+		--res_str_end;
+		free(res_str_end);
+		return res_str_final;
 	}
-	
-	return res_str_end;
 }
 
 void TestIspalindrom()
@@ -365,9 +365,9 @@ void TestSwapptr()
 
 void TestRmspaces()
 {
-	char str[100] = "	  123@!Something with   	 many	 		   spaces in between 		 ";
+	char str[100] = "	  123@!Something with   	 many 		   	spaces in between 		 ";
 	char expres[100] = "123@!Something with many spaces in between";
-	RmSpaces(str);
+	Rmspaces(str);
 	
 	printf("/************************************************************\n");
 	printf("	Testing RmSpaces						 \n");
@@ -382,6 +382,8 @@ void TestRmspaces()
 	else
 	{
 		printf("FAILED - spaces were not removed as should\n");
+		printf("%ld %ld\n", strlen(str), strlen(expres));
+		printf("%s\n%s\n\n", str, expres);
 		printf("res = %s and expres = %s\n\n", str, expres);
 	}
 }
@@ -397,14 +399,15 @@ void Testsumsum()
 	char *expres1 = "18";
 	char *expres2 = "1998";	
 	char *expres3 = "158023";
-	char *res1 = sumnum(str01, str11);
-	char *res2 = sumnum(str02, str12);
-	char *res3 = sumnum(str03, str13);
+	char *res1 = NULL;
+	char *res2 = NULL;
+	char *res3 = NULL;	
 	
 	printf("/************************************************************\n");
 	printf("	Testing sumnum						 \n");
 	printf("************************************************************/\n\n");
 	
+	res1 = sumnum(str01, str11);
 	if (strcmp(res1, expres1) == 0)
 	{
 		printf("PASS - adding two strings worked\n");
@@ -414,7 +417,9 @@ void Testsumsum()
 		printf("FAILED - with adding two strings\n");
 		printf("res = %s and expres = %s\n\n", res1, expres1);
 	}
+	free(res1);
 	
+	res2 = sumnum(str02, str12);
 	if (strcmp(res2, expres2) == 0)
 	{
 		printf("PASS - adding two strings worked\n");
@@ -424,7 +429,9 @@ void Testsumsum()
 		printf("FAILED - with adding two strings\n");
 		printf("res = %s and expres = %s\n\n", res2, expres2);
 	}
+	free(res2);
 	
+	res3 = sumnum(str03, str13);
 	if (strcmp(res3, expres3) == 0)
 	{
 		printf("PASS - adding two strings worked\n");
@@ -434,6 +441,7 @@ void Testsumsum()
 		printf("FAILED - with adding two strings\n");
 		printf("res = %s and expres = %s\n\n", res3, expres3);
 	}
+	free(res3);
 }
 
 int main()

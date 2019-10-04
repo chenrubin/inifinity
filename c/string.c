@@ -475,6 +475,8 @@ void TestStrdupe()
 		printf("Original = %s and duplicate = %s\n", str, str_dup);
 		printf("original address = %p and duplicate address = %p\n\n", str, str_dup);
 	}
+	
+	free(str_dup);
 }
 
 void TestStrcat()
