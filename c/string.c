@@ -18,6 +18,9 @@ void TestStrCaseCmp();
 void TestStrdupe();
 void TestStrcat();
 void TestStrncat();
+void TestMystrstr();
+void TestMystrspn();
+void TestMystrtok();
 
 size_t Strlen(const char *s)
 {
@@ -198,6 +201,137 @@ char *StrnCat(char *dest, const char *src, int n)
 	*dest_iter = '\0';
 	
 	return dest;
+}
+
+char *Mystrstr(const char *haystack, const char *needle)
+{
+	char *run_n;
+	char *run_h;
+	size_t len = strlen(needle);
+	
+	assert(NULL != haystack);
+	assert(NULL != needle);
+	
+	while ('\0' != *(haystack + len))
+	{
+		if (*haystack != *needle)
+		{
+			++haystack;
+		}
+		else
+		{
+			run_n = (char *)needle;
+			run_h = (char *)haystack;
+			
+			while (('\0' != *run_n) && (*run_n == *run_h))
+			{
+				++run_n;
+				++run_h;
+			}
+			
+			if ('\0' == *run_n)
+			{
+				return (char *)haystack;
+			}
+			else
+			{
+				++haystack;
+			}
+		}
+	}
+	
+	return NULL;
+}
+
+size_t Mystrspn(const char *str1, const char *str2)
+{
+	int counter = 0;
+	const char *str2_run = str2;
+	
+	assert(NULL != str1);
+	assert(NULL != str2);
+	
+	while ('\0' != *str1) /* runs over str1 */
+	{
+		while ((*str1 != *str2_run) && ('\0' != *str2_run)) /* runs over str2 */
+		{
+			++str2_run;
+		}
+		
+		if ('\0' == *str2_run)
+		{
+			return counter;
+		}
+		else
+		{
+			++counter;
+			++str1;
+			str2_run = str2;			
+		}
+	}
+	
+	return counter;
+}
+
+char *Mystrtok(char *str, const char *delim)
+{
+	static char *pointer = NULL;
+	char const *delim_run = delim;
+	char *res = NULL;
+	char *run = NULL;
+	size_t counter = 0;
+	
+	assert(delim != NULL);
+	
+	if (NULL != str) /* first time of calling this function */
+	{
+		pointer = str;
+	}
+	
+	if ('\0' == *pointer)
+	{
+		return NULL;
+	}
+	else
+	{
+		run = pointer;
+	}
+	
+	counter = strspn(run, delim);
+	run = run + counter;
+	
+	if ('\0' == *run)
+	{
+		res = NULL;
+	}
+	else
+	{
+		res = run;
+	}
+	
+	while ('\0' != *run)
+	{	
+		while ((*delim_run != *run) && ('\0' != *delim_run)) /* find delimiter */
+		{
+			++delim_run;
+		}
+		
+		if (*delim_run == *run) /* delim was found */
+		{
+			*run = '\0';
+			pointer = run + 1;
+			return res;
+		}
+		else /* delim was not found */
+		{
+			++run;
+		}
+		
+		delim_run = delim;
+	}
+	
+	pointer = run;	
+	return res; 
 }
 
 /* TEST functions */
@@ -527,6 +661,150 @@ void TestStrncat()
 	}
 }
 
+void TestMystrstr()
+{
+	char *needle = "ho";
+	char *haystack= "good things happen to those who wait";
+	char *res = Mystrstr(haystack, needle);
+	char *expres = strstr(haystack, needle);
+	
+	if (0 == strcmp(res, expres))
+	{
+		printf("PASSED\n\n");
+	}
+	else
+	{
+		printf("FAILED with haystack = %s and needle = %s\n", haystack, needle);
+		printf("expres = %s, res = %s\n\n", expres, res);
+	}
+}
+
+void TestMystrspn()
+{
+	char *str01 = "adbaaklaad";
+	char *str02 = "abcd";
+	char *str11 = "adbaaklaad";
+	char *str12 = "ahcd";
+	char *str21 = "adbjjklaad";
+	char *str22 = "abcd";
+	char *str31 = "12 3&%$4bjifqef  nfqoe";
+	char *str32 = " &3&abcd21";
+	size_t res = 0;
+	size_t expres = 0;
+	
+	printf("/************************************************************\n");
+	printf("	Testing Mystrspn						 \n");
+	printf("************************************************************/\n\n");
+	
+	res = Mystrspn(str01, str02);
+	expres = strspn(str01, str02);
+	 
+	if (res == expres)
+	{
+		printf("PASS with str1 = %s and str2 = %s\n\n", str01, str02);
+	}
+	else
+	{
+		printf("FAILED with str1 = %s and str2 = %s\n", str01, str02);
+		printf("res = %ld, expres = %ld\n\n", res, expres);
+	}
+	
+	res = Mystrspn(str11, str12);
+	expres = strspn(str11, str12);
+	 
+	if (res == expres)
+	{
+		printf("PASS with str1 = %s and str2 = %s\n\n", str11, str12);
+	}
+	else
+	{
+		printf("FAILED with str1 = %s and str2 = %s\n", str11, str12);
+		printf("res = %ld, expres = %ld\n\n", res, expres);
+	}
+	
+	res = Mystrspn(str21, str22);
+	expres = strspn(str21, str22);
+	 
+	if (res == expres)
+	{
+		printf("PASS with str1 = %s and str2 = %s\n\n", str21, str22);
+	}
+	else
+	{
+		printf("FAILED with str1 = %s and str2 = %s\n", str21, str22);
+		printf("res = %ld, expres = %ld\n\n", res, expres);
+	}
+	
+	res = Mystrspn(str31, str32);
+	expres = strspn(str31, str32);
+	 
+	if (res == expres)
+	{
+		printf("PASS with str1 = %s and str2 = %s\n\n", str31, str32);
+	}
+	else
+	{
+		printf("FAILED with str1 = %s and str2 = %s\n", str31, str32);
+		printf("res = %ld, expres = %ld\n\n", res, expres);
+	}
+}
+
+void TestMystrtok()
+{
+	char str1[] = "^!my-^name-is mos^he-and i am-here!!!";
+	char str2[] = "my-^name-is mos^he-and i am-here";
+	char *token1 = NULL;
+	char *token2 = NULL;
+	int status = 0;
+	
+	printf("/************************************************************\n");
+	printf("	Testing Mystrtok						 \n");
+	printf("************************************************************/\n\n");
+	
+	token1 = Mystrtok(str1, "-^!");
+	token2 = strtok(str1, "-^!");
+	
+	while ((NULL != token1) && (NULL != token2))
+	{
+		if (0 != strcmp(token1, token2))
+		{
+			printf("FAILED with str = %s\n", str1);
+			printf("expres = %s, res = %s\n\n", token2, token1);
+			++status;
+		}
+		
+		token1 = Mystrtok(NULL, "-^!");
+		token2 = strtok(NULL, "-^!");
+	}
+	
+	if (status == 0)
+	{
+		printf("PASS\n\n");
+	}
+	
+	
+	token1 = Mystrtok(str2, "-^!");
+	token2 = strtok(str2, "-^!");
+	
+	while ((NULL != token1) && (NULL != token2))
+	{
+		if (0 != strcmp(token1, token2))
+		{
+			printf("FAILED with str = %s\n", str2);
+			printf("expres = %s, res = %s\n\n", token2, token1);
+			++status;
+		}
+		
+		token1 = Mystrtok(NULL, "-^!");
+		token2 = strtok(NULL, "-^!");
+	}
+	
+	if (status == 0)
+	{
+		printf("PASS\n\n");
+	}
+}
+
 int main()
 {
 	TestStrlen();
@@ -537,6 +815,9 @@ int main()
 	TestStrdupe();
 	TestStrcat();
 	TestStrncat();
+	TestMystrstr();
+	TestMystrspn();
+	TestMystrtok();
 	
 	return 0;
 }

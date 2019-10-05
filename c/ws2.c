@@ -10,15 +10,7 @@ void Sevenboom(int from, int to);
 void SwapPtr(int **p1, int **p2);
 void RmSpaces(char *str);
 char *SumNum(char *str1, char *str2);
-size_t Mystrspn(const char *str1, const char *str2);
 void TestIspalindrom();
-void TestSevenboom();
-void TestSwapptr();
-void TestRmspaces();
-void TestSumNum();
-void TestMystrspn();
-void TestMystrtok();
-
 
 int Ispalindrom(const char *s)
 {
@@ -287,97 +279,6 @@ char *SumNum(char *str1, char *str2)
 	}
 }
 
-size_t Mystrspn(const char *str1, const char *str2)
-{
-	int counter = 0;
-	const char *str2_run = str2;
-	
-	assert(NULL != str1);
-	assert(NULL != str2);
-	
-	while ('\0' != *str1) /* runs over str1 */
-	{
-		while ((*str1 != *str2_run) && ('\0' != *str2_run)) /* runs over str2 */
-		{
-			++str2_run;
-		}
-		
-		if ('\0' == *str2_run)
-		{
-			return counter;
-		}
-		else
-		{
-			++counter;
-			++str1;
-			str2_run = str2;			
-		}
-	}
-	
-	return counter;
-}
-
-char *Mystrtok(char *str, const char *delim)
-{
-	static char *pointer = NULL;
-	char const *delim_run = delim;
-	char *res = NULL;
-	char *run = NULL;
-	size_t counter = 0;
-	
-	assert(delim != NULL);
-	
-	if (NULL != str) /* first time of calling this function */
-	{
-		pointer = str;
-	}
-	
-	if ('\0' == *pointer)
-	{
-		return NULL;
-	}
-	else
-	{
-		run = pointer;
-	}
-	
-	counter = strspn(run, delim);
-	run = run + counter;
-	
-	if ('\0' == *run)
-	{
-		res = NULL;
-	}
-	else
-	{
-		res = run;
-	}
-	
-	while ('\0' != *run)
-	{	
-		while ((*delim_run != *run) && ('\0' != *delim_run)) /* find delimiter */
-		{
-			++delim_run;
-		}
-		
-		if (*delim_run == *run) /* delim was found */
-		{
-			*run = '\0';
-			pointer = run + 1;
-			return res;
-		}
-		else /* delim was not found */
-		{
-			++run;
-		}
-		
-		delim_run = delim;
-	}
-	
-	pointer = run;	
-	return res; 
-}
-
 void TestIspalindrom()
 {
 	int res = 0;
@@ -393,7 +294,7 @@ void TestIspalindrom()
 	
 	if (res == 0)
 	{
-		printf("PASS - str %s is a palindrom\n", str1);
+		printf("PASSED - str %s is a palindrom\n", str1);
 	}
 	else
 	{
@@ -404,7 +305,7 @@ void TestIspalindrom()
 	
 	if (res == 1)
 	{
-		printf("PASS - str %s is not a palindrom\n", str2);
+		printf("PASSED - str %s is not a palindrom\n", str2);
 	}
 	else
 	{
@@ -422,7 +323,7 @@ void TestSevenboom()
 	printf("************************************************************/\n\n");
 	
 	Sevenboom(start, end);
-	printf("Need to manually look at the print out and verifyn\n\n");
+	printf("Need to manually look at the print out and verify");
 }
 
 void TestSwapptr()
@@ -542,132 +443,6 @@ void TestSumNum()
 	free(res3);
 }
 
-void TestMystrspn()
-{
-	char *str01 = "adbaaklaad";
-	char *str02 = "abcd";
-	char *str11 = "adbaaklaad";
-	char *str12 = "ahcd";
-	char *str21 = "adbjjklaad";
-	char *str22 = "abcd";
-	char *str31 = "12 3&%$4bjifqef  nfqoe";
-	char *str32 = " &3&abcd21";
-	size_t res = 0;
-	size_t expres = 0;
-	
-	printf("/************************************************************\n");
-	printf("	Testing Mystrspn						 \n");
-	printf("************************************************************/\n\n");
-	
-	res = Mystrspn(str01, str02);
-	expres = strspn(str01, str02);
-	 
-	if (res == expres)
-	{
-		printf("PASS with str1 = %s and str2 = %s\n\n", str01, str02);
-	}
-	else
-	{
-		printf("FAILED with str1 = %s and str2 = %s\n", str01, str02);
-		printf("res = %ld, expres = %ld\n\n", res, expres);
-	}
-	
-	res = Mystrspn(str11, str12);
-	expres = strspn(str11, str12);
-	 
-	if (res == expres)
-	{
-		printf("PASS with str1 = %s and str2 = %s\n\n", str11, str12);
-	}
-	else
-	{
-		printf("FAILED with str1 = %s and str2 = %s\n", str11, str12);
-		printf("res = %ld, expres = %ld\n\n", res, expres);
-	}
-	
-	res = Mystrspn(str21, str22);
-	expres = strspn(str21, str22);
-	 
-	if (res == expres)
-	{
-		printf("PASS with str1 = %s and str2 = %s\n\n", str21, str22);
-	}
-	else
-	{
-		printf("FAILED with str1 = %s and str2 = %s\n", str21, str22);
-		printf("res = %ld, expres = %ld\n\n", res, expres);
-	}
-	
-	res = Mystrspn(str31, str32);
-	expres = strspn(str31, str32);
-	 
-	if (res == expres)
-	{
-		printf("PASS with str1 = %s and str2 = %s\n\n", str31, str32);
-	}
-	else
-	{
-		printf("FAILED with str1 = %s and str2 = %s\n", str31, str32);
-		printf("res = %ld, expres = %ld\n\n", res, expres);
-	}
-}
-
-void TestMystrtok()
-{
-	char str1[] = "^!my-^name-is mos^he-and i am-here!!!";
-	char str2[] = "my-^name-is mos^he-and i am-here";
-	char *token1 = NULL;
-	char *token2 = NULL;
-	int status = 0;
-	
-	printf("/************************************************************\n");
-	printf("	Testing Mystrtok						 \n");
-	printf("************************************************************/\n\n");
-	
-	token1 = Mystrtok(str1, "-^!");
-	token2 = strtok(str1, "-^!");
-	
-	while ((NULL != token1) && (NULL != token2))
-	{
-		if (0 != strcmp(token1, token2))
-		{
-			printf("FAILED with str = %s\n", str1);
-			printf("expres = %s, res = %s\n\n", token2, token1);
-			++status;
-		}
-		
-		token1 = Mystrtok(NULL, "-^!");
-		token2 = strtok(NULL, "-^!");
-	}
-	
-	if (status == 0)
-	{
-		printf("PASS\n\n");
-	}
-	
-	
-	token1 = Mystrtok(str2, "-^!");
-	token2 = strtok(str2, "-^!");
-	
-	while ((NULL != token1) && (NULL != token2))
-	{
-		if (0 != strcmp(token1, token2))
-		{
-			printf("FAILED with str = %s\n", str2);
-			printf("expres = %s, res = %s\n\n", token2, token1);
-			++status;
-		}
-		
-		token1 = Mystrtok(NULL, "-^!");
-		token2 = strtok(NULL, "-^!");
-	}
-	
-	if (status == 0)
-	{
-		printf("PASS\n\n");
-	}
-}
-
 int main()
 {
 	TestIspalindrom();
@@ -675,8 +450,6 @@ int main()
 	TestSwapptr();
 	TestRmspaces();
 	TestSumNum();
-	TestMystrspn();
-	TestMystrtok();
 	
 	return 0;
 }
