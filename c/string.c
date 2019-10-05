@@ -22,6 +22,7 @@ void TestStrncat();
 size_t Strlen(const char *s)
 {
 	size_t len = 0;
+	
 	assert(NULL != s);
 	
 	while ('\0' != *s)
@@ -50,6 +51,7 @@ int Strcmp(const char *str1, const char *str2)
 char *Strcpy(char *dest, const char *src)
 {
 	char *tmp_dest = dest;
+	
 	assert(NULL != dest);
 	assert(NULL != src);
 	
@@ -67,6 +69,7 @@ char *Strncpy(char *dest, const char *src, size_t n)
 {
 	unsigned int index = 0;
 	char *tmp_dest = dest;
+	
 	assert(NULL != dest);
 	assert(NULL != src);
 	
@@ -128,6 +131,7 @@ char *StrDup(const char *s)
 	int i,size;
 	char *s_iter = (char *)s;
 	char *dup, *dup_iter;
+	
 	assert(NULL != s);
 		
 	size = strlen(s_iter) + 1;
