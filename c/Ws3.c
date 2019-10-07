@@ -1,8 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
+/********************************************
+*	Author : ChenR							*
+*	Reviewer : EyalF						*
+*	WS3 									*
+*	inluding following tests:				*
+*											*
+*	test copy of envioronment variables		*
+*	testing Jusiphus algorithm				*
+*	printing c types						*
+*											*									
+********************************************/
+
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc/ calloc */
+#include <string.h> /* strcmp, strcpy */
+#include <ctype.h> /* tolower */
+#include <assert.h> /* assert */
 
 void Printenv(char *env[]);
 char **Copyenv(char *env[], int counter);
@@ -11,6 +23,7 @@ void FreeEnvExtra(char *env[], int location);
 char *Mycalloc(char **env, int location);
 int Josephus(int num);
 int JosephusBetter(int num);
+
 void TestCopyEnv();
 void TestJosephus();
 void Testctypes();
