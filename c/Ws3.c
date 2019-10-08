@@ -15,9 +15,22 @@
 #include <string.h> /* strcmp, strcpy */
 #include <ctype.h> /* tolower */
 #include <assert.h> /* assert */
+           
+#define checkResult(num, res1, res2){\
+									if (res1 == res2) \
+									{ \
+										printf("PASSED for %d\n", num); \
+									} \
+									else \
+									{ \
+										printf("FAILED for %d\n", num); \
+										printf("res1 = %d, res2 = %d\n", res1, res2); \
+									} \
+									}
 
 void Printenv(char *env[]);
-char **Copyenv(char *env[], int counter);
+void ChangeToLower(char *env[], int end_of_array);
+char **CopyEnv(char *env[], int counter);
 void FreeEnv(char *env[]);
 void FreeEnvExtra(char *env[], int location);
 char *Mycalloc(char **env, int location);
@@ -40,45 +53,57 @@ void Printenv(char *env[]) /* print env */
 	}
 }
 
-char **Copyenv(char *env[], int counter) /* copy env and chanhge to lower */
+void ChangeToLower(char *env[], int end_of_array)
 {
+
 	int pointer_index = 0;
 	int string_index = 0;
 	
-	/* array of pointer to char */
-	char **cp_env = (char **)calloc(counter + 1, sizeof(char *));
-	
-	/* each string has malloc */
-	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index) /* need to change */
-	{
-		*(cp_env + pointer_index) = 
-		(char *)calloc(strlen(*(env + pointer_index)), sizeof(*(env + pointer_index)));
-	}
-	
-	/* copy everything */
-	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index)
-	{
-		*(cp_env + pointer_index) = strcpy(*(cp_env + pointer_index), *(env + pointer_index));
-	}
-	
-	/* change to lower */
-	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index)
+	for (pointer_index = 0 ; pointer_index < end_of_array ; ++pointer_index)
 	{
 		string_index = 0;
 		
 		/* iterate over each string and change */ 
-		while ('\0' != *(*(cp_env + pointer_index) + string_index))
+		while ('\0' != *(*(env + pointer_index) + string_index))
 		{
-			*(*(cp_env + pointer_index) + string_index) = 
+			*(*(env + pointer_index) + string_index) = 
 			tolower(*(*(env + pointer_index) + string_index));
 			++string_index;
 		}
 	}
+}
+
+
+char **CopyEnv(char *env[], int counter) /* copy env and chanhge to lower */
+{
+	int pointer_index = 0;
+	
+	char **cp_env = (char **)calloc(counter + 1, sizeof(char *));
+	
+	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index)
+	{
+		*(cp_env + pointer_index) = 
+		(char *)calloc(strlen(*(env + pointer_index)),
+					   sizeof(*(env + pointer_index)));
+					   
+		if (NULL == (cp_env + pointer_index))
+		{
+			printf("!!!cp_env reurned NULL in index!!!%d\n", pointer_index);
+		}
+	}
+	
+	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index)
+	{
+		*(cp_env + pointer_index) = strcpy(*(cp_env + pointer_index),
+										   *(env + pointer_index));
+	}
+	
+	ChangeToLower(cp_env, counter);
 	
 	return cp_env;	
 }
 
-char **CopyenvExtra(char *env[], int counter) /* copy env and chanhge to lower */
+char **CopyEnvExtra(char *env[], int counter) /* copy env and chanhge to lower */
 {
 	int pointer_index = 0;
 	int string_index = 0;
@@ -95,6 +120,7 @@ char **CopyenvExtra(char *env[], int counter) /* copy env and chanhge to lower *
 		{
 			printf("pointer index = %d got NULL\n", pointer_index);
 			FreeEnvExtra(cp_env, pointer_index);
+			
 			return NULL;
 		}
 	}
@@ -102,7 +128,8 @@ char **CopyenvExtra(char *env[], int counter) /* copy env and chanhge to lower *
 	/* copy everything */
 	for (pointer_index = 0 ; pointer_index < counter ; ++pointer_index)
 	{
-		*(cp_env + pointer_index) = strcpy(*(cp_env + pointer_index), *(env + pointer_index));
+		*(cp_env + pointer_index) = strcpy(*(cp_env + pointer_index),
+										   *(env + pointer_index));
 	}
 	
 	/* change to lower */
@@ -122,7 +149,7 @@ char **CopyenvExtra(char *env[], int counter) /* copy env and chanhge to lower *
 	return cp_env;	
 }
 
-void FreeEnvExtra(char *env[], int location) /* free env */
+void FreeEnvExtra(char *env[], int location)
 {
 	int pointer_index = 0;
 			
@@ -165,6 +192,7 @@ char *Mycalloc(char **env, int location)
 void printArray(int *a, int len)
 {
 	int i = 0;
+	
 	for (i = 0 ; i < len ; ++i)
 	{
 		printf("%d ", *(a + i));
@@ -175,6 +203,37 @@ void printArray(int *a, int len)
 	}
 }
 
+/* using an array */
+int JosephusBetter(int num)
+{
+	int *circle = (int *)malloc(num * sizeof(int));
+	int *killer = circle;
+	int *sword = circle;
+	int i = 0;
+	int alive = num;	
+	
+	for (i = 0; i < num - 1; ++i)
+	{
+		*(circle + i) = (i + 1);
+	}
+	*(circle + i) = 0;
+	
+	while (alive > 1)
+	{
+		sword = (circle + *killer);
+		sword = (circle + *sword);
+		--alive;
+		*killer = sword - circle;
+		killer = sword;
+	}
+	
+	i = sword - circle + 1;
+	
+	free(circle);
+	
+	return i;	
+}
+/*
 int JosephusBetter(int num)
 {
 	int **circle = (int **)malloc(num * sizeof(int *));
@@ -190,7 +249,7 @@ int JosephusBetter(int num)
 	while (*runner1 != (int *)runner1)
 	{
 		runner2 = (int **)*runner1; /* runner 2 is now to be killed */
-		*runner1 = *runner2;
+/*		*runner1 = *runner2;
 		runner1 = (int **)*runner1;
 	}
 	
@@ -200,7 +259,7 @@ int JosephusBetter(int num)
 	
 	return i;	
 }
-
+*/
 int Josephus(int num)
 {
 	int i = 0;
@@ -258,16 +317,16 @@ void TestCopyEnv(int argc, char *argv[], char *env[])
 	int counter = 0;
 	char **new_env = NULL;
 	
-	printf("/******************************************************************\n");
-	printf("			Testing coppy env										\n");		
-	printf("*******************************************************************/\n\n");
+	printf("\n/******************************************************\n");
+	printf("			Testing coppy env							 \n");		
+	printf("*********************************************************\n\n");
 	
 	while (0 != *(env + counter)) /* determine length */
 	{
 		++counter;
 	}
 	
-	new_env = Copyenv(env, counter);
+	new_env = CopyEnv(env, counter);
 	Printenv(env);
 	printf("\n\n");
 	Printenv(new_env);
@@ -277,7 +336,7 @@ void TestCopyEnv(int argc, char *argv[], char *env[])
 	
 /*	printf("!!!attempt with memory free control!!!\n\n");
 	
-	new_env = CopyenvExtra(env, counter); */	
+	new_env = CopyEnvExtra(env, counter); */	
 	
 	++argc;
 	++argv;
@@ -294,79 +353,35 @@ void TestJosephus()
 	int res1 = 0;
 	int res2  = 0;
 	
-	printf("/******************************************************************\n");
-	printf("			Testing Josephus										\n");		
-	printf("*******************************************************************/\n\n");
+	printf("\n/******************************************************\n");
+	printf("			Testing Josephus							 \n");		
+	printf("*********************************************************/\n\n");
 	
 	res1 = Josephus(num1);
 	res2 = JosephusBetter(num1);
+	checkResult(num1, res1, res2);
 	
-	if (res1 == res2)
-	{
-		printf("PASSED for %d\n", num1);
-	}
-	else
-	{
-		printf("FAILED for %d\n", num1);
-		printf("res1 = %d, res2 = %d\n", res1, res2);
-	}
 	
 	res1 = Josephus(num2);
 	res2 = JosephusBetter(num2);
-	
-	if (res1 == res2)
-	{
-		printf("PASSED for %d\n", num2);
-	}
-	else
-	{
-		printf("FAILED for %d\n", num2);
-		printf("res1 = %d, res2 = %d\n", res1, res2);
-	}
+	checkResult(num2, res1, res2);
 	
 	res1 = Josephus(num3);
 	res2 = JosephusBetter(num3);
-	
-	if (res1 == res2)
-	{
-		printf("PASSED for %d\n", num3);
-	}
-	else
-	{
-		printf("FAILED for %d\n", num3);
-		printf("res1 = %d, res2 = %d\n", res1, res2);
-	}
+	checkResult(num3, res1, res2);
 	
 	res1 = Josephus(num4);
 	res2 = JosephusBetter(num4);
-	
-	if (res1 == res2)
-	{
-		printf("PASSED for %d\n", num4);
-	}
-	else
-	{
-		printf("FAILED for %d\n", num4);
-		printf("res1 = %d, res2 = %d\n", res1, res2);
-	}
+	checkResult(num4, res1, res2);
 	
 	res1 = Josephus(num5);
 	res2 = JosephusBetter(num5);
-	
-	if (res1 == res2)
-	{
-		printf("PASSED for %d\n", num5);
-	}
-	else
-	{
-		printf("FAILED for %d\n", num5);
-		printf("res1 = %d, res2 = %d\n", res1, res2);
-	}
+	checkResult(num5, res1, res2);
 }
 
 void Testctypes()
 {
-	printf("/******************************************************************\n");
+	printf("\n*****************************************************************\n");
 	printf("			Testing c types										\n");		
 	printf("*******************************************************************/\n\n");
 	
@@ -387,9 +402,7 @@ void Testctypes()
 int main(int argc, char *argv[], char *env[])
 {
 	TestCopyEnv(argc, argv, env);
-	
 	TestJosephus();
-	
 	Testctypes();
 	
 	return 0;
