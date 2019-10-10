@@ -46,7 +46,7 @@ void SwitchCaseFunction()
 	char chr = '\0';
 	
 	printf("\n****************************\n");
-	printf("	If else way				  \n");
+	printf("	switch case way			  \n");
 	printf("*****************************/\n\n");
 	
 	while (1)
