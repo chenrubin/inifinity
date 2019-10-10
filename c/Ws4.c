@@ -4,7 +4,6 @@
 void IfElseFunction();
 void SwitchCaseFunction();
 void LutCaseFunction();
-/*void (*pf[])() CreateLutTable();*/
 void LutToption();
 void LutAoption();
 void LutESCoption();
@@ -32,6 +31,7 @@ void IfElseFunction()
 		}
 		else if (chr == 27) /* ecsape key */
 		{
+			system("stty icanon echo");
 			exit(0);
 		}
 	}
@@ -60,6 +60,7 @@ void SwitchCaseFunction()
 				break;
 			
 			case 27:
+				system("stty icanon echo");
 				exit(0);
 				break;			
 		}
@@ -89,22 +90,10 @@ void LutCaseFunction()
 	while (1)
 	{		
 		chr = getchar();
-		
 		(*func_p_array[(unsigned int)chr])();
 	}
 }
-/*
-void (*pf[])() CreateLutTable()
-{
-	void (*pf[256])(int);
-	
-	*(pf + 'A') = LutAoption();
-	*(pf + 'T') = LutToption();
-	*(pf + 27) = LutESCoption();
-	
-	return pf;
-}
-*/
+
 void LutToption()
 {
 	printf("\nT pressed\n");
@@ -117,6 +106,7 @@ void LutAoption()
 
 void LutESCoption()
 {
+	system("stty icanon echo");
 	exit(0);
 }
 
@@ -127,6 +117,7 @@ void LutNULLoption()
 
 int main()
 {
+	system("stty -icanon -echo");
 	IfElseFunction();
 	SwitchCaseFunction();
 	LutCaseFunction();
