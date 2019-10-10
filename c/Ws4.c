@@ -1,3 +1,12 @@
+/****************************	
+*	Ws4						*
+*	If/else, switch , LUT	*
+*							*
+*	Author: ChenR			*
+*	Reviewer: EyalF			*
+*	Date: 10/10/2019		*
+****************************/
+
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* exit */
 
