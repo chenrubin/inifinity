@@ -34,6 +34,10 @@ void IfElseFunction()
 			system("stty icanon echo");
 			exit(0);
 		}
+		else
+		{
+			printf("\nContinue pressing\n");
+		}
 	}
 }
 
@@ -62,7 +66,10 @@ void SwitchCaseFunction()
 			case 27:
 				system("stty icanon echo");
 				exit(0);
-				break;			
+				break;
+			
+			default:
+				printf("\nContinue pressing\n");			
 		}
 	}
 }
@@ -112,7 +119,7 @@ void LutESCoption()
 
 void LutNULLoption()
 {
-	;
+	printf("\nContinue pressing\n");
 }
 
 int main()
