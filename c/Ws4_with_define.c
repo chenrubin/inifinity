@@ -14,11 +14,12 @@
 void IfElseFunction();
 void SwitchCaseFunction();
 void LutCaseFunction();
-void LutToption();
-void LutAoption();
-void LutESCoption();
-void LutNULLoption();
+void LutToption(); /* funtion that prints "pressed T" */
+void LutAoption(); /* funtion that prints "pressed A" */
+void LutESCoption(); /* funtion that exits program */
+void LutNULLoption(); /* funtion that does nothing */
 
+/* below is the LUT table content defined in advance */
 #define FIRSTNULL LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
@@ -75,19 +76,19 @@ LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption
-		   		
-void (*func_p_array[256])() = {FIRSTNULL, LutESCoption, SECONDNULL ,LutAoption, THIRDNULL, LutToption, LASTNULL};
 
 void IfElseFunction()
 {
 	char chr = '\0';
 	
+	printf("\n****************************\n");
+	printf("	 If else way			  \n");
+	printf("******************************/\n\n");
+	
+	system("stty -icanon -echo");
+	
 	while (1)
-	{		
-		printf("\n****************************\n");
-		printf("	 If else way			  \n");
-		printf("******************************/\n\n");
-		
+	{				
 		chr = getchar();
 		
 		if (chr == 'A')
@@ -105,7 +106,7 @@ void IfElseFunction()
 		}
 		else
 		{
-			printf("\nContinue pressing\n");
+			printf("Continue pressing\n");
 		}
 	}
 }
@@ -117,6 +118,8 @@ void SwitchCaseFunction()
 	printf("\n****************************\n");
 	printf("	switch case way			  \n");
 	printf("*****************************/\n\n");
+	
+	system("stty -icanon -echo");
 	
 	while (1)
 	{		
@@ -138,7 +141,8 @@ void SwitchCaseFunction()
 				break;
 			
 			default:
-				printf("\nContinue pressing\n");			
+				printf("Continue pressing\n");
+				break;		
 		}
 	}
 }
@@ -146,10 +150,14 @@ void SwitchCaseFunction()
 void LutCaseFunction()
 {	
 	char chr = '\0';
+	static void (*func_p_array[256])() = {FIRSTNULL, LutESCoption, SECONDNULL,
+				LutAoption, THIRDNULL, LutToption, LASTNULL};
 	
 	printf("\n****************************\n");
 	printf("	LUT	way 				  \n");
 	printf("*****************************/\n\n");
+	
+	system("stty -icanon -echo");
 	
 	while (1)
 	{		
@@ -176,15 +184,37 @@ void LutESCoption()
 
 void LutNULLoption()
 {
-	printf("\nContinue pressing\n");
+	printf("Continue pressing\n");
 }
 
 int main()
 {
-	system("stty -icanon -echo");
-/*	IfElseFunction();
-	SwitchCaseFunction();
-*/	LutCaseFunction();
+	int n = 0;
+	
+	printf("Please choose what function to test\n");
+	printf("1 - if_else, 2 - switch_case, 3 - LUT\n");
+	
+	while (1)
+	{
+		scanf("%d", &n);
+	
+		if (n == 1)
+		{
+			IfElseFunction();
+		}
+		else if (n == 2)
+		{
+			SwitchCaseFunction();
+		}
+		else if (n == 3)
+		{
+			LutCaseFunction();
+		}
+		else
+		{
+			printf("Choose only 1,2 or 3\n");
+		}
+	}
 
 	return 0;
 }
