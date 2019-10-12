@@ -3,13 +3,12 @@
 *	If/else, switch , LUT	*
 *							*
 *	Author: ChenR			*
-*	Reviewer: EyalF			*
+*	Reviewer: Maoz			*
 *	Date: 10/10/2019		*
 ****************************/
 
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* exit */
-#include <unistd.h>
 
 void IfElseFunction();
 void SwitchCaseFunction();
@@ -20,14 +19,14 @@ void LutESCoption(); /* funtion that exits program */
 void LutNULLoption(); /* funtion that does nothing */
 
 /* below is the LUT table content defined in advance */
-#define FIRSTNULL LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+#define NULL27 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption
 
-#define SECONDNULL LutNULLoption, LutNULLoption, LutNULLoption, \
+#define NULL37 LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
@@ -36,12 +35,12 @@ LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption
 
-#define THIRDNULL LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+#define NULL18 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption
 
-#define LASTNULL LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+#define NULL171 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
@@ -150,8 +149,8 @@ void SwitchCaseFunction()
 void LutCaseFunction()
 {	
 	char chr = '\0';
-	static void (*func_p_array[256])() = {FIRSTNULL, LutESCoption, SECONDNULL,
-				LutAoption, THIRDNULL, LutToption, LASTNULL};
+	static void (*func_p_array[256])() = {NULL27, LutESCoption, NULL37,
+				LutAoption, NULL18, LutToption, NULL171};
 	
 	printf("\n****************************\n");
 	printf("	LUT	way 				  \n");
@@ -168,12 +167,12 @@ void LutCaseFunction()
 
 void LutToption()
 {
-	printf("\nT pressed\n");
+	printf("T pressed\n");
 }
 
 void LutAoption()
 {
-	printf("\nA pressed\n");
+	printf("A pressed\n");
 }
 
 void LutESCoption()
@@ -198,15 +197,15 @@ int main()
 	{
 		scanf("%d", &n);
 	
-		if (n == 1)
+		if (1 == n)
 		{
 			IfElseFunction();
 		}
-		else if (n == 2)
+		else if (2 == n)
 		{
 			SwitchCaseFunction();
 		}
-		else if (n == 3)
+		else if (3 == n)
 		{
 			LutCaseFunction();
 		}
