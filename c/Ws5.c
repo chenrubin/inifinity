@@ -17,47 +17,25 @@ void FloatAnalysys(float num);
 
 long Pow2(unsigned int x, unsigned int y)
 {
-	return (x * (2 << (y - 1)));
+	long res = (long)x;
+	return (res <<= y);
 }
 
 int IsPowOfTwoLoop(unsigned int num)
 {
 	while (0 == (num % 2))
 	{
-		num = num / 2;
+		num = num >> 1;
 	}
 	
-	if (num == 1)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return (1 == num);
 }
 
 int IsPowOfTwoNoLoop(unsigned int num)
 {
-	int ispower = 0;
+	int num_two_comp = ~num + 1;
 	
-	if (0 == num)
-	{
-		ispower = 0;
-	}
-	else
-	{
-		if (num & 1)
-		{
-			ispower = 1 + IsPowOfTwoNoLoop(num >> 1);
-		}
-		else
-		{
-			ispower = IsPowOfTwoNoLoop(num >> 1);
-		}
-	}
-	
-	if (1 == ispower)
+	if ((num_two_comp & num) == num && (num != 0))
 	{
 		return 1;
 	}
@@ -160,34 +138,30 @@ unsigned int ClosestSmallerNum(unsigned int num)
 
 void swap(int *num1, int *num2)
 {
-	*num1 = *num1 + *num2;
-	*num2 = *num1 - *num2;
-	*num1 = *num1 - *num2;
+	*num1 = *num1 ^ *num2;
+	*num2 = *num1 ^ *num2;
+	*num1 = *num1 ^ *num2;
 }
-/*
+
 unsigned char SwitchBits(unsigned char num)
 {
 	unsigned char bit3to5 = 0;
 	unsigned char bit5to3 = 0;
 	
 	bit3to5 = num & 8;
-	printf("bit3to5 original = %d\n", bit3to5);
 	bit3to5 = bit3to5 << 2;
-	printf("bit3to5 after shift = %d\n", bit3to5);
 	bit5to3 = num & 32;
-	printf("bit5to3 original = %d\n", bit5to3);
 	bit5to3 = bit5to3 >> 2;
-	printf("bit5to3 after shift = %d\n", bit5to3);
 	
-	(((0 == bit3to5) && (num = (~(bit3to5 & 32) & num))) || 
-		   (((0 != bit3to5) && (num = ((bit3to5 & 32) | num)))));
-	printf("num = %u\n", num);	   
-	(((0 == bit5to3) && (num = (~(bit5to3 & 8) & num))) || 
+	(((0 == bit3to5) && (num = (~(bit3to5 | 32) & num))) || 
+		   (((1 == bit3to5) && (num = ((bit3to5 & 32) | num)))));
+  
+	(((0 == bit5to3) && (num = (~(bit5to3 | 8) & num))) || 
 		   (((0 != bit5to3) && (num = ((bit5to3 & 8) | num)))));
 		   
 	return num;	   
 }
-*/
+
 int NumOfSetBits(int num)
 {
 	int counter = 0;
@@ -204,19 +178,20 @@ int NumOfSetBits(int num)
 	
 	return counter;
 }
-
+/*
 void FloatAnalysis(float num)
 {
 	printf("%d\n", num);
 	printf("\n");
 }
-
+*/
 int main()
 {
-	unsigned int x = 5;
+	int num = 100;
+/*	unsigned int x = 5;
 	printf("%u, %u, %u\n", x, x << 2, x >> 2);	
-/*	FloatAnalysis(7.5);
-	
+	FloatAnalysis(7.5);
+*/	
 /*	printf("561 --> %d\n", NumOfSetBits(561));
 	printf("32 --> %d\n", NumOfSetBits(32));
 	printf("-95 --> %d\n", NumOfSetBits(-95));
@@ -224,11 +199,12 @@ int main()
 	printf("93556 --> %d\n", NumOfSetBits(93556));
 	printf("1 --> %d\n", NumOfSetBits(1));
 	printf("0 --> %d\n", NumOfSetBits(0));
+*/	
 	printf("Before, num = %u\n", num);
 	printf("After, num = %u\n", SwitchBits(num));
-*/	
-/*	int x = 5;
-	int y = 4;
+	
+/*	int x = 1;
+	int y = 49;
 	printf("Before swap x = %d, y = %d\n", x, y);
 	swap(&x, &y);
 	printf("Before swap x = %d, y = %d\n", x, y);
@@ -297,7 +273,11 @@ int main()
 	printf("%d power of 2 = %d\n", 32, IsPowOfTwoNoLoop(32));
 	printf("%d power of 2 = %d\n", 65, IsPowOfTwoNoLoop(65));
 	printf("%d power of 2 = %d\n", 1024, IsPowOfTwoNoLoop(1024));
-	printf("%d power of 2 = %d\n", 500, IsPowOfTwoNoLoop(500));
+	printf("%d power of 2 = %d\n", 0, IsPowOfTwoNoLoop(0));
 */
-	return 0;
+/*
+	printf("%ld\n", Pow2(2,5));
+	printf("%ld\n", Pow2(3,2));
+	printf("%ld\n", Pow2(7,3));
+*/	return 0;
 }

@@ -90,15 +90,15 @@ void IfElseFunction()
 	{				
 		chr = getchar();
 		
-		if (chr == 'A')
+		if ('A' == chr)
 		{
 			printf("A pressed\n");
 		}
-		else if (chr == 'T')
+		else if ('T' == chr)
 		{
 			printf("T pressed\n");
 		}
-		else if (chr == 27) /* ecsape key */
+		else if (27 == chr) /* ecsape key */
 		{
 			system("stty icanon echo");
 			exit(0);

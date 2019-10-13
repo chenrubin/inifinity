@@ -3,7 +3,7 @@
 *	If/else, switch , LUT	*
 *							*
 *	Author: ChenR			*
-*	Reviewer: EyalF			*
+*	Reviewer: Maoz			*
 *	Date: 10/10/2019		*
 ****************************/
 
