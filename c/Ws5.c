@@ -12,8 +12,15 @@ unsigned int ClosestSmallerNum(unsigned int num);
 int ByteMirrorLoop(int num);
 void swap(int *num1, int *num2);
 void FloatAnalysys(float num);
+int popcount64b(unsigned int x);
+void decToBinary(unsigned int n) ;
 
 #define BINMASK 2147483647
+#define m1 0x5555555555555555
+#define m2 0x3333333333333333
+#define m4 0x0f0f0f0f0f0f0f0f
+#define m8 0x00ff00ff00ff00ff
+#define m16 0x0000ffff0000ffff
 
 long Pow2(unsigned int x, unsigned int y)
 {
@@ -145,20 +152,13 @@ void swap(int *num1, int *num2)
 
 unsigned char SwitchBits(unsigned char num)
 {
-	unsigned char bit3to5 = 0;
-	unsigned char bit5to3 = 0;
+	unsigned char bit3to5 = (num & 8) << 2;
+	unsigned char bit5to3 = (num & 32) >> 2;
 	
-	bit3to5 = num & 8;
-	bit3to5 = bit3to5 << 2;
-	bit5to3 = num & 32;
-	bit5to3 = bit5to3 >> 2;
+	num = (~32) & num; /* put zero instead of bit 3 */
+	num = (~8) & num; /* put zero instead of bit 5 */
+	num = ((num | bit3to5) | bit5to3);
 	
-	(((0 == bit3to5) && (num = (~(bit3to5 | 32) & num))) || 
-		   (((1 == bit3to5) && (num = ((bit3to5 & 32) | num)))));
-  
-	(((0 == bit5to3) && (num = (~(bit5to3 | 8) & num))) || 
-		   (((0 != bit5to3) && (num = ((bit5to3 & 8) | num)))));
-		   
 	return num;	   
 }
 
@@ -178,20 +178,56 @@ int NumOfSetBits(int num)
 	
 	return counter;
 }
-/*
+
+int popcount32b(unsigned int x)
+{
+    x -= (x >> 1) & m1;				/* put count of each 2 bits into those 2 bits */
+    x = (x & m2) + ((x >> 2) & m2); /* put count of each 4 bits into those 4 bits */
+    x = (x + (x >> 4)) & m4;        /* put count of each 8 bits into those 8 bits */
+    x += x >>  8;  					/* put count of each 16 bits into their lowest 8 bits */
+    x += x >> 16;  					/* put count of each 32 bits into their lowest 8 bits */
+    return x & 0x7f;
+}
+
 void FloatAnalysis(float num)
 {
-	printf("%d\n", num);
-	printf("\n");
+	decToBinary(num);
 }
-*/
+
+
+void decToBinary(unsigned int n) 
+{ 
+    /* array to store binary number */
+    int binaryNum[32];
+    int j = 0;
+  
+    /* counter for binary array */ 
+    int i = 0; 
+    while (n > 0) { 
+  
+        /* storing remainder in binary array */ 
+        binaryNum[i] = n % 2; 
+        n = n / 2; 
+        ++i; 
+    } 
+  
+    /* printing binary array in reverse order */
+    for (j = i - 1; j >= 0; j--)
+    { 
+        printf("%d", binaryNum[j]);
+    }
+    
+    printf("\n");        
+} 
+
 int main()
 {
-	int num = 100;
+/*	printf("1594896151 --> %d\n", popcount64b(1594896151));*/
 /*	unsigned int x = 5;
 	printf("%u, %u, %u\n", x, x << 2, x >> 2);	
-	FloatAnalysis(7.5);
-*/	
+*/	float num = 100.093;
+	printf("%f --> ",num);
+	FloatAnalysis(num);
 /*	printf("561 --> %d\n", NumOfSetBits(561));
 	printf("32 --> %d\n", NumOfSetBits(32));
 	printf("-95 --> %d\n", NumOfSetBits(-95));
@@ -200,9 +236,9 @@ int main()
 	printf("1 --> %d\n", NumOfSetBits(1));
 	printf("0 --> %d\n", NumOfSetBits(0));
 */	
-	printf("Before, num = %u\n", num);
+/*	printf("Before, num = %u\n", num);
 	printf("After, num = %u\n", SwitchBits(num));
-	
+*/	
 /*	int x = 1;
 	int y = 49;
 	printf("Before swap x = %d, y = %d\n", x, y);
