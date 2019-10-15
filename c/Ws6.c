@@ -8,24 +8,40 @@
 
 #include <stdio.h> /* printf */
 #include <assert.h> /* assert */
-#include <string.h>
 
+/* calculates x*(2^y) */
 long Pow2(unsigned int x, unsigned int y);
+/* checks if num is a power of 2 using a loop*/
 int IsPowOfTwoLoop(unsigned int num);
+/* checks if num is a power of 2 without using a loop */
 int IsPowOfTwoNoLoop(unsigned int num);
+/* Add one to num */
 int AddOne(int num);
-void ThreeBitsOn(unsigned int *num, int size); /* exactly 3 bits */
-int ByteMirrorLoop(int num); /* for 8 bits Byte only */
-int ByteMirrorNoLoop(int num); /* for 8 bits Byte only */
+/* returns all numbers that have exactly 3 bits on */
+void ThreeBitsOn(unsigned int *num, int size);
+/* Mirror bits for 8 bits Byte only using a loop */
+int ByteMirrorLoop(int num);
+/* Mirror bits for 8 bits Byte only without using a loop */
+int ByteMirrorNoLoop(int num);
+/* checks if both bits 2 and 6 exist */
 int BothBitsExist(unsigned char chr);
+/* checks if only one of bits 2 and 6 exists */
 int OnlyOneBitExists(unsigned char chr);
+/* switch between bits 3 and 5 */
 unsigned char SwitchBits(unsigned char num);
-unsigned int ClosestSmallerNum(unsigned int num); /* that devides by 16 */
+/* returns closest smaller number that devides by 16 wihtout a ermainder */
+unsigned int ClosestSmallerNum(unsigned int num);
+/* swap between two veroables wihtout using a third veriable */
 void SwapVeriables(int *num1, int *num2);
+/* counts how many bits are set in a number using a loop */
 int NumOfSetBitsLoop(int num);
+/* counts how many bits are set in a number without using a loop */
 int NumOfSetBitsNoLoop(unsigned int x);
+/* look at type float as an int type in order to understand its convention */ 
 void FloatAnalysis(float num);
+/* print binary representation of num */
 void PrintBits(int num);
+/* Below are test functions for each function above */
 void TestPow2();
 void TestIsPowOfTwoLoop();
 void TestIsPowOfTwoNoLoop();
