@@ -274,7 +274,7 @@ void FloatAnalysis(float num)
 void PrintBits(int num)
 {
 	int size = 8 * sizeof(int);
-	unsigned int mask = 2147483648;
+	unsigned int mask = 2147483648; /* 1000...0 */
 	int i = 0;
 	
 	for (i = 0; i < size; ++i)
