@@ -155,7 +155,7 @@ void ThreeBitsOn(unsigned int *num, int size)
 	int counter = 0;
 	unsigned int tmp_num = 0;
 	
-	assert(NULL == num);
+	assert(num);
 	
 	for (i = 0; i < size; ++i)
 	{
