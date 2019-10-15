@@ -19,9 +19,9 @@ int IsPowOfTwoNoLoop(unsigned int num);
 int AddOne(int num);
 /* returns all numbers that have exactly 3 bits on */
 void ThreeBitsOn(unsigned int *num, int size);
-/* Mirror bits for 8 bits Byte only using a loop */
+/* Mirror bits for 8 bits Byte only, using a loop */
 int ByteMirrorLoop(int num);
-/* Mirror bits for 8 bits Byte only without using a loop */
+/* Mirror bits for 8 bits Byte only, without using a loop */
 int ByteMirrorNoLoop(int num);
 /* checks if both bits 2 and 6 exist */
 int BothBitsExist(unsigned char chr);
@@ -35,7 +35,7 @@ unsigned int ClosestSmallerNum(unsigned int num);
 void SwapVeriables(int *num1, int *num2);
 /* counts how many bits are set in a number using a loop */
 int NumOfSetBitsLoop(int num);
-/* counts how many bits are set in a number without using a loop */
+/* counts how many bits are set in a number using Hamming weight algorithm */
 int NumOfSetBitsNoLoop(unsigned int x);
 /* look at type float as an int type in order to understand its convention */ 
 void FloatAnalysis(float num);
@@ -155,6 +155,8 @@ void ThreeBitsOn(unsigned int *num, int size)
 	int counter = 0;
 	unsigned int tmp_num = 0;
 	
+	assert(NULL == num);
+	
 	for (i = 0; i < size; ++i)
 	{
 		tmp_num = num[i];
@@ -271,11 +273,11 @@ int NumOfSetBitsLoop(int num)
 
 int NumOfSetBitsNoLoop(unsigned int x)
 {	
-    x -= (x >> 1) & m1;				/* put count of each 2 bits into those 2 bits */
-    x = (x & m2) + ((x >> 2) & m2); /* put count of each 4 bits into those 4 bits */
-    x = (x + (x >> 4)) & m4;        /* put count of each 8 bits into those 8 bits */
-    x += x >>  8;  					/* put count of each 16 bits into their lowest 8 bits */
-    x += x >> 16;  					/* put count of each 32 bits into their lowest 8 bits */
+    x -= (x >> 1) & m1;
+    x = (x & m2) + ((x >> 2) & m2);
+    x = (x + (x >> 4)) & m4;
+    x += x >>  8;
+    x += x >> 16;
     return x & 0x7f;
 }
 
