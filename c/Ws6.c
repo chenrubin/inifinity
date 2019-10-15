@@ -1,6 +1,6 @@
 /********************************************
 *	Author : ChenR							*
-*	Reviewer : EyalF						*
+*	Reviewer : Tamir						*
 *	WS6	- 									*
 *	including bitwise tests					*
 *											*				
@@ -8,6 +8,7 @@
 
 #include <stdio.h> /* printf */
 #include <assert.h> /* assert */
+#include <string.h>
 
 long Pow2(unsigned int x, unsigned int y);
 int IsPowOfTwoLoop(unsigned int num);
@@ -24,7 +25,7 @@ void SwapVeriables(int *num1, int *num2);
 int NumOfSetBitsLoop(int num);
 int NumOfSetBitsNoLoop(unsigned int x);
 void FloatAnalysis(float num);
-void decToBinary(unsigned int n);
+void PrintBits(int num);
 void TestPow2();
 void TestIsPowOfTwoLoop();
 void TestIsPowOfTwoNoLoop();
@@ -41,7 +42,7 @@ void TestNumOfSetBitsLoop();
 void TestNumOfSetBitsNoLoop();
 void TestFloatAnalysis();
 
-#define BINMASK 32767
+#define BINMASK 32767 
 #define m1 0x5555555555555555
 #define m2 0x3333333333333333
 #define m4 0x0f0f0f0f0f0f0f0f
@@ -264,28 +265,31 @@ int NumOfSetBitsNoLoop(unsigned int x)
 
 void FloatAnalysis(float num)
 {
-	decToBinary(num);
+	int *ptr = (int *)&num;
+	
+	PrintBits(*ptr);
+	printf(" <-- Actual\n");
 }
 
-void decToBinary(unsigned int n)
-{ 
-    int binaryNum[32];
-    int j = 0;
-    int i = 0;
-     
-    while (n > 0) 
-    { 
-        binaryNum[i] = n % 2; 
-        n = n / 2; 
-        ++i; 
-    } 
-  
-    for (j = i - 1; j >= 0; --j)
-    { 
-        printf("%d", binaryNum[j]);
-    }
-    
-    printf("\n");        
+void PrintBits(int num)
+{
+	int size = 8 * sizeof(int);
+	unsigned int mask = 2147483648;
+	int i = 0;
+	
+	for (i = 0; i < size; ++i)
+	{
+		if ((num & mask) == mask)
+		{
+			printf("1");
+		}
+		else
+		{
+			printf("0");
+		}
+		
+		mask = mask >> 1;
+	}
 }
 
 void TestPow2()
@@ -556,19 +560,24 @@ void TestNumOfSetBitsNoLoop()
 void TestFloatAnalysis()
 {
 	float input[] = {100.093, 98.654, 20.5, 1.5};
+	char *bin[] = {"01000010110010000010111110011110", 
+				   "01000010110001010100111011011001",
+				   "01000001101001000000000000000000", 
+				   "00111111110000000000000000000000"};
 	int i = 0;
 	int len = sizeof(input) / sizeof(float);
 	
 	printf("\n\n/********************************\n");
-	printf("  Num of set bits without loop	 \n");	
+	printf("  Float analysis					 \n");
 	printf("********************************/\n\n");
 	
 	printf("This test is done manually\n");
 	
 	for (i = 0; i < len; ++i)
 	{
-		printf("%f --> ", input[i]);
+		printf("%s <-- Expected\n", bin[i]);
 		FloatAnalysis(input[i]);
+		printf("\n");
 	}
 }
 
@@ -588,6 +597,7 @@ int main()
 	TestSwapVeriables();
 	TestNumOfSetBitsLoop();
 	TestNumOfSetBitsNoLoop();
+	TestFloatAnalysis();
 
 	return 0;
 }
