@@ -6,11 +6,7 @@
 #define NUMOFCOMPARE 1
 #define MAXBUFSIZE 256
 
-int CmpRmv(char *str_input, char *str_to_cmp);
-int CmpCnt(char *str_input, char *str_to_cmp);
-int CmpExit(char *str_input, char *str_to_cmp);
-int CmpFileBegin(char *str_input, char *str_to_cmp);
-int CmpAll(char *str_input, char *str_to_cmp);
+int CmpAll(const char *str_input, const char *str_to_cmp, size_t n);
 int RmvFile(int res, char *str, char *argv[]);
 int CntFile(int res, char *str, char *argv[]);
 int exitFile(int res, char *str, char *argv[]);
@@ -27,16 +23,16 @@ int main(int argc, char *argv[])
 	struct logger_t
 	{
 		char *buf;
-		int (*comp_func)(char *str_input, char *str_to_cmp);
+		int (*comp_func)(const char *str_input, const char *str_to_cmp, size_t n);
 		/*enum*/ int (*oper_func)(int res, char *str, char *argv[]);
 	};
 	
 	struct logger_t chain[CHAINSIZE] = 
 	{
-		{"-remove", CmpRmv, RmvFile},
-		{"-count", CmpCnt, CntFile},
-		{"-exit", CmpExit, exitFile},
-		{"<", CmpFileBegin, BeginFile},
+		{"-remove", strncmp, RmvFile},
+		{"-count", strncmp, CntFile},
+		{"-exit", strncmp, exitFile},
+		{"<", strncmp, BeginFile},
 		{"", CmpAll, AllFile}
 	};
 
@@ -44,14 +40,12 @@ int main(int argc, char *argv[])
 	{
 		i = 0;
 		res = 1;
-		printf("res = %d and i = %d\n", res, i);
-		printf("Please select string\n");
+		
 		fgets(buffer, MAXBUFSIZE, stdin);
 			
 		while ((i < 5) && (0 != res))
 		{
-			res = chain[i].comp_func(buffer, chain[i].buf);
-			printf("res = %d\n", res);
+			res = chain[i].comp_func(buffer, chain[i].buf, strlen(chain[i].buf) - 1);
 			chain[i].oper_func(res, buffer, argv);
 			++i;
 		}
@@ -60,34 +54,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-/* Comparison functions */
-int CmpRmv(char *str_input, char *str_to_cmp)
-{
-	printf("compare remove %s with %s\n", str_input, str_to_cmp);
-	return (strncmp(str_input, str_to_cmp, strlen(str_input) - 1));
-}
-
-int CmpCnt(char *str_input, char *str_to_cmp)
-{
-	printf("compare count %s with %s\n", str_input, str_to_cmp);
-	return (strncmp(str_input, str_to_cmp, strlen(str_input) - 1));
-}
-
-int CmpExit(char *str_input, char *str_to_cmp)
-{
-	printf("compare exit %s with %s\n", str_input, str_to_cmp);
-	printf("input = %s, comp = %s\n", str_input, str_to_cmp);
-	return (strncmp(str_input, str_to_cmp, strlen(str_input) - 1));
-}
-
-int CmpFileBegin(char *str_input, char *str_to_cmp)
-{
-	printf("compare begin %s with %s\n", str_input, str_to_cmp);
-	
-	return (strncmp(str_input, str_to_cmp, NUMOFCOMPARE));
-}
-
-int CmpAll(char *str_input, char *str_to_cmp)
+/* Comparison function */
+int CmpAll(const char *str_input, const char *str_to_cmp, size_t n)
 {
 	return 0;
 }
@@ -97,7 +65,6 @@ int RmvFile(int res, char *str, char *argv[])
 {	
 	if (0 == res)
 	{
-		printf("remove file\n");
 		remove(argv[1]);
 		return 0;
 	}
@@ -107,7 +74,7 @@ int RmvFile(int res, char *str, char *argv[])
 
 int CntFile(int res, char *str, char *argv[])
 {
-	FILE *fp; 
+	FILE *fp;
 	int count = 0;
 	char c = '\0';
 	
@@ -124,7 +91,8 @@ int CntFile(int res, char *str, char *argv[])
 		}
 		
 		fclose(fp);
-		printf("There are %d lines in the file\n", count);
+		printf("There are %d lines in file\n", count);
+		
 		return 0;
 	}
 	
@@ -133,28 +101,24 @@ int CntFile(int res, char *str, char *argv[])
 
 int exitFile(int res, char *str, char *argv[])
 {
-	printf("inside exit oper --> res = %d\n", res);
 	if (0 == res)
 	{
 		exit(0);
 	}
-	
-	printf("exit file\n");
-	
-	return 0;
+		
+	return 1;
 }
 
 int BeginFile(int res, char *str, char *argv[])
 {
 	FILE *fp;
-	
+
 	if (0 == res)
 	{
-		fp = fopen(argv[1], "a");
+		fp = fopen(argv[1], "r+");
 		fseek (fp, 0, SEEK_SET);
-		fputs(str, fp);
+		fputs(str + 1, fp);
 		fclose(fp);
-		printf("begin file");
 		
 		return 0;
 	}
@@ -171,7 +135,6 @@ int AllFile(int res, char *str, char *argv[])
 		fp = fopen(argv[1], "a");
 		fputs(str, fp);
 		fclose(fp);
-		printf("all file\n");
 		
 		return 0;
 	}
