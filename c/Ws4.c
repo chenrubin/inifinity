@@ -13,39 +13,99 @@
 void IfElseFunction();
 void SwitchCaseFunction();
 void LutCaseFunction();
-void LutToption();
-void LutAoption();
-void LutESCoption();
-void LutNULLoption();
+void LutToption(); /* funtion that prints "pressed T" */
+void LutAoption(); /* funtion that prints "pressed A" */
+void LutESCoption(); /* funtion that exits program */
+void LutNULLoption(); /* funtion that does nothing */
+
+/* below is the LUT table content defined in advance */
+#define NULL27 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption
+
+#define NULL37 LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption
+
+#define NULL18 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption
+
+#define NULL171 LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption,\
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, LutNULLoption, \
+LutNULLoption, LutNULLoption
 
 void IfElseFunction()
 {
 	char chr = '\0';
 	
+	printf("\n****************************\n");
+	printf("	 If else way			  \n");
+	printf("******************************/\n\n");
+	
+	system("stty -icanon -echo");
+	
 	while (1)
-	{		
-		printf("\n****************************\n");
-		printf("	 If else way			  \n");
-		printf("******************************/\n\n");
-		
+	{				
 		chr = getchar();
 		
-		if (chr == 'A')
+		if ('A' == chr)
 		{
 			printf("A pressed\n");
 		}
-		else if (chr == 'T')
+		else if ('T' == chr)
 		{
 			printf("T pressed\n");
 		}
-		else if (chr == 27) /* ecsape key */
+		else if (27 == chr) /* ecsape key */
 		{
 			system("stty icanon echo");
 			exit(0);
 		}
 		else
 		{
-			printf("\nContinue pressing\n");
+			printf("Continue pressing\n");
 		}
 	}
 }
@@ -57,6 +117,8 @@ void SwitchCaseFunction()
 	printf("\n****************************\n");
 	printf("	switch case way			  \n");
 	printf("*****************************/\n\n");
+	
+	system("stty -icanon -echo");
 	
 	while (1)
 	{		
@@ -78,30 +140,23 @@ void SwitchCaseFunction()
 				break;
 			
 			default:
-				printf("\nContinue pressing\n");			
+				printf("Continue pressing\n");
+				break;		
 		}
 	}
 }
 
 void LutCaseFunction()
 {	
-	void (*func_p_array[256])();
-	int i = 0;
 	char chr = '\0';
+	static void (*func_p_array[256])() = {NULL27, LutESCoption, NULL37,
+				LutAoption, NULL18, LutToption, NULL171};
 	
 	printf("\n****************************\n");
 	printf("	LUT	way 				  \n");
 	printf("*****************************/\n\n");
 	
-	for (i = 0 ; i < 256 ; ++i)
-	{
-		func_p_array[i] = LutNULLoption;
-	}
-	
-	func_p_array['A'] = LutAoption;
-	func_p_array['T'] = LutToption;
-	func_p_array[27] = LutESCoption;
-	
+	system("stty -icanon -echo");
 	
 	while (1)
 	{		
@@ -112,12 +167,12 @@ void LutCaseFunction()
 
 void LutToption()
 {
-	printf("\nT pressed\n");
+	printf("T pressed\n");
 }
 
 void LutAoption()
 {
-	printf("\nA pressed\n");
+	printf("A pressed\n");
 }
 
 void LutESCoption()
@@ -128,15 +183,37 @@ void LutESCoption()
 
 void LutNULLoption()
 {
-	printf("\nContinue pressing\n");
+	printf("Continue pressing\n");
 }
 
 int main()
 {
-	system("stty -icanon -echo");
-	IfElseFunction();
-	SwitchCaseFunction();
-	LutCaseFunction();
+	int n = 0;
+	
+	printf("Please choose what function to test\n");
+	printf("1 - if_else, 2 - switch_case, 3 - LUT\n");
+	
+	while (1)
+	{
+		scanf("%d", &n);
+	
+		if (1 == n)
+		{
+			IfElseFunction();
+		}
+		else if (2 == n)
+		{
+			SwitchCaseFunction();
+		}
+		else if (3 == n)
+		{
+			LutCaseFunction();
+		}
+		else
+		{
+			printf("Choose only 1,2 or 3\n");
+		}
+	}
 
 	return 0;
 }

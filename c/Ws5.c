@@ -5,8 +5,8 @@
 *
 ****************************/
 
-#include <stdio.h> /* printf */
-#include <string.h> /* strcmp and strncmp */
+#include <stdio.h> /* printf, fopen, fclose */
+#include <string.h> /* strcmp, strncmp */
 #include <stdlib.h> /* exit */
 
 #define CHAINSIZE 5
@@ -15,24 +15,47 @@
 
 enum error_code
 {
-	REMOVE_FILE		=	0,
-	COUNT_LINES 	=	1,
-	EXIT			=	2,
-	PREPEND_FILE 	=	3,
-	ADD_STRING		=	4,
-	NULL_FILE		=	5
+	OP_OK			=	0,
+	NULL_FILE	 	=	1,
+	FILE_NOT_FOUND	=	2
 };
 
+/* Last compare - dummy compare that catches everything */
 int CmpAll(const char *str_input, const char *str_to_cmp);
+
+/* compare for -exit, -count, -remove */
 int MyStrnCmp(const char *str_input, const char *str_to_cmp);
+
+/* Compare for '<' */ 
 int MyStrCmp(const char *str_input, const char *str_to_cmp);
+
+/* manages all process */
+void Logger(char *argv[]);
+
+/* operational function that remove file */
 enum error_code RmvFile(char *str, char *argv[]);
+
+/* operational function that counts lines in file */
 enum error_code CntFile(char *str, char *argv[]);
+
+/* operational function that exits the program */
 enum error_code exitFile(char *str, char *argv[]);
+
+/* operational function that prepends to a file */
 enum error_code BeginFile(char *str, char *argv[]);
+
+/* operational function that appends to a file */
 enum error_code AllFile(char *str, char *argv[]);
 
 int main(int argc, char *argv[])
+{
+	Logger(argv);
+	(void)argc;
+	
+	return 0;
+}
+
+void Logger(char *argv[])
 {
 	int i = 0;
 	int oper_flag = 1;
@@ -65,25 +88,24 @@ int main(int argc, char *argv[])
 		strcpy(tempbuf, buffer);
 		buffer[strcspn(buffer, "\n")] = '\0';
 		
-		while ((i < 5) && oper_flag)
+		while ((i < CHAINSIZE) && oper_flag)
 		{
 			if(0 == chain[i].comp_func(buffer, chain[i].buf))
 			{
 				status = chain[i].oper_func(tempbuf, argv);
-				printf("status = %d\n", status);
+				if (status)
+				{
+					printf("status = %d\n", status);
+				}
 				oper_flag = 0;
 			}
 			
 			++i;
 		}
 	}
-	
-	(void)argc;
-	
-	return 0;
 }
 
-/* Comparison function */
+/* comparison functions */
 int CmpAll(const char *str_input, const char *str_to_cmp)
 {
 	(void)str_input;
@@ -108,21 +130,21 @@ enum error_code RmvFile(char *str, char *argv[])
 	if(remove(argv[1]))
 	{
 		printf("Remove is impossible, check if file exists\n");
-		return NULL_FILE;
+		return FILE_NOT_FOUND;
 	}
 	
 	(void)str;
 	
-	return REMOVE_FILE;
+	return OP_OK;
 }
 
 enum error_code CntFile(char *str, char *argv[])
 {
-	FILE *fp;
+	FILE *fp = fopen(argv[1], "r");
 	int count = 0;
 	char c = '\0';
 	
-	if((fp = fopen(argv[1], "r")))
+	if(NULL != fp)
 	{
 		for (c = getc(fp); c != EOF; c = getc(fp))
 		{
@@ -135,12 +157,13 @@ enum error_code CntFile(char *str, char *argv[])
 		fclose(fp);
 		printf("There are %d lines in file\n", count);
 		
-		return COUNT_LINES;
+		return OP_OK;
 	}
 	else
 	{
 		printf("opening file for counting returned NULL\n");
-		return NULL_FILE;
+		
+		return FILE_NOT_FOUND;
 	}
 	
 	(void)str;
@@ -150,7 +173,8 @@ enum error_code exitFile(char *str, char *argv[])
 {
 	(void)str;
 	(void)argv;
-	exit(2);
+	
+	exit(0);
 }
 
 enum error_code BeginFile(char *str, char *argv[])
@@ -175,31 +199,31 @@ enum error_code BeginFile(char *str, char *argv[])
 		fclose(fp);
 		fclose(temp_file);
 		
-		return PREPEND_FILE;
+		return OP_OK;
 	}
 	else
 	{
-		printf("opening file for begin returned NULL\n");
-		return NULL_FILE;
+		printf("opening file for prepending returned NULL\n");
+		
+		return FILE_NOT_FOUND;
 	}
 }
 
 enum error_code AllFile(char *str, char *argv[])
 {
-	FILE *fp;
+	FILE *fp = fopen(argv[1], "a");
 	
-	fp = fopen(argv[1], "a");
-	
-	if (fp)
+	if (NULL != fp)
 	{
 		fputs(str, fp);
 		fclose(fp);
 		
-		return ADD_STRING;
+		return OP_OK;
 	}
 	else
 	{
-		printf("opening file for All returned NULL\n");
+		printf("opening file for appending returned NULL\n");
+		
 		return NULL_FILE;
 	}
 }
