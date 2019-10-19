@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 void Logger(char *argv[])
 {
 	int i = 0;
-	int oper_flag = 1;
 	char buffer[MAXBUFSIZE];
 	char tempbuf[MAXBUFSIZE];
 	int status = 0;
@@ -88,13 +87,12 @@ void Logger(char *argv[])
 	while (1)
 	{
 		i = 0;
-		oper_flag = 1;
 		
 		fgets(buffer, MAXBUFSIZE, stdin);
 		strcpy(tempbuf, buffer);
 		buffer[strcspn(buffer, "\n")] = '\0';
 		
-		while ((i < CHAINSIZE) && oper_flag)
+		while (i < CHAINSIZE)
 		{
 			if(0 == chain[i].comp_func(buffer, chain[i].buf))
 			{
@@ -105,7 +103,7 @@ void Logger(char *argv[])
 					printf("status = %d\n", status);
 				}
 				
-				oper_flag = 0;
+				break;
 			}
 			
 			++i;
