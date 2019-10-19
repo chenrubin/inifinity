@@ -61,7 +61,7 @@ void Logger(char *argv[])
 	int oper_flag = 1;
 	char buffer[MAXBUFSIZE];
 	char tempbuf[MAXBUFSIZE];
-	int status;
+	int status = 0;
 	
 	struct logger_t
 	{
@@ -79,6 +79,12 @@ void Logger(char *argv[])
 		{"", CmpAll, AllFile}
 	};
 	
+	if (NULL == argv[1])
+	{
+		printf("Don't forget to choose a file name\n");
+		exit(0);
+	}
+	
 	while (1)
 	{
 		i = 0;
@@ -93,10 +99,12 @@ void Logger(char *argv[])
 			if(0 == chain[i].comp_func(buffer, chain[i].buf))
 			{
 				status = chain[i].oper_func(tempbuf, argv);
+				
 				if (status)
 				{
 					printf("status = %d\n", status);
 				}
+				
 				oper_flag = 0;
 			}
 			
@@ -179,7 +187,7 @@ enum error_code exitFile(char *str, char *argv[])
 
 enum error_code BeginFile(char *str, char *argv[])
 {
-	FILE *fp = fopen(argv[1], "r+");
+	FILE *fp = fopen(argv[1], "a+");
 	FILE *temp_file;
 	char c = '\0';
 
