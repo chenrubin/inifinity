@@ -2,18 +2,25 @@
 *	Author: ChenR				*
 *	Reviewer: Dvir				*
 *	Ws8							*
-*	Structs/Unions				*
+*	Structs						*
 *								*
 ********************************/
 
 #include <stdio.h> /* printf */
 #include <string.h> /* strcpy */
 #include <stdlib.h> /* malloc */
+#include <assert.h> /* assert */
 
+/* Excersize 2 */
 #define MAX2(a,b) a > b ? a : b
 #define MAX3(a,b,c) a > b ? (a > c ? a : c) : (b > c ? b : c)
+
+/* Excersize 3 */
 #define SIZEOF_VAR(x) (char *)(&x+1) - (char *)(&x)
+
+/* Excersize 4 */
 #define SIZEOF_TYPE(type) (long)((type *)0 + 1)
+
 #define SIZE 3
 #define checkResultOneNum(num, res, expres)\
 		{\
@@ -53,7 +60,7 @@
 				printf("res = %d, expres = %d\n", res, expres);\
 			}\
 		}					
-
+/* struct which will be used for Excersize 1 */
 typedef struct element
 {
 	void *data;
@@ -61,50 +68,72 @@ typedef struct element
 	void(*AddFunc)(void **, int num);
 } element;
 
+/* printf for integer */
 void PrintElementInt(void *data);
+
+/* printf for float */
 void PrintElementFloat(void *data);
+
+/* printf for string */
 void PrintElementString(void *data);
+
+/* Add int variable */
 void MathAddInt(void **data, int add);
+
+/* Add float variable */
 void MathAddFloat(void **data, int add);
+
+/* Add variable to string*/
 void StringAdd(void **data, int add);
+
+/* free allocated memory */
 void FreeElement(void *data);
+
+/* Test functions */
 void TestElementArray();
 void TestMaxMacros();
 void TestSizeofVarMacro();
 void TestSizeofTypeMacro();
 
 void PrintElementInt(void *data)
-{		
+{
+	assert(data);
 	printf("%d\n", *(int *)&data);
 }
 
 void PrintElementFloat(void *data)
-{	
+{
+	assert(data);
 	printf("%f\n", *(float *)&data);
 }
 
 void PrintElementString(void *data)
-{	
+{
+	assert(data);
 	printf("%s\n", (char *)data);
 }
 
 void MathAddInt(void **data, int add)
 {
+	assert(data);
 	*((int *)data) += add;
 }
 
 void MathAddFloat(void **data, int add)
 {
+	assert(data);
 	*((float *)data) += (float)add;
 }
 
 void StringAdd(void **data, int add)
 {
+	assert(data);
 	sprintf(*data, "%s%d", (char *)*data, add);
 }
 
 void FreeElement(void *data)
 {
+	assert(data);
 	free(data);
 }
 
