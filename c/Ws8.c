@@ -12,8 +12,8 @@
 #include <assert.h> /* assert */
 
 /* Excersize 2 */
-#define MAX2(a,b) a > b ? a : b
-#define MAX3(a,b,c) a > b ? (a > c ? a : c) : (b > c ? b : c)
+#define MAX2(a,b) (a) > (b) ? a : b
+#define MAX3(a,b,c) (a) > (b) ? (a > c ? a : c) : (b > c ? b : c)
 
 /* Excersize 3 */
 #define SIZEOF_VAR(x) (char *)(&x+1) - (char *)(&x)
@@ -22,6 +22,7 @@
 #define SIZEOF_TYPE(type) (long)((type *)0 + 1)
 
 #define SIZE 3
+#define ALLOCATED_SIZE 20
 #define checkResultOneNum(num, res, expres)\
 		{\
 			if (res == expres) \
@@ -65,8 +66,8 @@ typedef struct element
 {
 	void *data;
 	void(*PrintFunc)(void *);
-	void(*AddFunc)(void **, int num);
-} element;
+	void(*AddFunc)(void **, int);
+} element_t;
 
 /* printf for integer */
 void PrintElementInt(void *data);
@@ -94,6 +95,16 @@ void TestElementArray();
 void TestMaxMacros();
 void TestSizeofVarMacro();
 void TestSizeofTypeMacro();
+
+int main()
+{	
+	TestElementArray();
+	TestMaxMacros();
+	TestSizeofVarMacro();
+	TestSizeofTypeMacro();	
+
+	return 0;
+} 
 
 void PrintElementInt(void *data)
 {
@@ -140,7 +151,7 @@ void FreeElement(void *data)
 void TestElementArray()
 {
 	int i = 0;
-	element e_array[SIZE];
+	element_t e_array[SIZE];
 	
 	printf("\n/*******************************************\n");
 	printf("		Testing element array				    ");
@@ -154,7 +165,7 @@ void TestElementArray()
 	e_array[1].PrintFunc = PrintElementFloat;
 	e_array[1].AddFunc = MathAddFloat;
 	
-	e_array[2].data = malloc(20);
+	e_array[2].data = malloc(ALLOCATED_SIZE * sizeof(char));
 	if (NULL == e_array[2].data)
 	{
 		printf("returned NULL\n");
@@ -237,15 +248,5 @@ void TestSizeofTypeMacro()
 	printf("sizeof(long) == %ld, SIZEOF_TYPE(long) = %ld\n",
 			sizeof(long), SIZEOF_TYPE(long));
 	printf("sizeof(element) == %ld, SIZEOF_TYPE(element) = %ld\n",
-			sizeof(element), SIZEOF_TYPE(element));				
+			sizeof(element_t), SIZEOF_TYPE(element_t));				
 }
-
-int main()
-{	
-	TestElementArray();
-	TestMaxMacros();
-	TestSizeofVarMacro();
-	TestSizeofTypeMacro();	
-
-	return 0;
-} 
