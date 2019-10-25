@@ -4,6 +4,8 @@
 #define WORD sizeof(size_t)
 #define BYTE 8
 #define STRING_SIZE 100
+#define BASE 10
+#define INT_MAX_BYTES 12
 
 void *MyMemset(void *ptr, int value, size_t num)
 {
@@ -67,9 +69,57 @@ void *MyMemcpy(void *dest, const void *src, size_t num)
 	return dest;
 }
 
+void *MyMemove(void *dest, const void *src, size_t num)
+{
+	size_t i = 0;
+	size_t num_full_words = (num / WORD);
+	size_t end_words_src = (size_t)((size_t *)src + num_full_words);
+	size_t end_words_dst = (size_t)((size_t *)dest + num_full_words);
+	size_t num_last_byts = num - ((num / WORD) * WORD);
+	
+	/*	set last section */
+	for (i = 0; i < num_last_byts; ++i)
+	{
+		*((char *)end_words_dst + i) = *((char *)end_words_src + i);
+	}
+	
+	/*	set first section */
+	for (i = num_full_words; i > 0; --i)
+	{
+		*((size_t *)dest + i - 1) = *((size_t *)src + i - 1);
+	}
+
+	return dest;
+}
+
+char *itoa(int num)
+{
+	int i = num;
+	char *buf = (char*)malloc(INT_MAX_BYTES * sizeof(char));
+	buf[INT_MAX_BYTES - 1] = '\0';
+	
+	while (num > 0)
+	{
+		sprintf(buf + INT_MAX_BYTES - 1 - i, "%d", num % BASE);
+		num /= BASE;
+		++i;
+	}
+	
+	return buf;
+}
+
 int main()
 {
-	char *str_src = (char *)malloc(sizeof(char) * STRING_SIZE);
+	int num = 123;
+	char *str = itoa(num);
+	printf("%s\n", str);
+
+/*	char str[] = {"This is an experiment and I hope it will succeed"};
+	printf("%s\n", str);
+	MyMemove(str + 8, str, 13);
+	printf("%s\n", str);
+*/	
+/*	char *str_src = (char *)malloc(sizeof(char) * STRING_SIZE);
 	char *str_dst = (char *)malloc(sizeof(char) * STRING_SIZE);
 	str_src = "Trying memcpy for the first time, cross your fingers";
 	
@@ -78,7 +128,7 @@ int main()
 	MyMemcpy(str_dst, str_src + 2, 25);
 	*(str_dst + 33) = '\0';
 	printf("%s\n", str_dst);
-	
+*/	
 /*	char str[] = {"This is an experiment and I hope it will succeed"};
 	char str1[] = {"This is an experiment and I hope it will succeed"};
 	long l = 999999999999;
