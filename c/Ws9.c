@@ -5,9 +5,10 @@
 #define WORD sizeof(size_t)
 #define BYTE 8
 #define STRING_SIZE 100
-#define BASE 10
+#define BASE10 10
 #define INT_MAX_BYTES 11
 #define ASCII_NUM_CHARS 256
+#define ASCII_GAP 'A' - '9' - 1
 
 #define CHECK_RESULT(res, expres) res == expres
 
@@ -17,6 +18,8 @@ void *MyMemcpy(void *dest, const void *src, size_t num);
 void *MyMemmove(void *dest, const void *src, size_t num);
 char *Itoa(int num);
 int Atoi(char *str);
+char *ItoaGeneral(int num, int base);
+int AtoiGeneral(char *str, int base);
 void PrintLetters(char *str1, char *str2, char *str3);
 int IsLittleEndian();
 
@@ -25,6 +28,8 @@ void TestMyMemcpy();
 void TestMyMemmove();
 void TestItoa();
 void TestAtoi();
+void TestItoaGeneral();
+void TestAtoiGeneral();
 void TestPrintLetters();
 void TestIsLittleEndian();
 
@@ -37,6 +42,8 @@ int main()
 	TestAtoi();
 	TestPrintLetters();
 	TestIsLittleEndian();
+	TestItoaGeneral();
+	TestAtoiGeneral();
 	
 	return 0;
 }
@@ -150,17 +157,19 @@ char *Itoa(int num)
 	int buf_len = 0;
 	char tmp_chr = '\0';
 	char *buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
-
+	
+	/*	convert digits to chars */
 	while (num > 0)
 	{
-		*(buf + i) = (char)(num % BASE + '0');
-		num /= BASE;
+		*(buf + i) = (char)(num % BASE10 + '0');
+		num /= BASE10;
 		++i;
 	}
 	*(buf + i) = '\0';
+	
+	/* mirror string */
 	buf_len = i;
 	i= 0;
-	
 	while ((buf + i) < (buf + buf_len - 1 - i))
 	{
 		tmp_chr = *(buf + i);
@@ -188,7 +197,81 @@ int Atoi(char *str)
 	while (str_run >= str)
 	{
 		num += (*(str_run) - '0') * times;
-		times *= BASE;
+		times *= BASE10;
+		--str_run;
+	}
+	
+	return num;
+}
+
+char *ItoaGeneral(int num, int base)
+{
+	int i = 0;
+	int buf_len = 0;
+	char tmp_chr = '\0';
+	char *buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
+	int base_option = 0;
+	
+	/*	convert digits to chars */
+	while (num > 0)
+	{
+		base_option = num % base;
+		
+		if (base_option < BASE10)
+		{
+			*(buf + i) = (char)(num % base + '0');
+		}
+		else
+		{
+			*(buf + i) = (char)(num % base + '0' + ASCII_GAP);
+		}
+		
+		num /= base;
+		++i;
+	}
+	*(buf + i) = '\0';
+	
+	/* mirror string */
+	buf_len = i;
+	i= 0;
+	while ((buf + i) < (buf + buf_len - 1 - i))
+	{
+		tmp_chr = *(buf + i);
+		*(buf + i) = *(buf + buf_len - 1 - i);
+		*(buf + buf_len - 1 - i) = tmp_chr;
+		++i;
+	}
+	
+	return buf;
+}
+
+int AtoiGeneral(char *str, int base)
+{
+	int num = 0;
+	int times = 1;
+	char *str_run = str;
+	int base_option = 0;
+	
+	assert(str);
+	
+	while (*(str_run + 1) != '\0')
+	{
+		++str_run;
+	}
+	
+	while (str_run >= str)
+	{
+		base_option = *(str_run) - '0';
+		if (base_option < BASE10)
+		{
+			num += (*(str_run) - '0') * times;
+		}
+		else
+		{
+			num += (*(str_run) - '0' - (ASCII_GAP)) * times;
+		}
+		
+		times *= base;
 		--str_run;
 	}
 	
@@ -213,7 +296,7 @@ void PrintLetters(char *str1, char *str2, char *str3)
 	
 	while ('\0' != *str2)
 	{
-		if ((1 == ascii_array[0][(int)(*str2)]) && 
+		if ((1 == ascii_array[0][(int)(*str2)]) &&
 			(0 ==  ascii_array[1][(int)(*str2)]))
 		{
 			printf("%c, ", *str2);
@@ -273,13 +356,13 @@ void TestMyMemset()
 	}
 	
 	MyMemset(&l1, '*', 4);
-	printf("l1 after MyMemse = %ld\n", l1);
+	printf("l1 after MyMemset =	%ld\n", l1);
 	memset(&l2, '*', 4);
-	printf("l2 after MyMemse = %ld\n", l2);
+	printf("l2 after memset =	%ld\n", l2);
 	MyMemset(&n1, '*', 2);
-	printf("n1 after MyMemse = %d\n", n1);
+	printf("n1 after MyMemset =	%d\n", n1);
 	memset(&n2, '*', 2);
-	printf("n2 after MyMemse = %d\n", n2);
+	printf("n2 after memset =	%d\n", n2);
 	
 /*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
 				 *(long *)memset((long *)(&l2) + 1, '*', 5));
@@ -336,6 +419,9 @@ void TestMyMemcpy()
 		printf("FAILED\n");
 	}
 	
+	free(memcpy_str_dst);
+	free(mymemcpy_str_dst); 
+	
 /*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
 				 *(long *)memset((long *)(&l2) + 1, '*', 5));
 	
@@ -376,13 +462,16 @@ void TestMyMemmove()
 
 void TestItoa()
 {
-	int num = 12056780;
+	int num1 = 12056780;
+	int num2 = 1056780;
+	char *str = NULL;
 	
 	printf("\n/*******************************************\n");
 	printf("		Testing Itoa				    	");
 	printf("\n*******************************************/\n");
 	
-	if (0 == strcmp(Itoa(num), "12056780"))
+	str = Itoa(num1);
+	if (0 == strcmp(str, "12056780"))
 	{
 		printf("PASSED\n");
 	}
@@ -390,6 +479,20 @@ void TestItoa()
 	{
 		printf("FAILED\n");
 	}
+	
+	str = Itoa(num2);
+	if (0 == strcmp(str, "1056780"))
+	{
+		printf("PASSED\n");
+	}
+	else
+	{
+		printf("FAILED\n");
+	}
+	
+	printf("hex base -> %s\n", Itoa(0xABCDE));
+	
+	free(str);
 }
 
 void TestAtoi()
@@ -407,13 +510,65 @@ void TestAtoi()
 		printf("FAILED\n");
 	}
 	
-	if (145000915 == Atoi("145000915"))
+	if (14500915 == Atoi("14500915"))
 	{
 		printf("PASSED\n");
 	}
 	else
 	{
 		printf("FAILED\n");
+	}
+}
+
+void TestItoaGeneral()
+{
+	int num = 12056780;
+	int base_array[] = {8,16,25,32,36};
+	char str[5][9] = {"55774314", "B7F8CC", "15LFL5", "BFU6C", "76F2K"};
+	char *res = NULL;
+	int i = 0;
+	
+	printf("\n/*******************************************\n");
+	printf("		Testing ItoaGeneral				    	");
+	printf("\n*******************************************/\n");
+	
+	for (i = 0; i < 5; ++i)
+	{
+		res = ItoaGeneral(num, base_array[i]);
+		if (0 == strcmp(res, str[i]))
+		{
+			printf("PASSED for base %d\n", base_array[i]);
+		}
+		else
+		{
+			printf("FAILED for base %d\n", base_array[i]);
+		}
+	}
+}
+
+void TestAtoiGeneral()
+{
+	int i = 0;
+	int base_array[] = {8,16,25,32,36};
+	char num[5][9] = {"55774314", "B7F8CC", "15LFL5", "BFU6C", "76F2K"};
+	int res = 0;
+	int expres = 12056780;
+	
+	printf("\n/*******************************************\n");
+	printf("		Testing AtoiGeneral				    	");
+	printf("\n*******************************************/\n");
+	
+	for (i = 0; i < 5; ++i)
+	{
+		res = AtoiGeneral(num[i], base_array[i]);
+		if (res == expres)
+		{
+			printf("PASSED for base %d\n", base_array[i]);
+		}
+		else
+		{
+			printf("FAILED for base %d\n", base_array[i]);
+		}
 	}
 }
 
