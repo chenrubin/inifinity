@@ -121,9 +121,9 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 	if ((char *)dest > (char *)src)
 	{
 		/*	set last section */
-		for (i = 0; i < num_last_byts; ++i)
+		for (i = num_last_byts; i > 0; --i)
 		{
-			*((char *)end_words_dst + i) = *((char *)end_words_src + i);
+			*((char *)end_words_dst + i - 1) = *((char *)end_words_src + i - 1);
 		}
 		
 		/*	set first section */
@@ -135,9 +135,9 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 	else
 	{
 		/*	set first section */
-		for (i = num_full_words; i > 0; --i)
+		for (i = 0; i < num_full_words; ++i)
 		{
-			*((size_t *)dest + i - 1) = *((size_t *)src + i - 1);
+			*((size_t *)dest + i) = *((size_t *)src + i);
 		}
 		
 		/*	set last section */
@@ -335,8 +335,10 @@ void TestMyMemset()
 	printf("		Testing MyMemset				    	");
 	printf("\n*******************************************/\n");
 	
-	if (0 == strcmp(MyMemset(str1 + 5, '*', 23), 
-					memset(str2 + 5, '*', 23)))
+	MyMemset(str1 + 5, '*', 23);
+	memset(str2 + 5, '*', 23);
+	
+	if (0 == strcmp(str1, str2))
 	{
 		printf("PASSED\n");
 	}
@@ -345,8 +347,10 @@ void TestMyMemset()
 		printf("FAILED\n");
 	}
 	
-	if (0 == strcmp(MyMemset(str1 + 1, '9', 3), 
-					memset(str2 + 1, '9', 3)))
+	MyMemset(str1 + 1, '9', 3);
+	memset(str2 + 1, '9', 3);
+	
+	if (0 == strcmp(str1, str2))
 	{
 		printf("PASSED\n");
 	}
@@ -396,8 +400,10 @@ void TestMyMemcpy()
 	*(mymemcpy_str_dst + 26) = '\0';
 	*(memcpy_str_dst + 26) = '\0';
 	
-	if (0 == strcmp(MyMemcpy(mymemcpy_str_dst, str_src + 2, 25),
-					memcpy(memcpy_str_dst, str_src + 2, 25)))
+	MyMemcpy(mymemcpy_str_dst, str_src + 2, 25);
+	memcpy(memcpy_str_dst, str_src + 2, 25);
+	
+	if (0 == strcmp(memcpy_str_dst, mymemcpy_str_dst))
 	{
 		printf("PASSED\n");
 	}
@@ -409,8 +415,10 @@ void TestMyMemcpy()
 	*(mymemcpy_str_dst + 6) = '\0';
 	*(memcpy_str_dst + 6) = '\0';
 	
-	if (0 == strcmp(MyMemcpy(mymemcpy_str_dst, str_src, 5),
-					memcpy(memcpy_str_dst, str_src, 5)))
+	MyMemcpy(mymemcpy_str_dst, str_src, 5);
+	memcpy(memcpy_str_dst, str_src, 5);
+	
+	if (0 == strcmp(memcpy_str_dst, mymemcpy_str_dst))
 	{
 		printf("PASSED\n");
 	}
@@ -439,8 +447,10 @@ void TestMyMemmove()
 	printf("		Testing MyMemmove				    	");
 	printf("\n*******************************************/\n");
 	
-	if (0 == strcmp(MyMemmove(str1 + 8, str1, 13),
-					memmove(str2 + 8, str2, 13)))
+	MyMemmove(str1 + 8, str1, 13);
+	memmove(str2 + 8, str2, 13);
+	
+	if (0 == strcmp(str1, str2))
 	{
 		printf("PASSED\n");
 	}
@@ -448,9 +458,24 @@ void TestMyMemmove()
 	{
 		printf("FAILED\n");
 	}
-		
-	if (0 == strcmp(MyMemmove(str1 + 25, str1 + 30, 10),
-					memmove(str2 + 25, str2 + 30, 10)))
+	
+	MyMemmove(str1 + 25, str1 + 30, 10);
+	memmove(str2 + 25, str2 + 30, 10);
+	
+	if (0 == strcmp(str1, str2))
+	{
+		printf("PASSED\n");
+	}
+	else
+	{
+		printf("FAILED\n");
+	}
+	
+	MyMemmove(str1 + 1, str1, 4);
+	memmove(str2 + 1, str2, 4);
+
+	if (0 == strcmp(MyMemmove(str1 + 1, str1, 8),
+					memmove(str2 + 1, str2, 8)))
 	{
 		printf("PASSED\n");
 	}
@@ -489,8 +514,6 @@ void TestItoa()
 	{
 		printf("FAILED\n");
 	}
-	
-	printf("hex base -> %s\n", Itoa(0xABCDE));
 	
 	free(str);
 }
