@@ -156,19 +156,50 @@ char *Itoa(int num)
 	int i = 0;
 	int buf_len = 0;
 	char tmp_chr = '\0';
-	char *buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
+	char *buf = NULL;
+	int is_negative = 0;
+	
+	if (num < 0)
+	{
+		is_negative = 1;
+		num *= (-1);
+	}
+	
+	if (is_negative)
+	{
+		buf = (char *)malloc((INT_MAX_BYTES + 2) * sizeof(char));
+	}
+	else
+	{
+		buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
+	}
+	
+	if (NULL == buf)
+	{
+		printf("buf returned NULL\n");
+	}
 	
 	/*	convert digits to chars */
-	while (num > 0)
+	while (0 != num)
 	{
 		*(buf + i) = (char)(num % BASE10 + '0');
 		num /= BASE10;
 		++i;
 	}
-	*(buf + i) = '\0';
+	
+	if (is_negative)
+	{
+		*(buf + i) = '-';
+		*(buf + i + 1) = '\0';
+	}
+	else
+	{
+		*(buf + i) = '\0';
+	}
+	
 	
 	/* mirror string */
-	buf_len = i;
+	buf_len = strlen(buf);
 	i= 0;
 	while ((buf + i) < (buf + buf_len - 1 - i))
 	{
@@ -186,8 +217,15 @@ int Atoi(char *str)
 	int num = 0;
 	int times = 1;
 	char *str_run = str;
+	int is_negative = 0;
 	
 	assert(str);
+	
+	if ('-' == *(str))
+	{
+		is_negative = 1;
+		++str;
+	}
 	
 	while (*(str_run + 1) != '\0')
 	{
@@ -201,7 +239,7 @@ int Atoi(char *str)
 		--str_run;
 	}
 	
-	return num;
+	return is_negative ? -num : num;
 }
 
 char *ItoaGeneral(int num, int base)
@@ -209,11 +247,31 @@ char *ItoaGeneral(int num, int base)
 	int i = 0;
 	int buf_len = 0;
 	char tmp_chr = '\0';
-	char *buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
+	char *buf = NULL;
 	int base_option = 0;
+	int is_negative = 0;
+	
+	if (num < 0)
+	{
+		is_negative = 1;
+		num *= (-1);
+	}
+	
+	if (is_negative)
+	{
+		buf = (char *)malloc((INT_MAX_BYTES + 2) * sizeof(char));
+	}
+	else
+	{
+		buf = (char *)malloc((INT_MAX_BYTES + 1) * sizeof(char));
+	}
+	if (NULL == buf)
+	{
+		printf("buf returned NULL\n");
+	}
 	
 	/*	convert digits to chars */
-	while (num > 0)
+	while (0 != num)
 	{
 		base_option = num % base;
 		
@@ -229,11 +287,21 @@ char *ItoaGeneral(int num, int base)
 		num /= base;
 		++i;
 	}
-	*(buf + i) = '\0';
+
+	if (is_negative)
+	{
+		*(buf + i) = '-';
+		*(buf + i + 1) = '\0';
+	}
+	else
+	{
+		*(buf + i) = '\0';
+	}
 	
 	/* mirror string */
-	buf_len = i;
+	buf_len = strlen(buf);
 	i= 0;
+	
 	while ((buf + i) < (buf + buf_len - 1 - i))
 	{
 		tmp_chr = *(buf + i);
@@ -495,7 +563,7 @@ void TestMyMemmove()
 void TestItoa()
 {
 	int num1 = 12056780;
-	int num2 = 1056780;
+	int num2 = -1056780;
 	char *str = NULL;
 	
 	printf("\n/*******************************************\n");
@@ -514,7 +582,7 @@ void TestItoa()
 	free(str);
 	
 	str = Itoa(num2);
-	if (0 == strcmp(str, "1056780"))
+	if (0 == strcmp(str, "-1056780"))
 	{
 		printf("PASSED\n");
 	}
@@ -541,21 +609,24 @@ void TestAtoi()
 		printf("FAILED\n");
 	}
 	
-	if (14500915 == Atoi("14500915"))
+	if (-14500915 == Atoi("-14500915"))
 	{
 		printf("PASSED\n");
 	}
 	else
 	{
 		printf("FAILED\n");
+		printf("%d\n", Atoi("-14500915"));
 	}
 }
 
 void TestItoaGeneral()
 {
-	int num = 12056780;
+	int num_pos = 12056780;
+	char str_pos[5][10] = {"55774314", "B7F8CC", "15LFL5", "BFU6C", "76F2K"};
+	int num_neg = -12056780;
+	char str_neg[5][10] = {"-55774314", "-B7F8CC", "-15LFL5", "-BFU6C", "-76F2K"};
 	int base_array[] = {8,16,25,32,36};
-	char str[5][9] = {"55774314", "B7F8CC", "15LFL5", "BFU6C", "76F2K"};
 	char *res = NULL;
 	int i = 0;
 	
@@ -563,16 +634,37 @@ void TestItoaGeneral()
 	printf("		Testing ItoaGeneral				    	");
 	printf("\n*******************************************/\n");
 	
+	printf("Positive number\n");
+	
 	for (i = 0; i < 5; ++i)
 	{
-		res = ItoaGeneral(num, base_array[i]);
-		if (0 == strcmp(res, str[i]))
+		res = ItoaGeneral(num_pos, base_array[i]);
+		if (0 == strcmp(res, str_pos[i]))
 		{
 			printf("PASSED for base %d\n", base_array[i]);
 		}
 		else
 		{
 			printf("FAILED for base %d\n", base_array[i]);
+			printf("res = %s and expected = %s\n", res, str_pos[i]);
+		}
+		
+		free(res);
+	}
+	
+	printf("\nNegative number\n");
+	
+	for (i = 0; i < 5; ++i)
+	{
+		res = ItoaGeneral(num_neg, base_array[i]);
+		if (0 == strcmp(res, str_neg[i]))
+		{
+			printf("PASSED for base %d\n", base_array[i]);
+		}
+		else
+		{
+			printf("FAILED for base %d\n", base_array[i]);
+			printf("res = %s and expected = %s\n", res, str_neg[i]);
 		}
 		
 		free(res);
@@ -614,7 +706,7 @@ void TestPrintLetters()
 	int i = 0;
 	
 	printf("\n/*******************************************\n");
-	printf("		Testing Atoi					    	");
+	printf("		Testing Print letters			    	");
 	printf("\n*******************************************/\n");
 
 	PrintLetters(str1, str2, str3);
