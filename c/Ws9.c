@@ -511,6 +511,7 @@ void TestItoa()
 	{
 		printf("FAILED\n");
 	}
+	free(str);
 	
 	str = Itoa(num2);
 	if (0 == strcmp(str, "1056780"))
@@ -573,7 +574,9 @@ void TestItoaGeneral()
 		{
 			printf("FAILED for base %d\n", base_array[i]);
 		}
-	}
+		
+		free(res);
+	}	
 }
 
 void TestAtoiGeneral()
