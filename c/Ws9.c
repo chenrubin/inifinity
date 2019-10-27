@@ -337,8 +337,8 @@ void TestMyMemset()
 	
 	MyMemset(str1 + 5, '*', 23);
 	memset(str2 + 5, '*', 23);
-	
-	if (0 == strcmp(str1, str2))
+
+	if (0 == memcmp(str1, str2, strlen(str2)))
 	{
 		printf("PASSED\n");
 	}
@@ -350,7 +350,19 @@ void TestMyMemset()
 	MyMemset(str1 + 1, '9', 3);
 	memset(str2 + 1, '9', 3);
 	
-	if (0 == strcmp(str1, str2))
+	if (0 == memcmp(str1, str2, strlen(str2)))
+	{
+		printf("PASSED\n");
+	}
+	else
+	{
+		printf("FAILED\n");
+	}
+	
+	MyMemset(str1 + 1, '9', 3);
+	memset(str2 + 1, '9', 3);
+	
+	if (0 == memcmp(str1, str2, strlen(str2)))
 	{
 		printf("PASSED\n");
 	}
@@ -360,13 +372,28 @@ void TestMyMemset()
 	}
 	
 	MyMemset(&l1, '*', 4);
-	printf("l1 after MyMemset =	%ld\n", l1);
 	memset(&l2, '*', 4);
-	printf("l2 after memset =	%ld\n", l2);
+	
+	if (0 == memcmp(&l1, &l2, sizeof(long)))
+	{
+		printf("PASSED\n");
+	}
+	else
+	{
+		printf("FAILED\n");
+	}
+	
 	MyMemset(&n1, '*', 2);
-	printf("n1 after MyMemset =	%d\n", n1);
 	memset(&n2, '*', 2);
-	printf("n2 after memset =	%d\n", n2);
+	
+	if (0 == memcmp(&n1, &n2, sizeof(int)))
+	{
+		printf("PASSED\n");
+	}
+	else
+	{
+		printf("FAILED\n");
+	}
 	
 /*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
 				 *(long *)memset((long *)(&l2) + 1, '*', 5));
@@ -378,32 +405,18 @@ void TestMyMemset()
 
 void TestMyMemcpy()
 {	
-	char *str_src = "Trying memcpy for the first time, cross your fingers";
-	char *memcpy_str_dst = (char *)malloc(sizeof(char) * STRING_SIZE);
-	char *mymemcpy_str_dst = (char *)malloc(sizeof(char) * STRING_SIZE);
-	
-	if (NULL == memcpy_str_dst)
-	{
-		printf("memcpy_str_dst returned NULL\n");
-		exit(1);
-	}
-	if (NULL == mymemcpy_str_dst)
-	{
-		printf("mymemcpy_str_dst returned NULL\n");
-		exit(1);
-	}	
+	char str_src[] = "Trying memcpy for the first time, cross your fingers";
+	char memcpy_str_dst[STRING_SIZE] = {0};
+	char mymemcpy_str_dst[STRING_SIZE] = {0};
 	
 	printf("\n/*******************************************\n");
 	printf("		Testing MyMemcpy				    	");
 	printf("\n*******************************************/\n");
-	
-	*(mymemcpy_str_dst + 26) = '\0';
-	*(memcpy_str_dst + 26) = '\0';
-	
+		
 	MyMemcpy(mymemcpy_str_dst, str_src + 2, 25);
 	memcpy(memcpy_str_dst, str_src + 2, 25);
 	
-	if (0 == strcmp(memcpy_str_dst, mymemcpy_str_dst))
+	if (0 == memcmp(mymemcpy_str_dst, memcpy_str_dst, 25))
 	{
 		printf("PASSED\n");
 	}
@@ -411,14 +424,11 @@ void TestMyMemcpy()
 	{
 		printf("FAILED\n");
 	}
-	
-	*(mymemcpy_str_dst + 6) = '\0';
-	*(memcpy_str_dst + 6) = '\0';
-	
+		
 	MyMemcpy(mymemcpy_str_dst, str_src, 5);
 	memcpy(memcpy_str_dst, str_src, 5);
 	
-	if (0 == strcmp(memcpy_str_dst, mymemcpy_str_dst))
+	if (0 == memcmp(mymemcpy_str_dst, memcpy_str_dst, strlen(memcpy_str_dst)))
 	{
 		printf("PASSED\n");
 	}
@@ -426,10 +436,7 @@ void TestMyMemcpy()
 	{
 		printf("FAILED\n");
 	}
-	
-	free(memcpy_str_dst);
-	free(mymemcpy_str_dst); 
-	
+		
 /*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
 				 *(long *)memset((long *)(&l2) + 1, '*', 5));
 	
@@ -442,6 +449,7 @@ void TestMyMemmove()
 {
 	char str1[] = {"This is an experiment and I hope it will succeed"};
 	char str2[] = {"This is an experiment and I hope it will succeed"};
+	int len = strlen(str1);
 	
 	printf("\n/*******************************************\n");
 	printf("		Testing MyMemmove				    	");
@@ -450,7 +458,7 @@ void TestMyMemmove()
 	MyMemmove(str1 + 8, str1, 13);
 	memmove(str2 + 8, str2, 13);
 	
-	if (0 == strcmp(str1, str2))
+	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
 	}
@@ -462,7 +470,7 @@ void TestMyMemmove()
 	MyMemmove(str1 + 25, str1 + 30, 10);
 	memmove(str2 + 25, str2 + 30, 10);
 	
-	if (0 == strcmp(str1, str2))
+	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
 	}
@@ -470,12 +478,11 @@ void TestMyMemmove()
 	{
 		printf("FAILED\n");
 	}
-	
+
 	MyMemmove(str1 + 1, str1, 4);
 	memmove(str2 + 1, str2, 4);
-
-	if (0 == strcmp(MyMemmove(str1 + 1, str1, 8),
-					memmove(str2 + 1, str2, 8)))
+	
+	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
 	}
