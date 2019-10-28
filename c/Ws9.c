@@ -144,7 +144,7 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		/*	set first section */
 		for (i = 0; i < num_frst_byts; ++i)
 		{
-			*((char *)/*algn_adr_start_dest*/end_frst_adr - i) = *((char *)adr_start_src - i);
+			*((char *)end_frst_adr - i) = *((char *)adr_start_src - i);
 		}
 	}
 	else
@@ -158,7 +158,7 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		/*	set middle (aligned) section */
 		for (i = 0; i < num_full_words; ++i)
 		{
-			*((size_t *)/*algn_adr_start_dest*/end_frst_adr + i) = *((size_t *)adr_start_src + i);
+			*((size_t *)end_frst_adr + i) = *((size_t *)adr_start_src + i);
 		}
 		
 		/*	set last section */
