@@ -1,3 +1,11 @@
+/************************************
+*	Author: ChenR					*
+*	Reviewer: Erez					*
+*	28/10/2019						*
+*	Ws9 - Word boundary 			*
+*	optimization					*
+************************************/
+
 #include <stdio.h> /* printf */
 #include <string.h> /* memset */
 #include <stdlib.h> /* malloc */
@@ -9,9 +17,6 @@
 #define INT_MAX_BYTES 11
 #define ASCII_NUM_CHARS 256
 #define ASCII_GAP 'A' - '9' - 1
-
-#define CHECK_RESULT(res, expres) res == expres
-
 
 void *MyMemset(void *ptr, int value, size_t num);
 void *MyMemcpy(void *dest, const void *src, size_t num);
@@ -52,7 +57,7 @@ void *MyMemset(void *ptr, int value, size_t num)
 {
 	size_t i = 0;
 	size_t value_string = 0;
-	size_t algn_adr_start = ((size_t)(size_t *)ptr / WORD) * WORD + WORD; /* not good */
+	size_t algn_adr_start = ((size_t)(size_t *)ptr / WORD) * WORD + WORD;
 	size_t num_frst_byts = (algn_adr_start - (size_t)(size_t *)ptr) < (num) ?
 						(algn_adr_start - (size_t)(size_t *)ptr) : num;
 	size_t num_algn_words = (num - num_frst_byts)/WORD;
@@ -116,7 +121,8 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 	size_t algn_adr_start_dest = (0 == (size_t)(size_t *)dest % WORD) ?
 		   (size_t)(size_t *)dest : 
 		   (size_t)((size_t)(size_t *)dest / WORD * WORD + WORD);
-	size_t end_frst_adr = (((size_t)(algn_adr_start_dest - (size_t)(size_t *)dest)) <= num) ?
+	size_t end_frst_adr = (((size_t)(algn_adr_start_dest - 
+							(size_t)(size_t *)dest)) <= num) ?
 						  (algn_adr_start_dest) : 
 						  (algn_adr_start_dest + num - WORD); 
 	size_t adr_start_src = end_frst_adr - (size_t)((char *)dest - (char *)src);
@@ -482,13 +488,6 @@ void TestMyMemset()
 	{
 		printf("FAILED\n");
 	}
-	
-/*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
-				 *(long *)memset((long *)(&l2) + 1, '*', 5));
-	
-	CHECK_RESULT(MyMemset((int *)&n1, '*', 1),
-				   memset((int *)&n2, '*', 1));
-*/
 }
 
 void TestMyMemcpy()
@@ -524,13 +523,6 @@ void TestMyMemcpy()
 	{
 		printf("FAILED\n");
 	}
-		
-/*	CHECK_RESULT(*(long *)MyMemset((long *)(&l1) + 1, '*', 5),
-				 *(long *)memset((long *)(&l2) + 1, '*', 5));
-	
-	CHECK_RESULT(MyMemset((int *)&n1, '*', 1),
-				   memset((int *)&n2, '*', 1));
-*/
 }
 
 void TestMyMemmove()
@@ -599,7 +591,7 @@ void TestItoa()
 	char *str = NULL;
 	
 	printf("\n/*******************************************\n");
-	printf("		Testing Itoa				    	");
+	printf("		Testing Itoa				    		");
 	printf("\n*******************************************/\n");
 	
 	str = Itoa(num1);
