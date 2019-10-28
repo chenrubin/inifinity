@@ -113,12 +113,17 @@ void *MyMemcpy(void *dest, const void *src, size_t num)
 void *MyMemmove(void *dest, const void *src, size_t num)
 {
 	size_t i = 0;
-	size_t algn_adr_start_dest = (0 == (size_t)(size_t *)dest % WORD) ? (size_t)(size_t *)dest : (size_t)((size_t)(size_t *)dest / WORD * WORD + WORD);
-	size_t adr_start_src = algn_adr_start_dest - (size_t)((char *)dest - (char *)src);
+	size_t algn_adr_start_dest = (0 == (size_t)(size_t *)dest % WORD) ?
+		   (size_t)(size_t *)dest : 
+		   (size_t)((size_t)(size_t *)dest / WORD * WORD + WORD);
+	size_t end_frst_adr = (((size_t)(algn_adr_start_dest - (size_t)(size_t *)dest)) <= num) ?
+						  (algn_adr_start_dest) : 
+						  (algn_adr_start_dest + num - WORD); 
+	size_t adr_start_src = end_frst_adr - (size_t)((char *)dest - (char *)src);
 	size_t num_frst_byts = (algn_adr_start_dest - (size_t)(size_t *)dest) < (num) ?
 						(algn_adr_start_dest - (size_t)(size_t *)dest) : num;
 	size_t num_full_words = (num - num_frst_byts)/WORD;
-	size_t algn_adr_end_dest = (size_t)((size_t *)algn_adr_start_dest + num_full_words);
+	size_t algn_adr_end_dest = (size_t)((size_t *)end_frst_adr + num_full_words);
 	size_t adr_end_src = algn_adr_end_dest - (size_t)((char *)dest - (char *)src);
 	size_t num_last_byts = (num - num_frst_byts) % WORD;
 	
@@ -139,7 +144,7 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		/*	set first section */
 		for (i = 0; i < num_frst_byts; ++i)
 		{
-			*((char *)algn_adr_start_dest - i) = *((char *)adr_start_src - i);
+			*((char *)/*algn_adr_start_dest*/end_frst_adr - i) = *((char *)adr_start_src - i);
 		}
 	}
 	else
@@ -153,7 +158,7 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		/*	set middle (aligned) section */
 		for (i = 0; i < num_full_words; ++i)
 		{
-			*((size_t *)algn_adr_start_dest + i) = *((size_t *)adr_start_src + i);
+			*((size_t *)/*algn_adr_start_dest*/end_frst_adr + i) = *((size_t *)adr_start_src + i);
 		}
 		
 		/*	set last section */
