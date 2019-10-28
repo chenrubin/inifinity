@@ -18,14 +18,30 @@
 #define ASCII_NUM_CHARS 256
 #define ASCII_GAP 'A' - '9' - 1
 
+/* my memset function */
 void *MyMemset(void *ptr, int value, size_t num);
+
+/* my memcopy function */
 void *MyMemcpy(void *dest, const void *src, size_t num);
+
+/* my memmove function */
 void *MyMemmove(void *dest, const void *src, size_t num);
+
+/* convert integer to string in base 10 */
 char *Itoa(int num);
+
+/* convert string in base 10 to integer */
 int Atoi(char *str);
+/* convert integer to string in any base */
 char *ItoaGeneral(int num, int base);
+
+/* convert string in any base to integer */
 int AtoiGeneral(char *str, int base);
+
+/* print chars that appear in both first array and not the third */
 void PrintLetters(char *str1, char *str2, char *str3);
+
+/* returns truen if system is little endian */
 int IsLittleEndian();
 
 void TestMyMemset();
@@ -123,14 +139,17 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		   (size_t)((size_t)(size_t *)dest / WORD * WORD + WORD);
 	size_t end_frst_adr = (((size_t)(algn_adr_start_dest - 
 							(size_t)(size_t *)dest)) <= num) ?
-						  (algn_adr_start_dest) : 
-						  (algn_adr_start_dest + num - WORD); 
+						  	(algn_adr_start_dest) : 
+						  	(algn_adr_start_dest + num - WORD); 
 	size_t adr_start_src = end_frst_adr - (size_t)((char *)dest - (char *)src);
-	size_t num_frst_byts = (algn_adr_start_dest - (size_t)(size_t *)dest) < (num) ?
-						(algn_adr_start_dest - (size_t)(size_t *)dest) : num;
+	size_t num_frst_byts = (algn_adr_start_dest - 
+						   (size_t)(size_t *)dest) < (num) ?
+						   (algn_adr_start_dest - (size_t)(size_t *)dest) : num;
 	size_t num_full_words = (num - num_frst_byts)/WORD;
-	size_t algn_adr_end_dest = (size_t)((size_t *)end_frst_adr + num_full_words);
-	size_t adr_end_src = algn_adr_end_dest - (size_t)((char *)dest - (char *)src);
+	size_t algn_adr_end_dest = (size_t)((size_t *)end_frst_adr + 
+								num_full_words);
+	size_t adr_end_src = algn_adr_end_dest - 
+						(size_t)((char *)dest - (char *)src);
 	size_t num_last_byts = (num - num_frst_byts) % WORD;
 	
 	if ((char *)dest > (char *)src)
@@ -541,14 +560,10 @@ void TestMyMemmove()
 	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
-		printf("Mymemmove =	%s\n", str1);
-		printf("memmove =	%s\n", str2);
 	}
 	else
 	{
 		printf("FAILED\n");
-		printf("Mymemmove =	%s\n", str1);
-		printf("memmove =	%s\n", str2);
 	}
 	
 	MyMemmove(str1 + 25, str1 + 30, 10);
@@ -557,14 +572,10 @@ void TestMyMemmove()
 	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
-		printf("Mymemmove =	%s\n", str1);
-		printf("memmove =	%s\n", str2);
 	}
 	else
 	{
 		printf("FAILED\n");
-		printf("Mymemmove = %s\n", str1);
-		printf("memmove = %s\n", str2);
 	}
 
 	MyMemmove(str1 + 1, str1, 4);
@@ -573,14 +584,10 @@ void TestMyMemmove()
 	if (0 == memcmp(str1, str2, len))
 	{
 		printf("PASSED\n");
-		printf("Mymemmove = %s\n", str1);
-		printf("memmove = %s\n", str2);
 	}
 	else
 	{
 		printf("FAILED\n");
-		printf("Mymemmove = %s\n", str1);
-		printf("memmove = %s\n", str2);
 	}
 }
 
@@ -649,7 +656,8 @@ void TestItoaGeneral()
 	int num_pos = 12056780;
 	char str_pos[5][10] = {"55774314", "B7F8CC", "15LFL5", "BFU6C", "76F2K"};
 	int num_neg = -12056780;
-	char str_neg[5][10] = {"-55774314", "-B7F8CC", "-15LFL5", "-BFU6C", "-76F2K"};
+	char str_neg[5][10] = {"-55774314", "-B7F8CC", "-15LFL5", 
+						   "-BFU6C", "-76F2K"};
 	int base_array[] = {8,16,25,32,36};
 	char *res = NULL;
 	int i = 0;
