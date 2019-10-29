@@ -139,6 +139,7 @@ void MathAddFloat(void **data, int add)
 void StringAdd(void **data, int add)
 {
 	assert(data);
+	*data = realloc(*data, sizeof(strlen((char *)*data) + 10));
 	sprintf(*data, "%s%d", (char *)*data, add);
 }
 
