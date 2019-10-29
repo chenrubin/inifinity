@@ -113,8 +113,8 @@ void TestBArrIsOn()
 	size_t num = 0x0123456789ABCDEF;
 	
 	PRINTTESTRESULTS("BArrIsOn",1, BArrIsOn(num, 0));
-	PRINTTESTRESULTS("BArrIsOn",2, BArrIsOn(num, 63));
-	PRINTTESTRESULTS("BArrIsOn",3, !(BArrIsOn(num, 18)));
+	PRINTTESTRESULTS("BArrIsOn",2, BArrIsOn(num, 19));
+	PRINTTESTRESULTS("BArrIsOn",3, !(BArrIsOn(num, 63)));
 	PRINTTESTRESULTS("BArrIsOn",4, !(BArrIsOn(num, 59)));
 }
 
@@ -123,8 +123,8 @@ void TestBArrIsOff()
 	size_t num = 0x0123456789ABCDEF;
 	
 	PRINTTESTRESULTS("BArrIsOff",1, !BArrIsOff(num, 0));
-	PRINTTESTRESULTS("BArrIsOff",2, !BArrIsOff(num, 63));
-	PRINTTESTRESULTS("BArrIsOff",3, BArrIsOff(num, 18));
+	PRINTTESTRESULTS("BArrIsOff",2, !BArrIsOff(num, 19));
+	PRINTTESTRESULTS("BArrIsOff",3, BArrIsOff(num, 63));
 	PRINTTESTRESULTS("BArrIsOff",4, BArrIsOff(num, 59));
 }
 
@@ -147,7 +147,7 @@ void TestBArrCountOff()
 	
 	PRINTTESTRESULTS("BArrCountOff",1, 0 == BArrCountOff(num1));
 	PRINTTESTRESULTS("BArrCountOff",2, 64 == BArrCountOff(num2));
-	PRINTTESTRESULTS("BArrCountOff",3, 25 == BArrCountOff(num3));
+	PRINTTESTRESULTS("BArrCountOff",3, 33 == BArrCountOff(num3));
 }
 
 void TestBArrRotR()
@@ -155,8 +155,8 @@ void TestBArrRotR()
 	size_t num = 0x8123456789ABCDEF;
 	size_t num_rot1 = 0x7BE048D159E26AF3;
 	size_t num_rot2 = 0xBCDEF8123456789A;
-	size_t num_rot3 = 0xDEF8123456789ABC;
-	
+	size_t num_rot3 = 0x37BE048D159E26AF;
+						
 	PRINTTESTRESULTS("BArrRotR",1, num_rot1 == BArrRotR(num, 10));
 	PRINTTESTRESULTS("BArrRotR",2, num_rot2 == BArrRotR(num, 20));
 	PRINTTESTRESULTS("BArrRotR",3, num_rot3 == BArrRotR(num, 78));
@@ -166,8 +166,8 @@ void TestBArrRotL()
 {
 	size_t num = 0x8123456789ABCDEF;
 	size_t num_rot1 = 0x8D159E26AF37BE04;
-	size_t num_rot2 = 0xD159E26AF37BE048;
-	size_t num_rot3 = 0x56789ABCDEF81234;
+	size_t num_rot2 = 0x56789ABCDEF81234;
+	size_t num_rot3 = 0xD159E26AF37BE048;
 	
 	PRINTTESTRESULTS("BArrRotL",1, num_rot1 == BArrRotL(num, 10));
 	PRINTTESTRESULTS("BArrRotL",2, num_rot2 == BArrRotL(num, 20));
@@ -179,7 +179,7 @@ void TestBArrMirror()
 	size_t num1 = 0xFFFFFFFFFFFFFFFF;
 	size_t num2 = 0;
 	size_t num3 = 0xF123456789ABCDEF;
-	size_t num3_mirror = 0x13579BDFE2468ACF;
+	size_t num3_mirror = 0xF7B3D591E6A2C48F;
 	
 	PRINTTESTRESULTS("BArrMirror",1, num1 == BArrMirror(num1));
 	PRINTTESTRESULTS("BArrMirror",2, num2 == BArrMirror(num2));
@@ -191,44 +191,23 @@ void TestBArrToString()
 	size_t num1 = 0xFFFFFFFFFFFFFFFF;
 	size_t num2 = 0;
 	size_t num3 = 0xF123456789ABCDEF;
-	char *buf = (char *)malloc(BITS_IN_ARRAY + 1);
+	char *buf = NULL;
+	
+	buf = (char *)malloc(BITS_IN_ARRAY + 1);
+	if (NULL == buf)
+	{
+		printf("buffer allocaiton returned NULL\n");
+		exit(0);
+	}
 	
 	PRINTTESTRESULTS("BArrToString",1, !(strcmp("11111111111111111111111111111\
-		 11111111111111111111111111111111111",BArrToString(buf, num1))));
+		 11111111111111111111111111111111111", BArrToString(buf, num1))));
 	PRINTTESTRESULTS("BArrToString",2, !(strcmp("00000000000000000000000000000\
 		 00000000000000000000000000000000000", BArrToString(buf, num2))));
 	PRINTTESTRESULTS("BArrToString",3, !(strcmp("11110001001000110100010101100\
 		 11110001001101010111100110111101111", BArrToString(buf, num3))));
-/*	
-	if (!(strcmp("11111111111111111111111111111\
-		 11111111111111111111111111111111111",BArrToString(buf, num1))))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-	
-	if (!(strcmp("00000000000000000000000000000\
-		 00000000000000000000000000000000000", BArrToString(buf, num2))))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-	
-	if (!(strcmp("11110001001000110100010101100\
-		 11110001001101010111100110111101111", BArrToString(buf, num3))))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}*/
+		 
+	free(buf);
 }
 
 void TestBArrFlip()

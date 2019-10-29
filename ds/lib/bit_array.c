@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "barr.h"
 
 #define BYTE 8
@@ -40,12 +41,12 @@ bitarray BArrSetOff(bitarray arr, size_t loc)
 
 int BArrIsOn(bitarray arr, size_t loc)
 {
-	return (((1 << loc) & arr) ? 1 : 0);
+	return ((((size_t)1 << loc) & arr) ? 1 : 0);
 }
 
 int BArrIsOff(bitarray arr, size_t loc)
 {
-	return (((1 << loc) & arr) ? 0 : 1);
+	return ((((size_t)1 << loc) & arr) ? 0 : 1);
 }
 
 size_t BArrCountOn(bitarray arr)
@@ -61,7 +62,7 @@ size_t BArrCountOn(bitarray arr)
 			++counter;
 		}
 		
-		mask <<= mask;
+		mask <<= 1;
 	}
 	
 	return counter;
@@ -69,7 +70,7 @@ size_t BArrCountOn(bitarray arr)
 
 size_t BArrCountOff(bitarray arr)
 {
-	return ((sizeof(size_t) * 8) - BArrCountOn(arr));
+	return (BITS_IN_ARRAY - BArrCountOn(arr));
 }
 
 bitarray BArrRotR(bitarray arr, size_t num)
@@ -106,19 +107,24 @@ bitarray BArrMirror(bitarray arr)
 char* BArrToString(char* buffer ,bitarray arr)
 {
 	size_t i = 0;
-	int bit_mask = 1;
-/*	char buf[2];*/
+	size_t bit_mask = (size_t)1 << (BITS_IN_ARRAY - 1);
+	char buf[2];
+	
+	*(buffer + BITS_IN_ARRAY + 1) = '\0';
 	
 	for (i = 0; i < BITS_IN_ARRAY; ++i)
 	{
-		sprintf(/*buf*/buffer, "%d", (arr & bit_mask));
-/*		strcat(buffer, buf);*/
+		sprintf(buf, "%d", ((arr & bit_mask) >> (BITS_IN_ARRAY - 1)));
+		strcat(buffer, buf);
+		arr <<= 1;
 	}
+	
+	printf("%s\n", buffer);
 	
 	return buffer;
 }
 
 bitarray BArrFlip(bitarray arr, size_t loc)
 {
-	return (arr ^ (loc << 1));
+	return (arr ^ ((size_t)1 << loc));
 }
