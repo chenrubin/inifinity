@@ -76,7 +76,7 @@ void *MyMemset(void *ptr, int value, size_t num)
 	size_t algn_adr_start = ((size_t)(size_t *)ptr / WORD) * WORD + WORD;
 	size_t num_frst_byts = (algn_adr_start - (size_t)(size_t *)ptr) < (num) ?
 						(algn_adr_start - (size_t)(size_t *)ptr) : num;
-	size_t num_algn_words = (num - num_frst_byts)/WORD;
+	size_t num_algn_words = (num - num_frst_byts) / WORD;
 	size_t algn_adr_end = (size_t)((size_t *)algn_adr_start + num_algn_words);
 	size_t num_last_byts = (num - num_frst_byts) % WORD;
 
