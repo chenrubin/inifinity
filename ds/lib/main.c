@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include "barr.h"
 
-
 #define BYTE 8
 #define BITS_IN_ARRAY (sizeof(size_t) * BYTE)
 #define BIT_X_SET(X) ((size_t)1 << (X))
 
 #define PRINTTESTRESULTS(func,num, res) \
-(printf("Function %s: Test %d %s\n",func, num, (res) == 1 ? "passed" : "failed"))\
+(printf("Function %s: Test %d %s\n",func, num, (res) == 1 ?\
+ "\tpassed" : "\tfailed"))
 
 void TestBArrSetAll();
 void TestBArrResetAll();
@@ -92,20 +92,28 @@ void TestBArrSetOn()
 {
 	size_t num = 0x0123456789ABCDEF;
 	
-	PRINTTESTRESULTS("BArrSetOn",1, (num | BIT_X_SET(6)) == BArrSetOn(num, 6));
-	PRINTTESTRESULTS("BArrSetOn",2, (num | BIT_X_SET(56)) == BArrSetOn(num, 56));
-	PRINTTESTRESULTS("BArrSetOn",3, (num | BIT_X_SET(62)) == BArrSetOn(num, 62));
-	PRINTTESTRESULTS("BArrSetOn",4, (num | BIT_X_SET(4)) == BArrSetOn(num, 4));
+	PRINTTESTRESULTS("BArrSetOn",1, 
+					(num | BIT_X_SET(6)) == BArrSetOn(num, 6));
+	PRINTTESTRESULTS("BArrSetOn",2, 
+					(num | BIT_X_SET(56)) == BArrSetOn(num, 56));
+	PRINTTESTRESULTS("BArrSetOn",3, 
+					(num | BIT_X_SET(62)) == BArrSetOn(num, 62));
+	PRINTTESTRESULTS("BArrSetOn",4, 
+					(num | BIT_X_SET(4)) == BArrSetOn(num, 4));
 }
 
 void TestBArrSetOff()
 {
 	size_t num = 0x0123456789ABCDEF;
 	
-	PRINTTESTRESULTS("BArrSetOff",1, (num & ~BIT_X_SET(6)) == BArrSetOff(num, 6));
-	PRINTTESTRESULTS("BArrSetOff",2, (num & ~BIT_X_SET(56)) == BArrSetOff(num, 56));
-	PRINTTESTRESULTS("BArrSetOff",3, (num & ~BIT_X_SET(62)) == BArrSetOff(num, 62));
-	PRINTTESTRESULTS("BArrSetOff",4, (num & ~BIT_X_SET(4)) == BArrSetOff(num, 4));
+	PRINTTESTRESULTS("BArrSetOff",1,
+					(num & ~BIT_X_SET(6)) == BArrSetOff(num, 6));
+	PRINTTESTRESULTS("BArrSetOff",2,
+					(num & ~BIT_X_SET(56)) == BArrSetOff(num, 56));
+	PRINTTESTRESULTS("BArrSetOff",3,
+					(num & ~BIT_X_SET(62)) == BArrSetOff(num, 62));
+	PRINTTESTRESULTS("BArrSetOff",4,
+					(num & ~BIT_X_SET(4)) == BArrSetOff(num, 4));
 }
 
 void TestBArrIsOn()
@@ -200,12 +208,15 @@ void TestBArrToString()
 		exit(0);
 	}
 	
-	PRINTTESTRESULTS("BArrToString",1, !(strcmp("11111111111111111111111111111\
-		 11111111111111111111111111111111111", BArrToString(buf, num1))));
-	PRINTTESTRESULTS("BArrToString",2, !(strcmp("00000000000000000000000000000\
-		 00000000000000000000000000000000000", BArrToString(buf, num2))));
-	PRINTTESTRESULTS("BArrToString",3, !(strcmp("11110001001000110100010101100\
-		 11110001001101010111100110111101111", BArrToString(buf, num3))));
+	PRINTTESTRESULTS("BArrToString",1,
+	!(strcmp("1111111111111111111111111111111111111111111111111111111111111111", 
+	  BArrToString(buf, num1))));
+	PRINTTESTRESULTS("BArrToString",2,
+	!(strcmp("0000000000000000000000000000000000000000000000000000000000000000",
+	  BArrToString(buf, num2)))); 
+	PRINTTESTRESULTS("BArrToString",3,
+	!(strcmp("1111000100100011010001010110011110001001101010111100110111101111",
+	  BArrToString(buf, num3))));
 		 
 	free(buf);
 }
