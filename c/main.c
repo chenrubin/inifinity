@@ -20,10 +20,12 @@ void TestBArrSetOff();
 void TestBArrIsOn();
 void TestBArrIsOff();
 void TestBArrCountOn();
+void TestBArrCountOnLUT();
 void TestBArrCountOff();
 void TestBArrRotR();
 void TestBArrRotL();
 void TestBArrMirror();
+void TestBArrMirrorLUT();
 void TestBArrToString();
 void TestBArrFlip();	
 	
@@ -37,10 +39,12 @@ int main()
 	TestBArrIsOn();
 	TestBArrIsOff();
 	TestBArrCountOn();
+	TestBArrCountOnLUT();
 	TestBArrCountOff();
 	TestBArrRotR();
 	TestBArrRotL();
 	TestBArrMirror();
+	TestBArrMirrorLUT();
 	TestBArrToString();
 	TestBArrFlip();	
 	
@@ -147,6 +151,17 @@ void TestBArrCountOn()
 	PRINTTESTRESULTS("BArrCountOn",3, 32 == BArrCountOn(num3));
 }
 
+void TestBArrCountOnLUT()
+{
+	size_t num1 = 0xFFFFFFFFFFFFFFFF;
+	size_t num2 = 0;
+	size_t num3 = 0x0123456789ABCDEF;
+	
+	PRINTTESTRESULTS("BArrCountOnLUT",1, 64 == BArrCountOnLUT(num1));
+	PRINTTESTRESULTS("BArrCountOnLUT",2, 0 == BArrCountOnLUT(num2));
+	PRINTTESTRESULTS("BArrCountOnLUT",3, 32 == BArrCountOnLUT(num3));
+}
+
 void TestBArrCountOff()
 {
 	size_t num1 = 0xFFFFFFFFFFFFFFFF;
@@ -192,6 +207,18 @@ void TestBArrMirror()
 	PRINTTESTRESULTS("BArrMirror",1, num1 == BArrMirror(num1));
 	PRINTTESTRESULTS("BArrMirror",2, num2 == BArrMirror(num2));
 	PRINTTESTRESULTS("BArrMirror",3, num3_mirror == BArrMirror(num3));
+}
+
+void TestBArrMirrorLUT()
+{
+	size_t num1 = 0xFFFFFFFFFFFFFFFF;
+	size_t num2 = 0;
+	size_t num3 = 0xF123456789ABCDEF;
+	size_t num3_mirror = 0xF7B3D591E6A2C48F;
+	
+	PRINTTESTRESULTS("BArrMirrorLUT",1, num1 == BArrMirrorLUT(num1));
+	PRINTTESTRESULTS("BArrMirrorLUT",2, num2 == BArrMirrorLUT(num2));
+	PRINTTESTRESULTS("BArrMirrorLUT",3, num3_mirror == BArrMirrorLUT(num3));
 }
 
 void TestBArrToString()

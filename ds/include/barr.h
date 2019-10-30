@@ -29,6 +29,8 @@ int BArrIsOn(bitarray arr, size_t loc);
 int BArrIsOff(bitarray arr, size_t loc);
 /* counts on bits */
 size_t BArrCountOn(bitarray arr);
+/* counts on bits */
+size_t BArrCountOnLUT(bitarray arr);
 /* counts off bits */
 size_t BArrCountOff(bitarray arr);
 /* rotate entire array right accoriding to num */
@@ -37,6 +39,8 @@ bitarray BArrRotR(bitarray arr, size_t num);
 bitarray BArrRotL(bitarray arr, size_t num);
 /*mirrors the array*/
 bitarray BArrMirror(bitarray arr);
+/*mirrors the array*/
+bitarray BArrMirrorLUT(bitarray arr);
 /*copies the array to buffer*/
 char* BArrToString(char* buffer ,bitarray arr);
 /*flips specific loc bit*/
