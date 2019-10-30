@@ -10,6 +10,7 @@
 #include <string.h> /* memset */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+typedef size_t word;
 #define WORD sizeof(size_t)
 #define BYTE 8
 #define STRING_SIZE 100
@@ -17,15 +18,17 @@
 #define INT_MAX_BYTES 11
 #define ASCII_NUM_CHARS 256
 #define ASCII_GAP 'A' - '9' - 1
+#define MY_MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MY_MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
 /* my memset function */
-void *MyMemset(void *ptr, int value, size_t num);
+void *MyMemset(void *ptr, int value, word num);
 
 /* my memcopy function */
-void *MyMemcpy(void *dest, const void *src, size_t num);
+void *MyMemcpy(void *dest, const void *src, word num);
 
 /* my memmove function */
-void *MyMemmove(void *dest, const void *src, size_t num);
+void *MyMemmove(void *dest, const void *src, word num);
 
 /* convert integer to string in base 10 */
 char *Itoa(int num);
@@ -41,7 +44,7 @@ int AtoiGeneral(char *str, int base);
 /* print chars that appear in both first array and not the third */
 void PrintLetters(char *str1, char *str2, char *str3);
 
-/* returns truen if system is little endian */
+/* returns true if system is little endian */
 int IsLittleEndian();
 
 void TestMyMemset();
@@ -69,105 +72,117 @@ int main()
 	return 0;
 }
 
-void *MyMemset(void *ptr, int value, size_t num)
-{
-	size_t i = 0;
-	size_t value_string = 0;
-	size_t algn_adr_start = ((size_t)(size_t *)ptr / WORD) * WORD + WORD;
-	size_t num_frst_byts = (algn_adr_start - (size_t)(size_t *)ptr) < (num) ?
-						(algn_adr_start - (size_t)(size_t *)ptr) : num;
-	size_t num_algn_words = (num - num_frst_byts) / WORD;
-	size_t algn_adr_end = (size_t)((size_t *)algn_adr_start + num_algn_words);
-	size_t num_last_byts = (num - num_frst_byts) % WORD;
+void *MyMemset(void *ptr, int value_byte, word num)
+{	
+	word i = 0;
+	word value_word = 0;
+	word algn_adr_start = ((word)ptr / WORD) * WORD + WORD;
+	word num_first_bytes = MY_MIN(algn_adr_start - (word)ptr, num);
+	word num_algn_words = (num - num_first_bytes) / WORD;
+	word align_adr_end = (word)((word *)algn_adr_start + num_algn_words);
+	word num_last_byts = (num - num_first_bytes) % WORD;
 
 	/* making value_string */
 	for (i = 0; i < WORD; ++i)
 	{
-		value_string <<= BYTE;
-		value_string |= value;
+		value_word <<= BYTE;
+		value_word |= value_byte;
 	}
 	
 	/*	set first section */
-	for (i = 0; i < num_frst_byts; ++i)
+	for (i = 0; i < num_first_bytes; ++i)
 	{
-		*((char *)ptr + i) = value;
+		*((char *)ptr + i) = value_byte;
 	}
 	
 	/*	set middle section section */
 	for (i = 0; i < num_algn_words; ++i)
 	{
-		*((size_t *)algn_adr_start + i) = value_string;
+		*((word *)algn_adr_start + i) = value_word;
 	}
 	
 	/*	set last section */
 	for (i = 0; i < num_last_byts; ++i)
 	{
-		*((char *)algn_adr_end + i) = value;
+		*((char *)align_adr_end + i) = value_byte;
 	}
 
 	return ptr;
 }
 
-void *MyMemcpy(void *dest, const void *src, size_t num)
+void *MyMemcpy(void *dest, const void *src, word num)
 {
-	size_t i = 0;
-	size_t num_full_words = (num / WORD);
-	size_t end_words_src = (size_t)((size_t *)src + num_full_words);
-	size_t end_words_dst = (size_t)((size_t *)dest + num_full_words);
-	size_t num_last_byts = num - ((num / WORD) * WORD);
+	word i = 0;
+	word align_adr_start = (0 == (word)dest % WORD) ?
+							(word)dest : (word)dest / WORD * WORD + WORD;
+	word num_first_bytes = MY_MIN(num, align_adr_start - (word)dest);
+	word num_algn_words = (num - num_first_bytes) / WORD;
+	word align_adr_end = (word)((word *)align_adr_start + num_algn_words);
+	word num_last_byts = (num - num_first_bytes) % WORD;
 	
 	/*	set first section */
-	for (i = 0; i < num_full_words; ++i)
+	for (i = 0; i < num_first_bytes; ++i)
 	{
-		*((size_t *)dest + i) = *((size_t *)src + i);
+		*((char *)dest + i) = *((char *)src + i);
+	}
+	
+	/*	set middle section section */
+	for (i = 0; i < num_algn_words; ++i)
+	{
+		*((word *)align_adr_start + i) = 
+		*((word *)((char *)src + num_first_bytes) + i);
 	}
 	
 	/*	set last section */
 	for (i = 0; i < num_last_byts; ++i)
 	{
-		*((char *)end_words_dst + i) = *((char *)end_words_src + i);
+		*((char *)align_adr_end + i) = 
+		*((char *)src + num_first_bytes + num - num_last_byts + i);
 	}
-
+	
+	printf("src = %s\n", (char *)src);
+	printf("dest = %s\n", (char *)dest);	
+	
 	return dest;
 }
 
-void *MyMemmove(void *dest, const void *src, size_t num)
+void *MyMemmove(void *dest, const void *src, word num)
 {
-	size_t i = 0;
-	size_t algn_adr_start_dest = (0 == (size_t)(size_t *)dest % WORD) ?
-		   (size_t)(size_t *)dest : 
-		   (size_t)((size_t)(size_t *)dest / WORD * WORD + WORD);
-	size_t end_frst_adr = (((size_t)(algn_adr_start_dest - 
-							(size_t)(size_t *)dest)) <= num) ?
+	word i = 0;
+	word algn_adr_start_dest = (0 == (word)(word *)dest % WORD) ?
+		   (word)(word *)dest : 
+		   (word)((word)(word *)dest / WORD * WORD + WORD);
+	word end_frst_adr = (((word)(algn_adr_start_dest - 
+							(word)(word *)dest)) <= num) ?
 						  	(algn_adr_start_dest) : 
 						  	(algn_adr_start_dest + num - WORD); 
-	size_t adr_start_src = end_frst_adr - (size_t)((char *)dest - (char *)src);
-	size_t num_frst_byts = (algn_adr_start_dest - 
-						   (size_t)(size_t *)dest) < (num) ?
-						   (algn_adr_start_dest - (size_t)(size_t *)dest) : num;
-	size_t num_full_words = (num - num_frst_byts)/WORD;
-	size_t algn_adr_end_dest = (size_t)((size_t *)end_frst_adr + 
+	word adr_start_src = end_frst_adr - (word)((char *)dest - (char *)src);
+	word num_first_bytes = (algn_adr_start_dest - 
+						   (word)(word *)dest) < (num) ?
+						   (algn_adr_start_dest - (word)(word *)dest) : num;
+	word num_full_words = (num - num_first_bytes)/WORD;
+	word align_adr_end_dest = (word)((word *)end_frst_adr + 
 								num_full_words);
-	size_t adr_end_src = algn_adr_end_dest - 
-						(size_t)((char *)dest - (char *)src);
-	size_t num_last_byts = (num - num_frst_byts) % WORD;
+	word adr_end_src = align_adr_end_dest - 
+						(word)((char *)dest - (char *)src);
+	word num_last_byts = (num - num_first_bytes) % WORD;
 	
 	if ((char *)dest > (char *)src)
 	{
 		/*	set last section */
 		for (i = num_last_byts; i > 0; --i)
 		{
-			*((char *)algn_adr_end_dest + i - 1) = *((char *)adr_end_src + i - 1);
+			*((char *)align_adr_end_dest + i - 1) = *((char *)adr_end_src + i - 1);
 		}
 		
 		/*	set middle (aligned) section */
 		for (i = num_full_words; i > 0; --i)
 		{
-			*((size_t *)dest + i - 1) = *((size_t *)src + i - 1);
+			*((word *)dest + i - 1) = *((word *)src + i - 1);
 		}
 		
 		/*	set first section */
-		for (i = 0; i < num_frst_byts; ++i)
+		for (i = 0; i < num_first_bytes; ++i)
 		{
 			*((char *)end_frst_adr - i) = *((char *)adr_start_src - i);
 		}
@@ -175,7 +190,7 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 	else
 	{
 		/*	set first section */
-		for (i = 0; i < num_frst_byts; ++i)
+		for (i = 0; i < num_first_bytes; ++i)
 		{
 			*((char *)dest + i) = *((char *)src + i);
 		}
@@ -183,13 +198,13 @@ void *MyMemmove(void *dest, const void *src, size_t num)
 		/*	set middle (aligned) section */
 		for (i = 0; i < num_full_words; ++i)
 		{
-			*((size_t *)end_frst_adr + i) = *((size_t *)adr_start_src + i);
+			*((word *)end_frst_adr + i) = *((word *)adr_start_src + i);
 		}
 		
 		/*	set last section */
 		for (i = 0; i < num_last_byts; ++i)
 		{
-			*((char *)algn_adr_end_dest + i) = *((char *)adr_end_src + i);
+			*((char *)align_adr_end_dest + i) = *((char *)adr_end_src + i);
 		}
 	}
 
