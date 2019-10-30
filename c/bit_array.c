@@ -1,3 +1,11 @@
+/****************************
+*	Author: ChenR			*	
+*	Reviewer: Yonatan		*
+*	Date: 30/10/2019		*	
+*	data structure			*
+*   Bit Array				*
+*							*
+****************************/
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -181,6 +189,7 @@ bitarray BArrMirrorLUT(bitarray arr)
 	res |= lut_table_mirror[arr & MASK_0xFF];
 	
 	return res;
+	
 }
 
 char* BArrToString(char* buffer ,bitarray arr)
