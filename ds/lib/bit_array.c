@@ -5,8 +5,8 @@
 #include "barr.h"
 
 #define BYTE 8
+#define LSB 1
 #define BITS_IN_ARRAY (sizeof(size_t) * BYTE)
-
 
 bitarray BArrSetAll(bitarray arr)
 {	
@@ -25,11 +25,11 @@ bitarray BArrSetBit(bitarray arr, size_t loc, int mod)
 	
 	if (mod)
 	{
-		return (arr | (1 << loc));
+		return (arr | (LSB << loc));
 	}
 	else
 	{
-		return arr & (~(1 << loc));	
+		return arr & (~(LSB << loc));	
 	}
 }
 
@@ -37,35 +37,35 @@ bitarray BArrSetOn(bitarray arr, size_t loc)
 {
 	assert(BITS_IN_ARRAY > loc);
 	
-	return (arr | ((size_t)1 << loc));
+	return (arr | ((size_t)LSB << loc));
 }
 
 bitarray BArrSetOff(bitarray arr, size_t loc)
 {
 	assert(BITS_IN_ARRAY > loc);
 	
-	return (arr & ~((size_t)1 << loc));
+	return (arr & ~((size_t)LSB << loc));
 }
 
 int BArrIsOn(bitarray arr, size_t loc)
 {
 	assert(BITS_IN_ARRAY > loc);
 	
-	return ((((size_t)1 << loc) & arr) ? 1 : 0);
+	return ((((size_t)LSB << loc) & arr) ? LSB : 0);
 }
 
 int BArrIsOff(bitarray arr, size_t loc)
 {
 	assert(BITS_IN_ARRAY > loc);
 	
-	return ((((size_t)1 << loc) & arr) ? 0 : 1);
+	return ((((size_t)LSB << loc) & arr) ? 0 : 1);
 }
 
 size_t BArrCountOn(bitarray arr)
 {
 	size_t i = 0;
 	size_t counter = 0;
-	size_t mask = 1;
+	size_t mask = LSB;
 	
 	for (i = 0; i < BITS_IN_ARRAY; ++i)
 	{
@@ -109,7 +109,7 @@ bitarray BArrMirror(bitarray arr)
 	for (i = 0; i < BITS_IN_ARRAY; ++i)
 	{
 		res = res << 1;
-		res = res | (arr & 1);
+		res = res | (arr & LSB);
 		arr = arr >> 1;
 	}
 	
@@ -119,7 +119,7 @@ bitarray BArrMirror(bitarray arr)
 char* BArrToString(char* buffer ,bitarray arr)
 {
 	size_t i = 0;
-	size_t bit_mask = (size_t)1 << (BITS_IN_ARRAY - 1);
+	size_t bit_mask = (size_t)LSB << (BITS_IN_ARRAY - 1);
 	char buf[2];
 
 	assert(buffer);
@@ -138,5 +138,5 @@ char* BArrToString(char* buffer ,bitarray arr)
 
 bitarray BArrFlip(bitarray arr, size_t loc)
 {
-	return (arr ^ ((size_t)1 << loc));
+	return (arr ^ ((size_t)LSB << loc));
 }
