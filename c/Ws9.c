@@ -47,6 +47,9 @@ void PrintLetters(char *str1, char *str2, char *str3);
 /* returns true if system is little endian */
 int IsLittleEndian();
 
+/* Reverse string */
+char *ReverseString(char *buf);
+
 void TestMyMemset();
 void TestMyMemcpy();
 void TestMyMemmove();
@@ -138,10 +141,7 @@ void *MyMemcpy(void *dest, const void *src, word num)
 	{
 		*((char *)align_adr_end + i) = 
 		*((char *)src + num_first_bytes + num - num_last_byts + i);
-	}
-	
-	printf("src = %s\n", (char *)src);
-	printf("dest = %s\n", (char *)dest);	
+	}	
 	
 	return dest;
 }
@@ -305,8 +305,6 @@ int Atoi(char *str)
 char *ItoaGeneral(int num, int base)
 {
 	int i = 0;
-	int buf_len = 0;
-	char tmp_chr = '\0';
 	char *buf = NULL;
 	int base_option = 0;
 	int is_negative = 0;
@@ -358,9 +356,16 @@ char *ItoaGeneral(int num, int base)
 		*(buf + i) = '\0';
 	}
 	
-	/* mirror string */
-	buf_len = strlen(buf);
-	i= 0;
+	buf = ReverseString(buf);
+	
+	return buf;
+}
+
+char *ReverseString(char *buf)
+{
+	int buf_len = strlen(buf);
+	char tmp_chr = '\0';
+	int i= 0;
 	
 	while ((buf + i) < (buf + buf_len - 1 - i))
 	{
@@ -372,7 +377,7 @@ char *ItoaGeneral(int num, int base)
 	
 	return buf;
 }
-
+	
 int AtoiGeneral(char *str, int base)
 {
 	int num = 0;
@@ -546,8 +551,8 @@ void TestMyMemcpy()
 		printf("FAILED\n");
 	}
 		
-	MyMemcpy(mymemcpy_str_dst, str_src, 5);
-	memcpy(memcpy_str_dst, str_src, 5);
+	MyMemcpy(mymemcpy_str_dst+1, str_src, 5);
+	memcpy(memcpy_str_dst+1, str_src, 5);
 	
 	if (0 == memcmp(mymemcpy_str_dst, memcpy_str_dst, strlen(memcpy_str_dst)))
 	{
