@@ -1,6 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "stack.h"
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* memcpy */
+#include "stack.h" /* stack functions */
 
 struct stack_t
 {
@@ -13,21 +14,21 @@ struct stack_t
 stack_t *StackCreate(size_t num_of_elements, size_t elements_size)
 {
 	size_t num_of_Bytes = num_of_elements * elements_size;
-	char *struct_p = (char *)malloc(num_of_elements * elements_size);
-	stack_t *new_stack = (stack_t *)malloc(sizeof(struct_p));	
-	if (NULL == struct_p)
+	char *actual_stack_p = (char *)malloc(num_of_elements * elements_size);
+	stack_t *new_stack = (stack_t *)malloc(num_of_Bytes);	
+	if (NULL == actual_stack_p)
 	{
 		printf("no allocation was made to stack\n");
 	}
-	if (NULL == struct_p)
+	if (NULL == new_stack)
 	{
 		printf("no allocation was made to struct\n");
 	}
 	
 	new_stack -> elements_size = elements_size;
-	new_stack -> head = struct_p;
-	new_stack -> tail = struct_p + num_of_Bytes - 1;
-	new_stack -> current = struct_p;
+	new_stack -> head = actual_stack_p;
+	new_stack -> tail = actual_stack_p + num_of_Bytes - 1;
+	new_stack -> current = actual_stack_p;
 	
 	return new_stack;
 }
@@ -40,17 +41,41 @@ void StackDestroy(stack_t *stack)
 
 int StackPush(stack_t *stack, const void *n) 
 {
-	if (stack -> elements_size == x)
-	(char *)current_run = stack -> current;
-	(char *)n_run = &n;
-	int i = 0;
-	
-	for (i = 0; i < stack -> elements_size; ++i)
+	if (stack -> current == stack -> tail)
 	{
-		*((char *)current_run + i) = *((char *)n_run + i);
-	}	
-	memcpy(stack -> current, n, stack -> elements_size);
-	
+		printf("Stack is full\n");
+		
+		return 1;
+	}
+	else
+	{
+		memcpy((stack -> current), n, stack -> elements_size);
+		stack -> current = (char *)(stack -> current) + stack -> elements_size;
+	}
 	
 	return 0;
 }
+
+void *StackPeek(const stack_t *stack)
+{
+	return ((char *)(stack -> current) - (stack -> elements_size));
+}
+
+void StackPop(stack_t *stack)
+{
+	stack -> current = (char *)(stack -> current) - (stack -> elements_size);
+}
+
+int StackIsEmpty(const stack_t *stack)
+{
+	return !((stack -> current) == (stack -> head));
+}
+
+size_t StackSize(const stack_t *stack)
+{
+	size_t num_of_consumed_bytes = (char *)(stack -> current) - 
+								   (char *)(stack -> head);
+	return (num_of_consumed_bytes / (stack -> elements_size));
+}
+
+

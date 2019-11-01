@@ -29,7 +29,7 @@ int StackPush(stack_t *stack, const void *n);
 /* This function extracts the first element of the stack.
    Notice: attempting to pop from an empty stack will result in 
    undefined behavior. */
-void *StackPop(stack_t *stack);
+void StackPop(stack_t *stack);
 
 /* This function returns the first element of the stack without extracting it
 *  Notice: attempting to peek from an empty stack will result in 
