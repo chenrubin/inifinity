@@ -230,6 +230,7 @@ void TestStackDifferentDataTypes()
 					  	  				  	  
 	StackPop(new_stack);
 	StackDestroy(new_stack);
+	StackDestroy(stack_t_pointer);
 	printf("\n");
 	
 	/* stack_t */

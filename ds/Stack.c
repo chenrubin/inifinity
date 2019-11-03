@@ -1,6 +1,7 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <string.h> /* memcpy */
+#include <assert.h> /* assert */
 #include "stack.h" /* stack functions */
 
 struct stack_t
@@ -25,6 +26,9 @@ stack_t *StackCreate(size_t num_of_elements, size_t elements_size)
 		printf("no allocation was made to struct\n");
 	}
 	
+	assert(0 != num_of_elements);
+	assert(0 != elements_size);
+	
 	new_stack -> elements_size = elements_size;
 	new_stack -> head = actual_stack_p;
 	new_stack -> tail = actual_stack_p + num_of_Bytes - 1;
@@ -35,12 +39,16 @@ stack_t *StackCreate(size_t num_of_elements, size_t elements_size)
 
 void StackDestroy(stack_t *stack)
 {
+	assert(NULL != stack);
+	
 	free(stack -> head);
 	free(stack);	
 }
 
 int StackPush(stack_t *stack, const void *n) 
 {
+	assert(NULL != stack);
+	
 	if (stack -> current == stack -> tail)
 	{
 		printf("Stack is full\n");
@@ -58,23 +66,32 @@ int StackPush(stack_t *stack, const void *n)
 
 void *StackPeek(const stack_t *stack)
 {
+	assert(NULL != stack);
+	
 	return ((char *)(stack -> current) - (stack -> elements_size));
 }
 
 void StackPop(stack_t *stack)
 {
+	assert(NULL != stack);
+	
 	stack -> current = (char *)(stack -> current) - (stack -> elements_size);
 }
 
 int StackIsEmpty(const stack_t *stack)
 {
-	return !((stack -> current) == (stack -> head));
+	assert(NULL != stack);
+	
+	return ((stack -> current) == (stack -> head));
 }
 
 size_t StackSize(const stack_t *stack)
 {
-	size_t num_of_consumed_bytes = (char *)(stack -> current) - 
-								   (char *)(stack -> head);
+	size_t num_of_consumed_bytes = 
+	(char *)(stack -> current) - (char *)(stack -> head);
+	
+	assert(NULL != stack);
+	
 	return (num_of_consumed_bytes / (stack -> elements_size));
 }
 
