@@ -12,7 +12,7 @@
 #define KWHT  "\x1B[37m"
 
 #define PRINTTESTRESULTS(func,num, res) \
-(printf("Function %s: Test %d %-30s\n" KNRM,func, num, (res) == 1 ?\
+(printf("Function %s: Test %d %-40s\n" KNRM,func, num, (res) == 1 ?\
 KGRN "\t\tpassed" : KRED "\t\tfailed"))
 #define ELEMENT_SIZE 4 
 #define NUM_OF_ELEMENTS 20
@@ -20,6 +20,7 @@ KGRN "\t\tpassed" : KRED "\t\tfailed"))
 void TestVectorPushGetAddr();
 void TestVectorPushPopSize();
 void TestVectorcheckCapacity();
+void TestVectorLargeCapacity();
 
 struct d_vector_t
 {
@@ -33,11 +34,8 @@ int main()
 {
 	TestVectorPushGetAddr();
 	TestVectorPushPopSize();
-	TestVectorcheckCapacity();	
-	
-	
-	
-	
+	TestVectorcheckCapacity();
+	TestVectorLargeCapacity();
 	
 	return 0;
 }
@@ -139,4 +137,58 @@ void TestVectorcheckCapacity()
 	printf("\n");
 }
 
-
+void TestVectorLargeCapacity()
+{
+	d_vector_t *new_vector = NULL;
+	const int element_size = 8;
+	unsigned long p = 10;
+	unsigned long *long_p = &p;	
+	
+	new_vector = VectorCreate(2000, element_size);
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 2000 == (VectorCapacity(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_size", 1,
+						 0 == (VectorSize(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_reserve", 1,
+						 0 == (VectorReserve(new_vector, 10000)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 10000 == (VectorCapacity(new_vector)));
+	
+	PRINTTESTRESULTS("TestVectorLargeCapacity_push", 1, 
+						0 == VectorPushBack(new_vector, long_p));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_size", 1,
+						 1 == (VectorSize(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 10000 == (VectorCapacity(new_vector)));					 
+	VectorPopBack(new_vector);
+	
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 5000 == (VectorCapacity(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_push", 1, 
+						0 == VectorPushBack(new_vector, long_p));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_reserve", 1,
+						 0 == (VectorReserve(new_vector, 4)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_size", 1,
+						 1 == (VectorSize(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 4 == (VectorCapacity(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_push", 1, 
+						0 == VectorPushBack(new_vector, long_p));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_size", 1,
+						 2 == (VectorSize(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 4 == (VectorCapacity(new_vector)));					 
+	VectorPopBack(new_vector);
+	
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 4 == (VectorCapacity(new_vector)));
+	VectorPopBack(new_vector);
+	
+	PRINTTESTRESULTS("TestVectorLargeCapacity_capacity", 1, 
+						 2 == (VectorCapacity(new_vector)));
+	PRINTTESTRESULTS("TestVectorLargeCapacity_size", 1,
+						 0 == (VectorSize(new_vector)));					 
+						 	
+	VectorDestroy(new_vector);
+	printf("\n");
+}

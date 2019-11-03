@@ -1,3 +1,11 @@
+/********************************
+*	Author: ChenR				*
+*	Reviewer: EyalR				*
+*	ds_vector					*
+*	3/11/2019					*
+*								*
+********************************/
+
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <string.h> /* memcpy */
@@ -62,6 +70,7 @@ int VectorReserve(d_vector_t *vector, size_t new_capacity)
 	}
 	
 	vector -> head = new_head;
+	vector -> capacity = new_capacity;
 	
 	return 0;
 }
@@ -87,8 +96,6 @@ int VectorPushBack(d_vector_t *vector, const void *n)
 			
 			return 1;
 		}
-		
-		(vector -> capacity) *= 2;
 	}
 	
 	memcpy(
