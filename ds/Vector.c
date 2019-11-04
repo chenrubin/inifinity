@@ -26,8 +26,8 @@ struct d_vector_t
 d_vector_t *VectorCreate(size_t capacity, size_t elements_size)
 {
 	size_t num_of_Bytes = capacity * elements_size;
-	char *actual_vector_t = (char *)malloc(capacity * elements_size);
-	d_vector_t *new_vector = (d_vector_t *)malloc(num_of_Bytes);	
+	char *actual_vector_t = (char *)malloc(num_of_Bytes);
+	d_vector_t *new_vector = (d_vector_t *)malloc(sizeof(d_vector_t));	
 	if (NULL == actual_vector_t)
 	{
 		printf("no allocation was made to vector\n");
