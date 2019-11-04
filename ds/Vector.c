@@ -14,6 +14,7 @@
 
 #define EXTEND_SHRINK_FACTOR 2
 #define SHRINK_LIMIT 4 
+#define MAX(a,b) (a) >= (b) ? a : b 
 
 struct d_vector_t
 {
@@ -27,7 +28,7 @@ d_vector_t *VectorCreate(size_t capacity, size_t elements_size)
 {
 	size_t num_of_Bytes = capacity * elements_size;
 	char *actual_vector_t = (char *)malloc(num_of_Bytes);
-	d_vector_t *new_vector = (d_vector_t *)malloc(sizeof(d_vector_t));	
+	d_vector_t *new_vector = (d_vector_t *)malloc(sizeof(d_vector_t));
 	if (NULL == actual_vector_t)
 	{
 		printf("no allocation was made to vector\n");
@@ -55,10 +56,7 @@ int VectorReserve(d_vector_t *vector, size_t new_capacity)
 	assert(NULL != vector);
 	assert(0 != new_capacity);
 	
-	if (new_capacity <= (vector -> size))
-	{
-		new_capacity = (vector -> size);
-	}
+	new_capacity = MAX((vector -> size), new_capacity);
 	
 	new_head = realloc(vector -> head, 
 					   new_capacity * vector -> element_size);
@@ -89,7 +87,7 @@ int VectorPushBack(d_vector_t *vector, const void *n)
 	
 	if ((vector -> size) == (vector -> capacity))
 	{
-		if (VectorReserve(vector, 2 * (vector -> capacity)))
+		if (VectorReserve(vector, EXTEND_SHRINK_FACTOR * (vector -> capacity)))
 		{
 			printf("unable to push");
 			printf(" ,vector is full and reallocation is impossible\n");
@@ -111,8 +109,7 @@ void *VectorGetItemAddress(const d_vector_t *vector, size_t index)
 	assert(NULL != vector);
 	assert(index <= ((vector -> size) - 1));
 	
-	return ((char *)(vector -> head) + 
-		   (((vector -> size) - 1) * (vector -> element_size)));
+	return ((char *)(vector -> head) + index * (vector -> element_size));
 }
 
 void VectorPopBack(d_vector_t *vector)
@@ -121,7 +118,7 @@ void VectorPopBack(d_vector_t *vector)
 	
 	if ((vector -> size) <= ((vector -> capacity) / SHRINK_LIMIT))
 	{
-		(vector -> capacity) /= 2;
+		(vector -> capacity) /= EXTEND_SHRINK_FACTOR;
 	}
 	
 	(vector -> size) -= 1;
