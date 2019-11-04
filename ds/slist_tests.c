@@ -16,6 +16,8 @@
 KGRN "\t\tpassed" : KRED "\t\tfailed"))
 #define ELEMENT_SIZE 4 
 #define NUM_OF_ELEMENTS 20
+
+static void PrintSList(node_t *head);
 	
 int main()
 {
@@ -23,22 +25,54 @@ int main()
 	int y = 10;
 	int z = 15;
 	int k = 12;
+	node_t *head_after_flip = NULL;
 	node_t *second_node = SListCreateNode(&x, NULL);
 	node_t *first_node = SListCreateNode(&y, second_node);
-	
-	node_t *insert_before_node = SListCreateNode(&z, NULL);
+/*	node_t *insert_before_node = SListCreateNode(&z, NULL);
 	node_t *insert_after_first_node = SListCreateNode(&k, NULL);
+	
 	SListInsert(insert_before_node, second_node); 
 	SListInsertAfter(insert_after_first_node, first_node);
+*/	
+	PrintSList(first_node);
+/*	printf("first node = %d\n", *(int*)first_node->data);
+	printf("second node = %d\n", *(int*)(first_node->next)->data);
+	printf("third node = %d\n", *(int*)((first_node->next)->next)->data);
+	printf("fourth node = %d\n", *(int*)(((first_node->next)->next)->next)->data);
+*/	printf("Num of nodes = %ld\n", SListCount(first_node));
 	
 	
+	head_after_flip = SListFlip(first_node);
+	PrintSList(head_after_flip);
+/*	SListRemove(insert_after_first_node);
+	
+	PrintSList(first_node);
 	printf("first node = %d\n", *(int*)first_node->data);
-	printf("first node = %d\n", *(int*)(first_node->next)->data);
-	printf("first node = %d\n", *(int*)((first_node->next)->next)->data);
-				
-	SListFreeNode(first_node);
+	printf("second node = %d\n", *(int*)(first_node->next)->data);
+	printf("third node = %d\n", *(int*)((first_node->next)->next)->data);
+	printf("Num of nodes = %ld\n", SListCount(first_node));
+	
+	SListRemoveAfter(first_node);
+	
+	PrintSList(first_node);
+	printf("first node = %d\n", *(int*)first_node->data);
+	printf("second node = %d\n", *(int*)(first_node->next)->data);
+	printf("Num of nodes = %ld\n", SListCount(first_node));
+*/				
+	SListFreeNode(head_after_flip);
 	
 	return 0;
+}
+
+static void PrintSList(node_t *head)
+{
+	while (NULL != head -> next)
+	{
+		printf("%d, ", *(int *)(head -> data));
+		head = (head -> next);
+	}
+	
+	printf("%d\n", *(int *)(head -> data));
 }
 
 /* push one element to vector and get address *//*
