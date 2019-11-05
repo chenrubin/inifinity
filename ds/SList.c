@@ -13,13 +13,19 @@
 
 #define EXTEND_SHRINK_FACTOR 2
 #define SHRINK_LIMIT 4
+#define MAX(a,b) (a) >= (b) ? a : b
 
 static void SwapData(void **data1, void **data2);
-void PrintSList(node_t *head);
+static sl_node_t *MoveNodeForward(sl_node_t *node, size_t steps);
+void PrintSList(sl_node_t *head);
 
-node_t *SListCreateNode(void *data, node_t *next)
+sl_node_t *SListCreateNode(void *data, sl_node_t *next)
 {
-	node_t *new_node = (node_t *)malloc(sizeof(node_t));
+	sl_node_t *new_node = (sl_node_t *)malloc(sizeof(sl_node_t));
+	if (NULL == new_node)
+	{
+		return NULL;
+	}
 	
 	new_node -> data = data;
 	new_node -> next = next;
@@ -27,9 +33,9 @@ node_t *SListCreateNode(void *data, node_t *next)
 	return new_node;
 }
 
-void SListFreeNode(node_t *node)
+void SListFreeAll(sl_node_t *node)
 {
-	node_t *next_node = node -> next;
+	sl_node_t *next_node = node -> next;
 	
 	assert(NULL != node);
 	
@@ -43,7 +49,7 @@ void SListFreeNode(node_t *node)
 	free(node);
 }
 
-node_t *SListInsert(node_t *new_node, node_t *pos)
+sl_node_t *SListInsert(sl_node_t *new_node, sl_node_t *pos)
 {	
 	assert(NULL != new_node);
 	assert(NULL != pos);
@@ -55,7 +61,7 @@ node_t *SListInsert(node_t *new_node, node_t *pos)
 	return pos;
 }
 
-node_t *SListInsertAfter(node_t *new_node, node_t *pos)
+sl_node_t *SListInsertAfter(sl_node_t *new_node, sl_node_t *pos)
 {
 	assert(NULL != new_node);
 	assert(NULL != pos);
@@ -66,7 +72,7 @@ node_t *SListInsertAfter(node_t *new_node, node_t *pos)
 	return new_node;
 }
 
-size_t SListCount(const node_t *head)
+size_t SListCount(const sl_node_t *head)
 {
 	size_t counter = 0;
 	
@@ -81,32 +87,36 @@ size_t SListCount(const node_t *head)
 	return (counter + 1);
 }
 
-node_t *SListRemove(node_t *node)
+sl_node_t *SListRemove(sl_node_t *node)
 {
-	node_t *temp_node = (node -> next) -> next;
-	
-	node -> data = (node -> next) -> data;
-	free(node -> next);
-	node -> next = temp_node;
+	SwapData(&(node -> data), &((node -> next) -> data));
+	SListRemoveAfter(node);
 	
 	return node;
 }
 
-node_t *SListRemoveAfter(node_t *node)
+sl_node_t *SListRemoveAfter(sl_node_t *node)
 {
-	node_t *temp_node = (node -> next) -> next;
+	sl_node_t *temp_node = NULL;
 	
-	free(node -> next);
-	node -> next = temp_node;
+	if (NULL == (node -> next))
+	{
+		node = node -> next;
+	}
+	else
+	{
+		temp_node = (node -> next) -> next;
+		node -> next = temp_node;
+	}
 	
 	return node;
 }
 
-node_t *SListFlip(node_t *head)
+sl_node_t *SListFlip(sl_node_t *head)
 {
-	node_t *runner0 = NULL;
-	node_t *runner1 = NULL;
-	node_t *runner2 = NULL;
+	sl_node_t *runner0 = NULL;
+	sl_node_t *runner1 = NULL;
+	sl_node_t *runner2 = NULL;
 	
 	if (NULL == (head -> next))
 	{
@@ -142,11 +152,11 @@ node_t *SListFlip(node_t *head)
 	}
 }
 
-node_t *SListFind(const node_t *node, void *param, find_ptr ptr)
+const sl_node_t *SListFind(const sl_node_t *node, void *param, find_ptr ptr)
 {
 	while (NULL != node)
 	{
-		if(find_ptr(node, param))
+		if(ptr(node, param))
 		{
 			return node;
 		}
@@ -157,11 +167,90 @@ node_t *SListFind(const node_t *node, void *param, find_ptr ptr)
 	return NULL;
 }
 
+sl_node_t *SListFindIntersection(sl_node_t *node1, sl_node_t *node2)
+{
+	size_t count_node1 = SListCount(node1);
+	size_t count_node2 = SListCount(node2);
+	size_t max_count = MAX(count_node1, count_node2);
+	
+	if (max_count == count_node1)
+	{
+		MoveNodeForward(node1, count_node1 - count_node2);
+	}
+	else
+	{
+		MoveNodeForward(node2, count_node2 - count_node1);
+	}
+	
+	if (node2 == node1)
+	{
+		return NULL;
+	}
+	else
+	{
+		while (node2 != node1)
+		{
+			node1 = node1 -> next;
+			node2 = node2 -> next;			
+		}
+		
+		return node1;
+	}
+}
+
+int SListHasLoop (sl_node_t *head)
+{
+	sl_node_t *runner2 = head -> next;
+	sl_node_t *runner1 = head;
+	
+	assert(head);
+	
+	if (NULL != runner2)
+	{
+		runner2 = (runner2 -> next) -> next;
+		runner1 = runner1 -> next;
+		
+		if ((runner2 == runner1) || (runner2 == runner1 -> next))
+		{
+			return 0;
+		}
+	}
+	
+	return 1;
+}
+
+int SListForEach(sl_node_t *node, void *param, for_each_ptr ptr)
+{
+	while (NULL != node)
+	{
+		if(ptr(node, param))
+		{
+			return 1;
+		}
+		
+		node = node -> next;
+	}
+	
+	return 0;
+}
+
 static void SwapData(void **data1, void **data2)
 {
 	void *temp_data = *data1;
 	*data1 = *data2;
 	*data2 = temp_data;
+}
+
+static sl_node_t *MoveNodeForward(sl_node_t *node, size_t steps)
+{
+	size_t i = 0;
+	
+	for (i = 0; i < steps; ++i)
+	{
+		node = node -> next;
+	}
+	
+	return node;
 }
 
 
