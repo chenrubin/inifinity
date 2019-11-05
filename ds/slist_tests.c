@@ -18,14 +18,22 @@ KGRN "\t\tpassed" : KRED "\t\tfailed"))
 #define NUM_OF_ELEMENTS 20
 
 static void PrintSList(sl_node_t *head);
+int ptr(const sl_node_t *node, void *param);
+int ForEach(sl_node_t *node, void *param);
 
 void TestsCreateInsertCountDestroy();
 void TestsCreateRemoveCountDestroy();
+void TestsCreateFlipDestroy();
+void TestsCreateFindDestroy();
+void TestsCreateForEachDestroy();
 	
 int main()
 {
 	TestsCreateInsertCountDestroy();
-	TestsCreateRemoveCountDestroy();			
+	TestsCreateRemoveCountDestroy();
+	TestsCreateFlipDestroy();	
+	TestsCreateFindDestroy();
+	TestsCreateForEachDestroy();
 	
 	return 0;
 }
@@ -47,7 +55,7 @@ void TestsCreateInsertCountDestroy()
 	int a2 = 2;
 	int a3 = 3;
 	int a4 = 4;
-
+	
 	sl_node_t *last_node = SListCreateNode(&a4, NULL);
 	sl_node_t *head = SListCreateNode(&a1, last_node);
 	sl_node_t *insert_after_first_node = SListCreateNode(&a2, NULL);
@@ -91,25 +99,29 @@ void TestsCreateRemoveCountDestroy()
 	int a4 = 4;
 	
 	sl_node_t *temp_node = NULL;
+	sl_node_t *remove_after_node = NULL; 
 	sl_node_t *last_node = SListCreateNode(&a4, NULL);
 	sl_node_t *head = SListCreateNode(&a1, last_node);
 	sl_node_t *insert_after_first_node = SListCreateNode(&a2, NULL);
 	sl_node_t *insert_before_last_node = SListCreateNode(&a3, NULL);
-	SListInsert(insert_before_last_node, last_node);
-	SListInsertAfter(insert_after_first_node, head);
+	insert_before_last_node = SListInsert(insert_before_last_node, last_node);
+	insert_after_first_node = SListInsertAfter(insert_after_first_node, head);
 	
 	PrintSList(head);
 	
+	temp_node = SListRemove(insert_before_last_node);
 	PRINTTESTRESULTS("TestsCreateRemoveCountDestroy_SListRemove",1, 
-	a3 == *(int *)(SListRemove(insert_before_last_node) -> data));
+	a3 == *(int *)(temp_node -> data));
+	free(temp_node);
 	
 	PRINTTESTRESULTS("TestsCreateRemoveCountDestroy_SListCount",2, 
 	3 == SListCount(head));
 	
+	remove_after_node = head -> next;
 	temp_node = SListRemoveAfter(head);
 	PRINTTESTRESULTS("TestsCreateRemoveCountDestroy_SListRemoveAfter",3, 
-	a2 == *(int *)(temp_node -> data));
-	free(temp_node);
+	a1 == *(int *)(temp_node -> data));
+	free(remove_after_node);
 	
 	PRINTTESTRESULTS("TestsCreateRemoveCountDestroy_SListCount",4, 
 	2 == SListCount(head));
@@ -120,6 +132,109 @@ void TestsCreateRemoveCountDestroy()
 	a4 == *(int *)((head -> next) -> data));
 	
 	PrintSList(head);
+	SListFreeAll(head);
+}
+
+void TestsCreateFlipDestroy()
+{
+	int a1 = 1;
+	int a2 = 2;
+	int a3 = 3;
+	int a4 = 4;
+	
+	sl_node_t *temp_node = NULL;
+	sl_node_t *last_node = SListCreateNode(&a4, NULL);
+	sl_node_t *head = SListCreateNode(&a1, last_node);
+	sl_node_t *insert_after_first_node = SListCreateNode(&a2, NULL);
+	sl_node_t *insert_before_last_node = SListCreateNode(&a3, NULL);
+	insert_before_last_node = SListInsert(insert_before_last_node, last_node);
+	insert_after_first_node = SListInsertAfter(insert_after_first_node, head);
+	
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_headData",1,
+	a1 == *(int *)(head -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_secondData",2,
+	a2 == *(int *)((head -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",3,
+	a3 == *(int *)(((head -> next) -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",4,
+	a4 == *(int *)((((head -> next) -> next) -> next) -> data));
+	
+	PrintSList(head);
+	
+	temp_node = SListFlip(head);
+	printf("FLip\n");
+	
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_headData",1,
+	a4 == *(int *)(temp_node -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_secondData",2,
+	a3 == *(int *)((temp_node -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",3,
+	a2 == *(int *)(((temp_node -> next) -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",4,
+	a1 == *(int *)((((temp_node -> next) -> next) -> next) -> data));
+
+	SListFreeAll(temp_node);
+	
+	printf("\n\n");
+}
+
+void TestsCreateFindDestroy()
+{
+	int a1 = 1;
+	int a2 = 2;
+	int a3 = 3;
+	int a4 = 4;
+	int x = 10;
+		
+	sl_node_t *last_node = SListCreateNode(&a4, NULL);
+	sl_node_t *head = SListCreateNode(&a1, last_node);
+	sl_node_t *insert_after_first_node = SListCreateNode(&a2, NULL);
+	sl_node_t *insert_before_last_node = SListCreateNode(&a3, NULL);
+	insert_before_last_node = SListInsert(insert_before_last_node, last_node);
+	insert_after_first_node = SListInsertAfter(insert_after_first_node, head);
+	
+	PRINTTESTRESULTS("TestsCreateFindDestroy_Find",1,
+	head == SListFind(head, &a1, ptr));
+	PRINTTESTRESULTS("TestsCreateFindDestroy_Find",1,
+	(head -> next) -> next == SListFind(head, &a3, ptr));
+	PRINTTESTRESULTS("TestsCreateFindDestroy_Find",1,
+	NULL == SListFind(head, &x, ptr));
+	
+	SListFreeAll(head);
+	
+	printf("\n\n");
+}
+
+void TestsCreateForEachDestroy()
+{
+	int a1 = 1;
+	int a2 = 2;
+	int a3 = 3;
+	int a4 = 4;
+	int x = 10;
+	int a1_after_change = a1 + x;
+	int a2_after_change = a2 + x;	
+	int a3_after_change = a3 + x;
+	int a4_after_change = a4 + x;
+
+	sl_node_t *last_node = SListCreateNode(&a4, NULL);
+	sl_node_t *head = SListCreateNode(&a1, last_node);
+	sl_node_t *insert_after_first_node = SListCreateNode(&a2, NULL);
+	sl_node_t *insert_before_last_node = SListCreateNode(&a3, NULL);
+	insert_before_last_node = SListInsert(insert_before_last_node, last_node);
+	insert_after_first_node = SListInsertAfter(insert_after_first_node, head);
+	
+	PRINTTESTRESULTS("TestsCreateForEachDestroy_forEach",1,
+	0 == SListForEach(head, &x, ForEach));
+	
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_headData",1,
+	a1_after_change == *(int *)(head -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_secondData",2,
+	a2_after_change == *(int *)((head -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",3,
+	a3_after_change == *(int *)(((head -> next) -> next) -> data));
+	PRINTTESTRESULTS("TestsCreateFlipDestroy_thirdData",4,
+	a4_after_change == *(int *)((((head -> next) -> next) -> next) -> data));
 	
 	SListFreeAll(head);
 }

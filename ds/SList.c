@@ -18,6 +18,8 @@
 static void SwapData(void **data1, void **data2);
 static sl_node_t *MoveNodeForward(sl_node_t *node, size_t steps);
 void PrintSList(sl_node_t *head);
+int ptr(const sl_node_t *node, void *param);
+int ForEach(sl_node_t *node, void *param);
 
 sl_node_t *SListCreateNode(void *data, sl_node_t *next)
 {
@@ -89,10 +91,13 @@ size_t SListCount(const sl_node_t *head)
 
 sl_node_t *SListRemove(sl_node_t *node)
 {
+	sl_node_t *removed_node = NULL;
+	
 	SwapData(&(node -> data), &((node -> next) -> data));
+	removed_node = node -> next;
 	SListRemoveAfter(node);
 	
-	return node;
+	return removed_node;
 }
 
 sl_node_t *SListRemoveAfter(sl_node_t *node)
@@ -138,7 +143,7 @@ sl_node_t *SListFlip(sl_node_t *head)
 		
 		head -> next = NULL;
 		
-		while (NULL != runner2)
+		while (NULL != runner2 -> next)
 		{
 			runner1 -> next = runner0;
 			runner0 = runner1;
@@ -147,8 +152,9 @@ sl_node_t *SListFlip(sl_node_t *head)
 		}
 		
 		runner1 -> next = runner0;
+		runner2 -> next = runner1;
 		
-		return runner1;
+		return runner2;
 	}
 }
 
@@ -221,17 +227,41 @@ int SListHasLoop (sl_node_t *head)
 
 int SListForEach(sl_node_t *node, void *param, for_each_ptr ptr)
 {
+	int status = 1;
+	
 	while (NULL != node)
 	{
-		if(ptr(node, param))
-		{
-			return 1;
-		}
-		
+		status &= ptr(node, param);
 		node = node -> next;
 	}
 	
-	return 0;
+	if (status)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+int ptr(const sl_node_t *node, void *param)
+{
+	if (*(int *)param == *(int *)(node -> data))
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int ForEach(sl_node_t *node, void *param)
+{
+	*(int *)node -> data += *(int *)param;
+	
+	return 1;
 }
 
 static void SwapData(void **data1, void **data2)
