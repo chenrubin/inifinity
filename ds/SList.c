@@ -92,16 +92,13 @@ size_t SListCount(const sl_node_t *head)
 }
 
 sl_node_t *SListRemove(sl_node_t *node)
-{
-	sl_node_t *removed_node = NULL;
-	
+{	
 	assert(NULL != node);
 	
-	SwapData(&(node -> data), &((node -> next) -> data));
-	removed_node = node -> next;
+	*(&(node -> data)) = *(&((node -> next) -> data));
 	SListRemoveAfter(node);
 	
-	return removed_node;
+	return node;
 }
 
 sl_node_t *SListRemoveAfter(sl_node_t *node)
