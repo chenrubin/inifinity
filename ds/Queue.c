@@ -1,7 +1,15 @@
+/************************************
+*		Author: ChenR				*
+*		Reviewer: Maoz				*
+*		ds_queue					*
+*		7/11/2019					*
+*									*
+************************************/
+
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
-#include "queue.h" /* stack functions */
+#include "queue.h"
 #include "slist.h"
 
 struct queue

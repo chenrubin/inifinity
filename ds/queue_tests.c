@@ -26,13 +26,13 @@ void TestsCrazyTest();
 
 int main()
 {
-/*	TestsCreateDestroyQueue();
+	TestsCreateDestroyQueue();
 	TestsEnqueuePeek();
 	TestsQDequeue();
 	TestsIsEmpty();
 	TestsSize();
 	TestsAppend();
-*/	TestsCrazyTest();
+	TestsCrazyTest();
 	
 	return 0;
 }
@@ -385,6 +385,4 @@ void TestsCrazyTest()
 	
 	printf("Destroy queue\n"); 
 	QDestroy(new_queue_dst);
-	
-	printf("\n\n");
 }
