@@ -41,7 +41,7 @@ d_vector_t *VectorCreate(size_t capacity, size_t elements_size)
 	assert(0 != capacity);
 	assert(0 != elements_size);
 	
-	new_vector -> capacity = capacity;
+	new_vector -> capacity = MAX(capacity, 1);
 	new_vector -> element_size = elements_size;
 	new_vector -> size = 0;
 	new_vector -> head = actual_vector_t;

@@ -11,8 +11,6 @@
 #include <assert.h> /* assert */
 #include "slist.h"
 
-#define EXTEND_SHRINK_FACTOR 2
-#define SHRINK_LIMIT 4
 #define MAX(a,b) (a) >= (b) ? a : b
 
 static void SwapData(void **data1, void **data2);
@@ -36,9 +34,11 @@ sl_node_t *SListCreateNode(void *data, sl_node_t *next)
 
 void SListFreeAll(sl_node_t *node)
 {
-	sl_node_t *next_node = node -> next;
+	sl_node_t *next_node = NULL;
 	
 	assert(NULL != node);
+	
+	next_node = node -> next;
 	
 	while (NULL != next_node)
 	{
@@ -82,13 +82,13 @@ size_t SListCount(const sl_node_t *head)
 	
 	assert(NULL != head);
 	
-	while (NULL != head -> next)
+	while (NULL != head)
 	{
-		counter += 1;
+		++counter;
 		head = (head -> next);
 	}
 	
-	return (counter + 1);
+	return counter;
 }
 
 sl_node_t *SListRemove(sl_node_t *node)
@@ -106,16 +106,9 @@ sl_node_t *SListRemoveAfter(sl_node_t *node)
 	sl_node_t *temp_node = NULL;
 	
 	assert(NULL != node);
-	
-	if (NULL == (node -> next))
-	{
-		node = node -> next;
-	}
-	else
-	{
-		temp_node = (node -> next) -> next;
-		node -> next = temp_node;
-	}
+
+	temp_node = (node -> next) -> next;
+	node -> next = temp_node;
 	
 	return node;
 }
@@ -165,13 +158,17 @@ sl_node_t *SListFlip(sl_node_t *head)
 
 const sl_node_t *SListFind(const sl_node_t *node, void *param, find_ptr ptr)
 {
+	int status = 1;
+	
 	assert(NULL != node);
 	assert(NULL != ptr);
 	assert(NULL != param);
 	
 	while (NULL != node)
 	{
-		if(ptr(node, param))
+		status = ptr(node, param);
+		
+		if(status)
 		{
 			return node;
 		}
@@ -184,20 +181,23 @@ const sl_node_t *SListFind(const sl_node_t *node, void *param, find_ptr ptr)
 
 sl_node_t *SListFindIntersection(sl_node_t *node1, sl_node_t *node2)
 {
-	size_t count_node1 = SListCount(node1);
-	size_t count_node2 = SListCount(node2);
-	size_t max_count = MAX(count_node1, count_node2);
+	size_t node1_distance_from_the_end = SListCount(node1);
+	size_t node2_distance_from_the_end = SListCount(node2);
+	size_t max_count = MAX(node1_distance_from_the_end, 
+						   node2_distance_from_the_end);
 	
 	assert(NULL != node1);
 	assert(NULL != node2);
 	
-	if (max_count == count_node1)
+	if (max_count == node1_distance_from_the_end)
 	{
-		node1 = MoveNodeForward(node1, count_node1 - count_node2);
+		node1 = MoveNodeForward(node1, 
+				node1_distance_from_the_end - node2_distance_from_the_end);
 	}
 	else
 	{
-		node2 = MoveNodeForward(node2, count_node2 - count_node1);
+		node2 = MoveNodeForward(node2, 
+				node2_distance_from_the_end - node1_distance_from_the_end);
 	}
 	
 	if (node2 == node1)
@@ -239,17 +239,13 @@ int SListHasLoop (sl_node_t *head)
 
 int SListForEach(sl_node_t *node, void *param, for_each_ptr ptr)
 {
-	int status = 1;
-	
 	assert(NULL != node);
 	assert(NULL != ptr);
 	assert(NULL != param);
 	
 	while (NULL != node)
-	{
-		status &= ptr(node, param);
-		
-		if (0 == status)
+	{		
+		if (1 == ptr(node, param))
 		{
 			return 1;
 		}

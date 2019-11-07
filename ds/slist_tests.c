@@ -67,7 +67,7 @@ int ForEach(sl_node_t *node, void *param)
 {
 	*(int *)node -> data += *(int *)param;
 	
-	return 1;
+	return 0;
 }
 
 void TestsCreateInsertCountDestroy()
