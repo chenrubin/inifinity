@@ -120,40 +120,22 @@ sl_node_t *SListFlip(sl_node_t *head)
 	sl_node_t *runner2 = NULL;
 	
 	assert(NULL != head);
+
+	runner0 = NULL;
+	runner1 = head;
+	runner2 = head -> next;
 	
-	if (NULL == (head -> next))
+	while (NULL != runner2)
 	{
-		return head;
-	}
-	else if (NULL == ((head -> next) -> next))
-	{
-		runner1 = head -> next;
-		head -> next = NULL;
-		runner1 -> next = head;
-		
-		return runner1;
-	}
-	else
-	{
-		runner0 = head;
-		runner1 = head -> next;
-		runner2 = (head -> next) -> next;
-		
-		head -> next = NULL;
-		
-		while (NULL != runner2 -> next)
-		{
-			runner1 -> next = runner0;
-			runner0 = runner1;
-			runner1 = runner2;
-			runner2 = runner2 -> next;			
-		}
-		
 		runner1 -> next = runner0;
-		runner2 -> next = runner1;
-		
-		return runner2;
+		runner0 = runner1;
+		runner1 = runner2;
+		runner2 = runner2 -> next;			
 	}
+	
+	runner1 -> next = runner0;
+	
+	return runner1;
 }
 
 const sl_node_t *SListFind(const sl_node_t *node, void *param, find_ptr ptr)
