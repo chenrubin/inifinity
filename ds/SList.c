@@ -34,20 +34,16 @@ sl_node_t *SListCreateNode(void *data, sl_node_t *next)
 
 void SListFreeAll(sl_node_t *node)
 {
-	sl_node_t *next_node = NULL;
+	sl_node_t *temp_node = NULL;
 	
 	assert(NULL != node);
 	
-	next_node = node -> next;
-	
-	while (NULL != next_node)
+	while (NULL != node)
 	{
-		free(node);
-		node = next_node;
-		next_node = (next_node -> next);
+		temp_node = node;
+		node = node -> next;
+		free(temp_node);
 	}
-	
-	free(node);
 }
 
 sl_node_t *SListInsert(sl_node_t *new_node, sl_node_t *pos)
@@ -95,7 +91,7 @@ sl_node_t *SListRemove(sl_node_t *node)
 {	
 	assert(NULL != node);
 	
-	*(&(node -> data)) = *(&((node -> next) -> data));
+	node -> data = (node -> next) -> data;
 	SListRemoveAfter(node);
 	
 	return node;
@@ -108,6 +104,7 @@ sl_node_t *SListRemoveAfter(sl_node_t *node)
 	assert(NULL != node);
 
 	temp_node = (node -> next) -> next;
+	(node -> next) -> next = NULL;
 	node -> next = temp_node;
 	
 	return node;
