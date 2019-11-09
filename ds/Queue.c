@@ -9,6 +9,7 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+
 #include "queue.h"
 #include "slist.h"
 
@@ -26,12 +27,16 @@ queue_t *QCreate()
 	
 	new_queue = (queue_t *)malloc(sizeof(queue_t));
 	if (NULL == new_queue)
-	{
+	{	
 		return NULL;
 	}
 	
 	dummy_node = SListCreateNode(&a1, NULL);
-	
+	if (NULL == new_queue)
+	{
+		QDestroy(new_queue);
+		return NULL;
+	}	
 	new_queue -> rear = dummy_node;
 	new_queue -> front = dummy_node;	
 	
@@ -43,7 +48,9 @@ void QDestroy(queue_t *queue)
 	assert(NULL != queue);
 	
 	SListFreeAll(queue -> front);
-	free(queue);	
+	queue -> front = NULL;
+	free(queue);
+	queue = NULL;
 }
 
 int QEnqueue(queue_t *queue, void *data)
@@ -70,7 +77,7 @@ void *QPeek(const queue_t *queue)
 {
 	assert(NULL != queue);
 	
-	return (queue -> front) -> data;
+	return ((queue -> front) -> data);
 }
 
 void QDequeue(queue_t *queue)
@@ -109,6 +116,8 @@ void QAppend(queue_t *dest, queue_t *src)
 	removed_node = (src -> front);
 	SListRemove(dest -> rear);
 	free(removed_node);
+	removed_node = NULL;
 	(dest -> rear) = (src -> rear);
-	free(src);	
+	free(src);
+	src = NULL;
 }
