@@ -65,7 +65,7 @@ void CBuffDestroy(cbuff_t *cbuff)
 
 ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes)
 {
-	size_t num_to_write = MIN2(CBBuffSpaceLeft(cbuff), nbytes);
+	size_t num_to_write = MIN2(CBuffSpaceLeft(cbuff), nbytes);
 	size_t steps_until_end = cbuff -> begin + (cbuff -> capacity)
 							 - (cbuff -> write_ptr);
 	
@@ -92,7 +92,7 @@ ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes)
 ssize_t CBuffRead(cbuff_t *cbuff, void *dest, size_t nbytes)
 {
 	size_t num_to_read = 
-	MIN2((cbuff -> capacity) - CBBuffSpaceLeft(cbuff), nbytes);
+	MIN2((cbuff -> capacity) - CBuffSpaceLeft(cbuff), nbytes);
 	size_t steps_until_end = (cbuff -> begin) + (cbuff -> capacity)
 							 - (cbuff -> read_ptr);
 	
@@ -120,10 +120,10 @@ int CBuffIsEmpty(const cbuff_t *cbuff)
 {
 	assert(cbuff);
 	
-	return (25 == CBBuffSpaceLeft(cbuff));	
+	return (25 == CBuffSpaceLeft(cbuff));	
 }
 
-size_t CBBuffSpaceLeft(const cbuff_t *cbuff)
+size_t CBuffSpaceLeft(const cbuff_t *cbuff)
 {
 	assert(cbuff);
 	

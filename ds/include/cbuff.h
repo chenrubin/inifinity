@@ -22,7 +22,8 @@ cbuff_t *CBuffCreate(size_t capacity);
 void CBuffDestroy(cbuff_t *cbuff);
 
 /* Attempts to read nbytes from memory buffer cbuff, and write to supplied
- buffer dest. If nbytes cannot be fully read, max allowed number is read.
+ buffer dest. If dest doesn't have enough capacity for write data, behaviour is 
+ undefined. If nbytes cannot be fully read, max allowed number is read.
  Returns the number of bytes read, or -1 if reading attempt fails.*/
 ssize_t CBuffRead(cbuff_t *cbuff, void *dest, size_t nbytes);
  
@@ -34,7 +35,7 @@ ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes);
   
 /* Returns number of bytes in cbuff available for writing - unread data CANNOT
  be overwritten */
-size_t CBBuffSpaceLeft(const cbuff_t *cbuff);
+size_t CBuffSpaceLeft(const cbuff_t *cbuff);
  
 /* Returns 1 if cbuff is empty, otherwise returns 0. */
 int CBuffIsEmpty(const cbuff_t *cbuff);
