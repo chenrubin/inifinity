@@ -1,7 +1,7 @@
 #include <stdio.h> /* printf */
-#include <stdlib.h> /* malloc */
+#include <string.h> /* strcmp */
 
-#include "CBuff.h"
+#include "cbuff.h"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -16,7 +16,12 @@
 (printf("%-55s: Test %d %s\n" KNRM,func, num, (res) == 1 ?\
 KGRN "\t\tpassed" : KRED "\t\tfailed"))
 
-struct CBuff
+void TestsCbuffWrite();
+void TestsCbuffRead();
+void TestsCbuffReadWrite();
+void TestsCBuffIsEmptySpaceLeft();
+
+struct CB
 {
     size_t capacity;
     char *write_ptr;
@@ -26,48 +31,193 @@ struct CBuff
 
 int main()
 {
-	size_t num_of_writes = 0;
-	size_t num_of_reads = 0;	
-	CBuff_t *new_CB = CBuffCreate(20);
-	char *buf_to_read_from = "Hello moshe, my name is chen";
-	char buf_to_write_on[20];
-	num_of_writes = CBuffWrite(new_CB, buf_to_read_from, 27);
-	num_of_reads = CBuffRead(new_CB, buf_to_write_on, 27);
-	CBuffDestroy(new_CB);
+	TestsCbuffWrite();
+	TestsCbuffRead();
+	TestsCbuffReadWrite();
+	TestsCBuffIsEmptySpaceLeft();		
 	
 	return 0;
 }
 
-/*
-void TestsEnqueuePeek()
-{
-	queue_t *new_queue = QCreate();
-	int a1 = 1;
-	int a2 = 2;
-	int a3 = 3;
-	int a4 = 4;
+void TestsCbuffWrite()
+{	
+	cbuff_t *new_CB = NULL;
 	
-	printf("Create queue\n");
+	char *buf_to_read_from = "Hello moshe, my name is chen";
 	
-	PRINTTESTRESULTS("TestsEnqueuePeek_Enqueue",1, 
-	0 == QEnqueue(new_queue, &a1));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Peek",2, 
-	a1 == *(int *)QPeek(new_queue));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Enqueue",3, 
-	0 == QEnqueue(new_queue, &a2));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Peek",4, 
-	a1 == *(int *)QPeek(new_queue));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Enqueue",5, 
-	0 == QEnqueue(new_queue, &a3));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Peek",6, 
-	a1 == *(int *)QPeek(new_queue));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Enqueue",7, 
-	0 == QEnqueue(new_queue, &a4));
-	PRINTTESTRESULTS("TestsEnqueuePeek_Peek",8, 
-	a1 == *(int *)QPeek(new_queue));
+	printf("Create CB\n");
+	new_CB = CBuffCreate(10);
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",1, 
+	10 == CBuffWrite(new_CB, buf_to_read_from, 27));
+	printf("Destroy CB\n");
+	CBuffDestroy(new_CB);
 	
-	printf("Destroy queue\n"); 
-	QDestroy(new_queue);
-		
+	printf("Create CB\n");
+	new_CB = CBuffCreate(10);
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",2, 
+	9 == CBuffWrite(new_CB, buf_to_read_from, 9));
+	printf("Destroy CB\n");
+	CBuffDestroy(new_CB);
+	
+	printf("Create CB\n");
+	new_CB = CBuffCreate(10);
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",3, 
+	2 == CBuffWrite(new_CB, buf_to_read_from, 2));
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",4, 
+	3 == CBuffWrite(new_CB, buf_to_read_from, 3));
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",5, 
+	5 == CBuffWrite(new_CB, buf_to_read_from, 5));
+	PRINTTESTRESULTS("TestsCbuffWrite_Write",6, 
+	0 == CBuffWrite(new_CB, buf_to_read_from, 1));
+	printf("Destroy CB\n");
+	CBuffDestroy(new_CB);
+	
 	printf("\n\n");
-}*/
+}
+
+void TestsCbuffRead()
+{	
+	cbuff_t *new_CB = CBuffCreate(25);
+	
+	char *buf_to_read_from = "Hello moshe, my name is chen";
+	char buf_to_write_to[50];
+
+	PRINTTESTRESULTS("TestsCbuffRead_Write",1, 
+	25 == CBuffWrite(new_CB, buf_to_read_from, 27));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",2, 
+	2 == CBuffRead(new_CB, buf_to_write_to, 2));
+	buf_to_write_to[2] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",3,
+	0 == strcmp(buf_to_write_to, "He"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",4, 
+	10 == CBuffRead(new_CB, buf_to_write_to, 10));
+	buf_to_write_to[10] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",5, 
+	0 == strcmp(buf_to_write_to, "llo moshe,"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",6, 
+	13 == CBuffRead(new_CB, buf_to_write_to, 20));
+	buf_to_write_to[13] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",7,
+	0 == strcmp(buf_to_write_to, " my name is c"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",8, 
+	0 == CBuffRead(new_CB, buf_to_write_to, 20));
+	buf_to_write_to[0] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",9,
+	0 == strcmp(buf_to_write_to, ""));
+	
+
+	printf("Destroy queue\n");
+	CBuffDestroy(new_CB);
+	
+	printf("\n\n");
+}
+
+void TestsCbuffReadWrite()
+{	
+	cbuff_t *new_CB = CBuffCreate(25);
+	
+	char *buf_to_read_from = "Hello moshe, my name is chen";
+	char buf_to_write_to[50];
+
+	PRINTTESTRESULTS("TestsCbuffRead_Write",1, 
+	10 == CBuffWrite(new_CB, buf_to_read_from, 10));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",2, 
+	2 == CBuffRead(new_CB, buf_to_write_to, 2));
+	buf_to_write_to[2] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",3,
+	0 == strcmp(buf_to_write_to, "He"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",4, 
+	5 == CBuffRead(new_CB, buf_to_write_to, 5));
+	buf_to_write_to[5] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",5,
+	0 == strcmp(buf_to_write_to, "llo m"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Write",6, 
+	22 == CBuffWrite(new_CB, buf_to_read_from, 22));
+
+	PRINTTESTRESULTS("TestsCbuffRead_Read",7, 
+	25 == CBuffRead(new_CB, buf_to_write_to, 30));
+	buf_to_write_to[25] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",8,
+	0 == strcmp(buf_to_write_to, "oshHello moshe, my name i"));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Write",9, 
+	10 == CBuffWrite(new_CB, buf_to_read_from, 10));
+	PRINTTESTRESULTS("TestsCbuffRead_Write",10, 
+	10 == CBuffWrite(new_CB, buf_to_read_from, 10));
+	PRINTTESTRESULTS("TestsCbuffRead_Read",11, 
+	20 == CBuffRead(new_CB, buf_to_write_to, 30));
+	buf_to_write_to[20] = '\0';
+	PRINTTESTRESULTS("TestsCbuffRead_compareReadString",12,
+	0 == strcmp(buf_to_write_to, "Hello moshHello mosh"));
+
+	printf("Destroy queue\n");
+	CBuffDestroy(new_CB);
+	
+	printf("\n\n");
+}
+
+void TestsCBuffIsEmptySpaceLeft()
+{
+	cbuff_t *new_CB = CBuffCreate(25);
+	
+	char *buf_to_read_from = "Hello moshe, my name is chen";
+	char buf_to_write_to[50];
+	
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",1,
+	1 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",2,
+	25 == CBBuffSpaceLeft(new_CB));
+
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_Write",3,
+	10 == CBuffWrite(new_CB, buf_to_read_from, 10));
+	
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",4,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",5,
+	15 == CBBuffSpaceLeft(new_CB));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",6, 
+	7 == CBuffRead(new_CB, buf_to_write_to, 7));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",7,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",8,
+	22 == CBBuffSpaceLeft(new_CB));
+	
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_Write",9,
+	10 == CBuffWrite(new_CB, buf_to_read_from, 10));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",10,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",11,
+	12 == CBBuffSpaceLeft(new_CB));
+	
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_Write",12,
+	7 == CBuffWrite(new_CB, buf_to_read_from, 7));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",13,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",14,
+	5 == CBBuffSpaceLeft(new_CB));
+	
+	PRINTTESTRESULTS("TestsCbuffRead_Read",15, 
+	11 == CBuffRead(new_CB, buf_to_write_to, 11));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",16,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",17,
+	16 == CBBuffSpaceLeft(new_CB));
+	
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_Write",18,
+	16 == CBuffWrite(new_CB, buf_to_read_from, 30));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_IsEmpty",19,
+	0 == CBuffIsEmpty(new_CB));
+	PRINTTESTRESULTS("TestsCBuffIsEmptySpaceLeft_SpaceLeft",20,
+	0 == CBBuffSpaceLeft(new_CB));
+	
+	printf("Destroy queue\n");
+	CBuffDestroy(new_CB);	
+}

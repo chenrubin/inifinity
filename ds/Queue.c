@@ -6,7 +6,6 @@
 *									*
 ************************************/
 
-#include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
@@ -88,6 +87,7 @@ void QDequeue(queue_t *queue)
 	
 	temp_node = (queue -> front) -> next;
 	free(queue -> front);
+	queue -> front = NULL;
 	queue -> front = temp_node;
 }
 

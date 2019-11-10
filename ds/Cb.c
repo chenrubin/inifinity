@@ -1,28 +1,18 @@
 /************************************
 *		Author: ChenR				*
-*		Reviewer: 				*
-*		ds_CB					*
-*							*
+*		Reviewer: Dvir				*
+*		ds_CB						*
+*		10/11/2019					*
 *									*
 ************************************/
 
-#include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+#include <string.h> /* memcpy */
 
-#include "CBuff.h"
+#include "cbuff.h"
 
-#define CHANGE_ACTION_CONDITION \
-((CB -> write_ptr) == (CB -> read_ptr))
-#define WRITE_CONDITION \
-(!CHANGE_ACTION_CONDITION) || \
-((CHANGE_ACTION_CONDITION) && (0 == CB -> begin[0]))
-#define READ_CONDITION \
-(!CHANGE_ACTION_CONDITION) || \
-((CHANGE_ACTION_CONDITION) && (1 == CB -> begin[0]))
-#define LSB 1
-#define W_BIT (CB -> begin[0] & LSB)
-#define R_BIT ((CB -> begin[0] >> 1) & LSB)
+#define MIN2(a,b) a <= b ? a : b
 
 /* 
 * advance read/write pointer by one char while taking under consideration
@@ -30,13 +20,22 @@
 * begin[1] (and not from begin[0]) and 1 for advancing one char
 */
 static char *OneCyclicAdvance(size_t capacity, char *begin, size_t offset);
-/*
-* returns position of ptr2 relative to ptr1 while taking under
-* consideration the cyclic manner of the buffer
+/* 
+* copy read_ptr to buffer given by user (with memcpy) and advancing
+* it accordingly while taking under consideration the cyclic manner 
+* of this data structure	
 */
-static int RelativePosition(CBuff_t *CB, char *ptr1, char *ptr2);
+static void CpyAndPtrAdvanceSource(cbuff_t *cbuff, void *dest, 
+							 	   char **source, size_t num);
+/* 
+* copy buffer given by user to write_ptr (with memcpy) and advancing
+* it accordingly while taking under consideration the cyclic manner 
+* of this data structure	
+*/							 	   
+static void CpyAndPtrAdvanceDest(cbuff_t *cbuff, char **dest, 
+							 const void *source, size_t num);
 
-struct CBuff
+struct CB
 {
     size_t capacity;
     char *write_ptr;
@@ -44,177 +43,135 @@ struct CBuff
     char begin[1];
 };
 
-CBuff_t *CBuffCreate(size_t capacity)
+cbuff_t *CBuffCreate(size_t capacity)
 {
-	CBuff_t *new_CBuff = (CBuff_t *)malloc(sizeof(CBuff_t) + capacity);
+	cbuff_t *new_CBuff = (cbuff_t *)malloc(sizeof(cbuff_t) + capacity);
 	if (NULL == new_CBuff)
 	{
 		return NULL;
 	}
 	
 	new_CBuff -> capacity = capacity;
-	new_CBuff -> write_ptr = (new_CBuff -> begin) + 1;
-	new_CBuff -> read_ptr = (new_CBuff -> begin) + 1;	
-	new_CBuff -> begin[0] = 1;
+	new_CBuff -> write_ptr = new_CBuff -> begin;
+	new_CBuff -> read_ptr = new_CBuff -> begin;	
 	
 	return new_CBuff;
 }
 
-void CBuffDestroy(CBuff_t *CB)
+void CBuffDestroy(cbuff_t *cbuff)
 {
-	free(CB);
+	free(cbuff);
 }
 
-size_t CBuffWrite(CBuff_t *CB, const char *data, size_t num)
+ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes)
 {
-	size_t i = 0;
-	size_t offset = CB -> write_ptr - &(CB -> begin[1]);
+	size_t num_to_write = MIN2(CBBuffSpaceLeft(cbuff), nbytes);
+	size_t steps_until_end = cbuff -> begin + (cbuff -> capacity)
+							 - (cbuff -> write_ptr);
 	
-	for (i = 0; i < num; ++i)
+	assert(cbuff);
+	assert(src);
+	
+	if (steps_until_end >= num_to_write)
 	{
-		if (-1 == RelativePosition(CB, CB -> read_ptr, CB -> write_ptr))
-		{
-			*(CB -> write_ptr) = *(data + i);
-			CB -> write_ptr = 
-			OneCyclicAdvance(CB -> capacity, CB -> begin, offset + i);
-			CB -> begin[0] &= (~LSB);
-			CB -> begin[0] |= (LSB << 1);
-		}
-		else if (((CB -> read_ptr) == (CB -> write_ptr)) && (0 == W_BIT))
-		{
-			return i;
-		}
-		else
-		{
-			*(CB -> write_ptr) = *(data + i);
-			CB -> write_ptr = 
-			OneCyclicAdvance(CB -> capacity, CB -> begin, offset + i);
-		}
+		CpyAndPtrAdvanceDest(cbuff, &(cbuff -> write_ptr), 
+							 src, num_to_write);
 	}
-
-	return i;
+	else
+	{
+		CpyAndPtrAdvanceDest(cbuff,  &(cbuff -> write_ptr),
+							 src, steps_until_end);					 
+		CpyAndPtrAdvanceDest(cbuff, &(cbuff -> write_ptr),
+							(char *)src + steps_until_end, 
+							num_to_write - steps_until_end);
+	}
+	
+	return num_to_write;
 }
 
-size_t CBuffRead(CBuff_t *CB, char *data, size_t num)
+ssize_t CBuffRead(cbuff_t *cbuff, void *dest, size_t nbytes)
 {
-	size_t i = 0;
-	size_t offset = CB -> read_ptr - &(CB -> begin[1]);
+	size_t num_to_read = 
+	MIN2((cbuff -> capacity) - CBBuffSpaceLeft(cbuff), nbytes);
+	size_t steps_until_end = (cbuff -> begin) + (cbuff -> capacity)
+							 - (cbuff -> read_ptr);
 	
-	for (i = 0; i < num; ++i)
+	assert(cbuff);
+	assert(dest);
+	
+	if (steps_until_end >= num_to_read)
 	{
-		if (-1 == RelativePosition(CB, CB -> write_ptr, CB -> read_ptr))
-		{
-			*(data + i) = *(CB -> read_ptr);
-			CB -> read_ptr = 
-			OneCyclicAdvance(CB -> capacity, CB -> begin, offset + i);
-			CB -> begin[0] &= (~(LSB << 1));
-			CB -> begin[0] |= LSB;
-		}
-		else if (((CB -> read_ptr) == (CB -> write_ptr)) && (0 == W_BIT))
-		{
-			return i;
-		}
-		else
-		{
-			*(data + i) = *(CB -> read_ptr);
-			CB -> read_ptr = 
-			OneCyclicAdvance(CB -> capacity, CB -> begin, offset + i);
-		}
+		CpyAndPtrAdvanceSource(cbuff, dest, &(cbuff -> read_ptr), 
+							   num_to_read);
 	}
+	else
+	{
+		CpyAndPtrAdvanceSource(cbuff, dest, 
+						 &(cbuff -> read_ptr), steps_until_end);
+		CpyAndPtrAdvanceSource(cbuff, (char *)dest + steps_until_end,
+						 &(cbuff -> read_ptr), 
+						 num_to_read - steps_until_end);
+	}
+	
+	return num_to_read;
+}
 
-	return i;
+int CBuffIsEmpty(const cbuff_t *cbuff)
+{
+	assert(cbuff);
+	
+	return (25 == CBBuffSpaceLeft(cbuff));	
+}
+
+size_t CBBuffSpaceLeft(const cbuff_t *cbuff)
+{
+	assert(cbuff);
+	
+	if ((cbuff -> write_ptr) == (cbuff -> read_ptr))
+	{
+		return (cbuff -> capacity);
+	}
+	else if ((cbuff -> write_ptr) < (cbuff -> read_ptr))
+	{
+		return ((cbuff -> read_ptr) - (cbuff -> write_ptr) - 1);
+	}
+	else
+	{
+		return (((cbuff -> capacity) - 
+				((cbuff -> write_ptr) - (cbuff -> read_ptr))));
+	}
+}
+
+size_t CBBuffCapacity(const cbuff_t *cbuff)
+{
+	assert(cbuff);
+	
+	return (cbuff -> capacity); 
 }
 
 static char *OneCyclicAdvance(size_t capacity, char *begin, size_t offset)
 {
-	return &begin[1] + (offset + 1) % capacity;
+	return &begin[0] + ((offset + 1) % (capacity + 1));
 }
 
-static int RelativePosition(CBuff_t *CB, char *ptr1, char *ptr2)
+static void CpyAndPtrAdvanceSource(cbuff_t *cbuff, void *dest, 
+							 	   char **source, size_t num)
 {
-	if (ptr2 <= ptr1)
-	{
-		return (ptr2 - ptr1);
-	}
-	else
-	{
-		return (-(ptr1 - &(CB -> begin[1]) + 
-				  (&(CB -> begin[1]) + (CB -> capacity) - ptr2)));
-	}
-}
-/*
-void QDestroy(queue_t *queue)
-{
-	assert(NULL != queue);
-	
-	SListFreeAll(queue -> front);
-	free(queue);	
+	size_t offset = 0;
+	memcpy(dest, *source, num);
+	*source = *source + num - 1;
+	offset = *source - &(cbuff -> begin[0]);
+	*source = 
+	OneCyclicAdvance(cbuff -> capacity, cbuff -> begin, offset);
 }
 
-int QEnqueue(queue_t *queue, void *data)
+static void CpyAndPtrAdvanceDest(cbuff_t *cbuff, char **dest, 
+							 const void *source, size_t num)
 {
-	sl_node_t *new_node = NULL;
-	
-	assert(NULL != queue);
-	assert(NULL != data);
-	
-	if (NULL == queue || NULL == data)
-	{
-		return 1;
-	}
-	
-	new_node = SListCreateNode(data, NULL);
-	
-	SListInsert(new_node, queue -> rear);
-	queue -> rear = (queue -> rear) -> next;
-	
-	return 0;
+	size_t offset = 0;
+	memcpy(*dest, source, num);
+	*dest = *dest + num - 1;
+	offset = *dest - &(cbuff -> begin[0]);
+	*dest = 
+	OneCyclicAdvance(cbuff -> capacity, cbuff -> begin, offset);
 }
-
-void *QPeek(const queue_t *queue)
-{
-	assert(NULL != queue);
-	
-	return (queue -> front) -> data;
-}
-
-void QDequeue(queue_t *queue)
-{
-	sl_node_t *temp_node = NULL;
-	
-	assert(NULL != queue);
-	
-	temp_node = (queue -> front) -> next;
-	free(queue -> front);
-	queue -> front = temp_node;
-}
-
-int QIsEmpty(const queue_t *queue)
-{
-	assert(NULL != queue);
-	
-	return ((queue -> front) == (queue -> rear));
-}
-
-size_t QSize(const queue_t *queue)
-{
-	assert(NULL != queue);
-	
-	return (SListCount(queue -> front) - 1);
-}
-
-void QAppend(queue_t *dest, queue_t *src)
-{
-	sl_node_t *removed_node = (src -> front);
-	
-	assert(dest);
-	assert(src);	
-	
-	(dest -> rear) -> next = (src -> front);
-	removed_node = (src -> front);
-	SListRemove(dest -> rear);
-	free(removed_node);
-	(dest -> rear) = (src -> rear);
-	free(src);	
-}*/
-
