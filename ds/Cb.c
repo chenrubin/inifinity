@@ -12,28 +12,19 @@
 
 #include "cbuff.h"
 
-#define MIN2(a,b) a <= b ? a : b
+#define MIN2(a,b) (a) <= (b) ? (a) : (b)
 
 /* 
-* advance read/write pointer by one char while taking under consideration
+* advance pointer by one char while taking under consideration
 * the cyclic manner of the buffer. +2 means 1 for offset that begins from
 * begin[1] (and not from begin[0]) and 1 for advancing one char
 */
-static char *OneCyclicAdvance(size_t capacity, char *begin, size_t offset);
+static char *OneCyclicAdvance(cbuff_t *cbuff, size_t offset);
+
 /* 
-* copy read_ptr to buffer given by user (with memcpy) and advancing
-* it accordingly while taking under consideration the cyclic manner 
-* of this data structure	
+* advance pointer by num Bytes
 */
-static void CpyAndPtrAdvanceSource(cbuff_t *cbuff, void *dest, 
-							 	   char **source, size_t num);
-/* 
-* copy buffer given by user to write_ptr (with memcpy) and advancing
-* it accordingly while taking under consideration the cyclic manner 
-* of this data structure	
-*/							 	   
-static void CpyAndPtrAdvanceDest(cbuff_t *cbuff, char **dest, 
-							 const void *source, size_t num);
+static void PtrAdvance(cbuff_t *cbuff, char **ptr, size_t num);
 
 struct CB
 {
@@ -65,25 +56,29 @@ void CBuffDestroy(cbuff_t *cbuff)
 
 ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes)
 {
-	size_t num_to_write = MIN2(CBuffSpaceLeft(cbuff), nbytes);
-	size_t steps_until_end = cbuff -> begin + (cbuff -> capacity)
-							 - (cbuff -> write_ptr) + 1;
+	size_t num_to_write = 0;
+	size_t steps_until_end = 0;
 	
 	assert(cbuff);
 	assert(src);
 	
+	num_to_write = MIN2(CBuffSpaceLeft(cbuff), nbytes);
+	steps_until_end = cbuff -> begin + (cbuff -> capacity)
+							 - (cbuff -> write_ptr) + 1;
+	
 	if (steps_until_end >= num_to_write)
 	{
-		CpyAndPtrAdvanceDest(cbuff, &(cbuff -> write_ptr), 
-							 src, num_to_write);
+		memcpy((cbuff -> write_ptr), src, num_to_write);
+		PtrAdvance(cbuff, &(cbuff -> write_ptr), num_to_write);
 	}
 	else
 	{
-		CpyAndPtrAdvanceDest(cbuff,  &(cbuff -> write_ptr),
-							 src, steps_until_end);					 
-		CpyAndPtrAdvanceDest(cbuff, &(cbuff -> write_ptr),
-							(char *)src + steps_until_end, 
-							num_to_write - steps_until_end);
+		memcpy((cbuff -> write_ptr), src, steps_until_end);
+		PtrAdvance(cbuff, &(cbuff -> write_ptr), steps_until_end);
+		memcpy((cbuff -> write_ptr), (char *)src + steps_until_end, 
+				num_to_write - steps_until_end);
+		PtrAdvance(cbuff, &(cbuff -> write_ptr), 
+				   num_to_write - steps_until_end);
 	}
 	
 	return num_to_write;
@@ -91,26 +86,29 @@ ssize_t CBuffWrite(cbuff_t *cbuff, const void *src, size_t nbytes)
 
 ssize_t CBuffRead(cbuff_t *cbuff, void *dest, size_t nbytes)
 {
-	size_t num_to_read = 
-	MIN2((cbuff -> capacity) - CBuffSpaceLeft(cbuff), nbytes);
-	size_t steps_until_end = (cbuff -> begin) + (cbuff -> capacity)
-							 - (cbuff -> read_ptr) + 1;
+	size_t num_to_read = 0;
+	size_t steps_until_end = 0;
 	
 	assert(cbuff);
 	assert(dest);
 	
+	num_to_read = MIN2((cbuff -> capacity) - CBuffSpaceLeft(cbuff), nbytes);
+	steps_until_end = (cbuff -> begin) + (cbuff -> capacity)
+							 - (cbuff -> read_ptr) + 1;
+	
 	if (steps_until_end >= num_to_read)
 	{
-		CpyAndPtrAdvanceSource(cbuff, dest, &(cbuff -> read_ptr), 
-							   num_to_read);
+		memcpy(dest, (cbuff -> read_ptr), num_to_read);
+		PtrAdvance(cbuff, &(cbuff -> read_ptr), num_to_read);
 	}
 	else
 	{
-		CpyAndPtrAdvanceSource(cbuff, dest, 
-						 &(cbuff -> read_ptr), steps_until_end);
-		CpyAndPtrAdvanceSource(cbuff, (char *)dest + steps_until_end,
-						 &(cbuff -> read_ptr), 
-						 num_to_read - steps_until_end);
+		memcpy(dest, (cbuff -> read_ptr), steps_until_end);
+		PtrAdvance(cbuff, &(cbuff -> read_ptr), steps_until_end);
+		memcpy((char *)dest + steps_until_end, (cbuff -> read_ptr), 
+				num_to_read - steps_until_end);
+		PtrAdvance(cbuff, &(cbuff -> read_ptr), 
+				   num_to_read - steps_until_end);
 	}
 	
 	return num_to_read;
@@ -120,7 +118,7 @@ int CBuffIsEmpty(const cbuff_t *cbuff)
 {
 	assert(cbuff);
 	
-	return ((cbuff -> write_ptr) == (cbuff -> read_ptr));	
+	return ((cbuff -> write_ptr) == (cbuff -> read_ptr));
 }
 
 size_t CBuffSpaceLeft(const cbuff_t *cbuff)
@@ -149,29 +147,15 @@ size_t CBuffCapacity(const cbuff_t *cbuff)
 	return (cbuff -> capacity); 
 }
 
-static char *OneCyclicAdvance(size_t capacity, char *begin, size_t offset)
+static char *OneCyclicAdvance(cbuff_t *cbuff, size_t offset)
 {
-	return &begin[0] + ((offset + 1) % (capacity + 1));
+	return (&cbuff -> begin[0] + ((offset + 1) % (cbuff -> capacity + 1)));
 }
 
-static void CpyAndPtrAdvanceSource(cbuff_t *cbuff, void *dest, 
-							 	   char **source, size_t num)
+static void PtrAdvance(cbuff_t *cbuff, char **ptr, size_t num)
 {
 	size_t offset = 0;
-	memcpy(dest, *source, num);
-	*source = *source + num - 1;
-	offset = *source - &(cbuff -> begin[0]);
-	*source = 
-	OneCyclicAdvance(cbuff -> capacity, cbuff -> begin, offset);
-}
-
-static void CpyAndPtrAdvanceDest(cbuff_t *cbuff, char **dest, 
-							 const void *source, size_t num)
-{
-	size_t offset = 0;
-	memcpy(*dest, source, num);
-	*dest = *dest + num - 1;
-	offset = *dest - &(cbuff -> begin[0]);
-	*dest = 
-	OneCyclicAdvance(cbuff -> capacity, cbuff -> begin, offset);
+	*ptr = *ptr + num - 1;
+	offset = *ptr - &(cbuff -> begin[0]);
+	*ptr = OneCyclicAdvance(cbuff, offset);
 }
