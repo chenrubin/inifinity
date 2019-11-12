@@ -159,10 +159,10 @@ static dll_node_t *InsertAfter(dll_node_t *new_node, dll_node_t *pos)
 	assert(NULL != new_node);
 	assert(NULL != pos);
 	
-	new_node -> next = pos -> next;
+	new_node -> next = DLListNext(pos);
 	pos -> next -> prev = new_node;
 	pos -> next = new_node;
-	new_node -> prev = pos -> next;
+	new_node -> prev = pos;
 	
 	return new_node;
 }
@@ -172,10 +172,10 @@ static dll_node_t *InsertBefore(dll_node_t *new_node, dll_node_t *pos)
 	assert(NULL != new_node);
 	assert(NULL != pos);
 	
-	new_node -> prev = pos -> prev;
+	new_node -> prev = DLListPrev(pos);
 	pos -> prev -> next = new_node;
 	pos -> prev = new_node;
-	new_node -> next = pos -> prev;
+	new_node -> next = pos;
 	
 	return new_node;
 }

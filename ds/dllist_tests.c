@@ -6,11 +6,13 @@
 
 void TestCreateDestroy();
 void TestPushFront();
+void TestPushBack();
 
 int main()
 {
 	TestCreateDestroy();
 	TestPushFront();
+	TestPushBack();
 
 	
 	
@@ -43,7 +45,7 @@ void TestPushFront()
 	}
 	
 	i = 0;			
-	for (node = DLListBegin(new_list); node != DLListEnd(new_list); 
+	for (node = DLListBegin(new_list); node != DLListEnd(new_list);
 									   node = DLListNext(node))
 	{
 		PRINTTESTRESULTS("TestPushFront_getDataFromBegin",i + 1, 
@@ -54,7 +56,7 @@ void TestPushFront()
 				num[3 - i] == *(int *)DLListGetData(node));
 	
 	i = 0;
-	for (node = DLListEnd(new_list); node != DLListBegin(new_list); 
+	for (node = DLListEnd(new_list); node != DLListBegin(new_list);
 									   node = DLListPrev(node))
 	{
 		PRINTTESTRESULTS("TestPushFront_getDataFromEnd",i + 1, 
@@ -68,10 +70,10 @@ void TestPushFront()
 	
 	printf("\n\n");
 }
-/*
+
 void TestPushBack()
 {
-	int num[] = {13,12,11,10};
+	int num[] = {10,11,12,13};
 	dll_node_t *node = NULL;
 	int i = 0;
 	
@@ -80,8 +82,8 @@ void TestPushBack()
 	
 	for (i = 0; i < 4; ++i)
 	{
-		PRINTTESTRESULTS("DLListPushFront_pushFront",i + 1,
-		num[i] == *(int *)DLListGetData(DLListPushFront(new_list, &num[i])));
+		PRINTTESTRESULTS("TestPushBack_pushBack",i + 1,
+		num[i] == *(int *)DLListGetData(DLListPushBack(new_list, &num[i])));
 	}
 	
 	i = 0;			
@@ -89,17 +91,11 @@ void TestPushBack()
 									   node = DLListNext(node))
 	{
 		PRINTTESTRESULTS("DLListPushFront_getData",i + 1, 
-				num[3 - i] == *(int *)DLListGetData(node));
+				num[i] == *(int *)DLListGetData(node));
 		++i;		
 	}
 	PRINTTESTRESULTS("DLListPushFront_getData",i, 
-				num[3 - i] == *(int *)DLListGetData(node));
+				num[i] == *(int *)DLListGetData(node));
 	printf("Destroy Doubely linked list\n");
 	DLListDestroy(new_list);
-}*/
-
-
-
-	
-
-
+}
