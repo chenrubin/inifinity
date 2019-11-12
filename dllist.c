@@ -27,10 +27,9 @@ struct node
 };
 
 static dll_node_t *CreateNode(void *data, dll_node_t *next);
-void FreeAll(dll_node_t *node);
+static void FreeAll(dll_node_t *node);
 static dll_node_t *InsertAfter(dll_node_t *new_node, dll_node_t *pos);
 static dll_node_t *InsertBefore(dll_node_t *new_node, dll_node_t *pos);
-static void DisconnectIterator(dll_iter_t iterator);
 
 
 dl_list_t *DLListCreate(void)
@@ -71,22 +70,18 @@ dl_list_t *DLListCreate(void)
 
 void DLListDestroy(dl_list_t *list)
 {
-	assert(list);
-	
 	FreeAll(list -> begin);
 	list -> end = NULL;
 	free(list);
 }
 
 dll_iter_t DLListPushFront(dl_list_t *list, void *data)
-{	
+{
 	dll_node_t *new_node = CreateNode(data, NULL);
 	if (NULL == new_node)
 	{
 		return NULL;
 	}
-	
-	assert(list);
 	
 	return (InsertAfter(new_node, list -> begin));
 }
@@ -99,188 +94,35 @@ dll_iter_t DLListPushBack(dl_list_t *list, void *data)
 		return NULL;
 	}
 	
-	assert(list);
-	
 	return (InsertBefore(new_node, list -> end));
-}
-
-dll_iter_t DLListInsert(void *data, dll_iter_t iterator, dl_list_t *list)
-{
-	dll_iter_t new_iter = CreateNode(data, NULL);
-	
-	assert(list);
-	assert(iterator);
-	assert(data);
-	
-	(void)list;
-		
-	return(InsertBefore(new_iter, iterator));
-}
-
-dll_iter_t DLListRemove(dll_iter_t iterator)
-{
-	dll_iter_t returned_iter = NULL;
-	
-	assert(iterator);
-	
-	returned_iter = DLListNext(iterator);
-	DisconnectIterator(iterator);
-	iterator -> data = NULL;
-	free(iterator);
-/*	iterator = NULL;*/
-	
-	return 	returned_iter;
-}
-
-void *DLListPopFront(dl_list_t *list)
-{
-	void *res = NULL;
-	
-	assert(list);
-	
-	res = (list -> begin -> next) -> data;
-	DisconnectIterator(list -> begin -> next);
-	
-	return res;
-}
-
-void *DLListPopBack(dl_list_t *list)
-{
-	void *res = NULL;
-	
-	assert(list);
-	
-	res = (list -> end -> prev) -> data;
-	DisconnectIterator(list -> end -> prev);
-	
-	return res;
-}
-
-dll_iter_t DLListSplice(dll_iter_t s_begin, dll_iter_t s_end, dll_iter_t dest)
-{
-	dll_iter_t dest_next = NULL;
-	
-	assert(s_begin);
-	assert(s_end);
-	assert(dest);
-	
-	dest_next = DLListNext(dest);	
-	s_begin -> prev -> next = NULL;
-	s_end -> next -> prev = NULL;
-	dest -> next = s_begin;
-	s_begin -> prev = dest;
-	dest_next -> prev = s_end;
-	s_end -> next = dest_next;	
-	
-	return dest;
-}
-
-int DLListIsEmpty(const dl_list_t *list)
-{
-	return ((DLListNext(list -> begin) == (list -> end))
-	&& (list -> begin == DLListPrev(list -> end)));
-}
-
-size_t DLListSize(const dl_list_t *list)
-{
-	size_t counter = 0;
-	dll_iter_t node = NULL;
-	
-	if (DLListIsEmpty(list))
-	{
-		return 0;
-	}
-	
-	else
-	{
-		for (node = DLListBegin(list); node != DLListEnd(list);
-									   node = DLListNext(node))
-		{
-			++counter;
-		}
-	}
-	
-	return counter;
-}
-
-int DLListIsSameIterator(dll_iter_t iterator1, dll_iter_t iterator2)
-{
-	return (iterator1 == iterator2);
 }
 
 void *DLListGetData(dll_iter_t iterator)
 {
-	assert(iterator);	
-
 	return iterator -> data;
 }
 
-dll_iter_t DLListFind(dll_iter_t begin, dll_iter_t end, 
-					  const void *param, find_ptr ptr)
-{
-	dll_iter_t node = NULL;
-	
-	for (node = begin; node != end; node = DLListNext(node))
-	{
-		if (ptr(node, param))
-		{
-			return node;
-		}	
-	}
-	
-	return NULL;
-}
-
-int DLListForEach(dll_iter_t begin, dll_iter_t end, 
-				  void *param, for_each_ptr ptr)
-{
-	dll_iter_t node = NULL;
-	int status = 0;
-	
-	for (node = begin; node != end; node = DLListNext(node))
-	{
-		status &= ptr(node, param);		
-	}
-	
-	return !status;
-}				  
-
 dll_iter_t DLListBegin(const dl_list_t *list)
 {
-	assert(list);
-
 	return (list -> begin -> next);
 }
 
 dll_iter_t DLListEnd(const dl_list_t *list)
 {
-	assert(list);
-	
-	return (list -> end);
+	return (list -> end -> prev);
 }
 
 dll_iter_t DLListNext(dll_iter_t iterator)
 {
-	assert(iterator);	
-
 	return (iterator -> next);
 }
 
 dll_iter_t DLListPrev(dll_iter_t iterator)
 {
-	assert(iterator);
-	
 	return (iterator -> prev);
 }
 
 /*****************************************************************/
-static void DisconnectIterator(dll_iter_t iterator)
-{
-	iterator -> next -> prev = DLListPrev(iterator);
-	iterator -> prev -> next = DLListNext(iterator);	
-	iterator -> next = NULL;
-	iterator -> prev = NULL;	
-}
 
 static dll_node_t *CreateNode(void *data, dll_node_t *next)
 {
@@ -298,7 +140,7 @@ static dll_node_t *CreateNode(void *data, dll_node_t *next)
 	return new_node;
 }
 
-void FreeAll(dll_node_t *node)
+static void FreeAll(dll_node_t *node)
 {
 	dll_node_t *temp_node = NULL;
 	
