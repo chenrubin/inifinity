@@ -6,7 +6,6 @@
 *									  *
 ************************************/
 
-#include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
@@ -87,7 +86,7 @@ dll_iter_t DLListPushFront(dl_list_t *list, void *data)
 	dll_node_t *new_node = CreateNode(data, NULL);
 	if (NULL == new_node)
 	{
-		return NULL;
+		return (DLListEnd(list));
 	}
 	
 	assert(list);
@@ -118,9 +117,6 @@ dll_iter_t DLListInsert(void *data, dll_iter_t iterator, dl_list_t *list)
 	
 	assert(list);
 	assert(iterator);
-	assert(data);
-	
-	(void)list;
 		
 	return(InsertBefore(new_iter, iterator));
 }
@@ -147,7 +143,7 @@ void *DLListPopFront(dl_list_t *list)
 	
 	assert(list);
 	
-	res = (list -> begin -> next) -> data;
+	res = DLListBegin(list) -> data;
 	DisconnectIterator(popped_node);
 	free(popped_node);
 	
@@ -161,7 +157,7 @@ void *DLListPopBack(dl_list_t *list)
 	
 	assert(list);
 	
-	res = (list -> end -> prev) -> data;
+	res = DLListPrev(DLListEnd(list)) -> data;
 	DisconnectIterator(popped_node);
 	free(popped_node);
 	
@@ -200,19 +196,11 @@ size_t DLListSize(const dl_list_t *list)
 {
 	size_t counter = 0;
 	dll_iter_t node = NULL;
-	
-	if (DLListIsEmpty(list))
+		
+	for (node = DLListBegin(list); node != DLListEnd(list);
+								   node = DLListNext(node))
 	{
-		return 0;
-	}
-	
-	else
-	{
-		for (node = DLListBegin(list); node != DLListEnd(list);
-									   node = DLListNext(node))
-		{
-			++counter;
-		}
+		++counter;
 	}
 	
 	return counter;
@@ -220,6 +208,9 @@ size_t DLListSize(const dl_list_t *list)
 
 int DLListIsSameIterator(dll_iter_t iterator1, dll_iter_t iterator2)
 {
+	assert(iterator1);
+	assert(iterator2);
+		
 	return (iterator1 == iterator2);
 }
 
@@ -234,6 +225,10 @@ dll_iter_t DLListFind(dll_iter_t begin, dll_iter_t end,
 					  const void *param, find_ptr ptr)
 {
 	dll_iter_t node = NULL;
+	
+	assert(begin);
+	assert(end);
+	assert(ptr);
 	
 	for (node = begin; node != end; node = DLListNext(node))
 	{
@@ -250,14 +245,20 @@ int DLListForEach(dll_iter_t begin, dll_iter_t end,
 				  void *param, for_each_ptr ptr)
 {
 	dll_iter_t node = NULL;
-	int status = 0;
+	
+	assert(begin);
+	assert(end);
+	assert(ptr);
 	
 	for (node = begin; node != end; node = DLListNext(node))
 	{
-		status &= ptr(node, param);		
+		if (1 == ptr(node, param))
+		{
+			return 1;
+		}		
 	}
 	
-	return status;
+	return 0;
 }				  
 
 dll_iter_t DLListBegin(const dl_list_t *list)
