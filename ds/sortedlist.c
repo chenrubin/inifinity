@@ -67,12 +67,13 @@ srt_iter_t SrtListInsert(void *data, srt_list_t *list)
 		 node != DLListEnd(list -> dll);
 		 node = DLListNext(node))
 	{
-		if (1 == (list -> is_before_ptr(data, node -> data, list -> is_before_param)))
+		if (1 == (list -> is_before_ptr(data, DLListGetData(node), list -> is_before_param)))
 		{
 			break;
 		}
 	}
-
+	
+	DLListInsert(data, node, list -> dll);
 	srt_iter.iterator = node;
 	
 	return srt_iter;

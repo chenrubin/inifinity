@@ -5,11 +5,25 @@
 #include "MyUtils.h" /* MAX2,MIN2 */
 
 void TestCreateDestroy();
+void TestInsert();
 int IsMatch(const void *data1, const void *data2, void *param);
+
+struct srt_list
+{
+	dl_list_t *dll;
+	is_before_t is_before_ptr;
+	void *is_before_param;
+};
+
+struct srt_iterator
+{
+	dll_iter_t iterator;
+};
 
 int main()
 {
 	TestCreateDestroy();
+	TestInsert();
 
 	return 0;
 }
@@ -36,41 +50,41 @@ void TestInsert()
 	
 	
 	SrtListInsert(&n1, new_srtlist);
-/*	for (node = DLListBegin(new_srtlist -> dll);
+	for (node = DLListBegin(new_srtlist -> dll);
 		 node != DLListEnd(new_srtlist -> dll);
 		 node = DLListNext(node))
 	{
-		printf("%d, ", *(int *)node -> data);
+		printf("%d, ", *(int *)DLListGetData(node));
 	}	 
 	SrtListInsert(&n2, new_srtlist);
 	for (node = DLListBegin(new_srtlist -> dll);
 		 node != DLListEnd(new_srtlist -> dll);
 		 node = DLListNext(node))
 	{
-		printf("%d, ", *(int *)node -> data);
+		printf("%d, ", *(int *)DLListGetData(node));
 	}	 
 	SrtListInsert(&n3, new_srtlist);
 	for (node = DLListBegin(new_srtlist -> dll);
 		 node != DLListEnd(new_srtlist -> dll);
 		 node = DLListNext(node))
 	{
-		printf("%d, ", *(int *)node -> data);
+		printf("%d, ", *(int *)DLListGetData(node));
 	}	 
 	SrtListInsert(&n4, new_srtlist);
 	for (node = DLListBegin(new_srtlist -> dll);
 		 node != DLListEnd(new_srtlist -> dll);
 		 node = DLListNext(node))
 	{
-		printf("%d, ", *(int *)node -> data);
+		printf("%d, ", *(int *)DLListGetData(node));
 	}	 
 	SrtListInsert(&n5, new_srtlist);
 	for (node = DLListBegin(new_srtlist -> dll);
 		 node != DLListEnd(new_srtlist -> dll);
 		 node = DLListNext(node))
 	{
-		printf("%d, ", *(int *)node -> data);
+		printf("%d, ", *(int *)DLListGetData(node));
 	}	 	
-*/	
+	
 	printf("Destroy srt_list\n");
 	SrtListDestroy(new_srtlist);
 }
