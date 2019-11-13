@@ -257,7 +257,7 @@ int DLListForEach(dll_iter_t begin, dll_iter_t end,
 		status &= ptr(node, param);		
 	}
 	
-	return !status;
+	return status;
 }				  
 
 dll_iter_t DLListBegin(const dl_list_t *list)

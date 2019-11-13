@@ -619,7 +619,7 @@ void TestForEachAndFind()
 				new_list -> end, &num_to_find, FindFunc));
 				
 	PRINTTESTRESULTS("TestIsSameIterator_ForEach", 7,
-				1 == DLListForEach(new_list -> begin -> next, 
+				0 == DLListForEach(new_list -> begin -> next, 
 				new_list -> end -> prev, &num_to_add, ForEachFunc));
 				
 	PRINTTESTRESULTS("TestIsSameIterator_Find", 8,
