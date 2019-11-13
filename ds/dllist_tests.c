@@ -237,9 +237,11 @@ void TestRemove()
 	int num_after_begin[] = {11,12,13,14,15};
 	int num_after_remove_end[] = {10,11,12,13,14};
 	int i = 0;
-	int recieved_num = 0;
 	dl_list_t *new_list = NULL;
 	dll_node_t *node = NULL;
+	int recieved_num = 0;
+	dll_node_t *ReturnIteratorFromBegin_iter = NULL;
+	dll_node_t *DLListRemove_nodeReturn = NULL;
 	
 	printf("!!!!!!!!Remove from middle!!!!!!!!!\n\n");
 	
@@ -280,11 +282,11 @@ void TestRemove()
 		PRINTTESTRESULTS("TestRemove_pushBack",i + 1,
 		num[i] == *(int *)DLListGetData(DLListPushBack(new_list, &num[i])));
 	}
-	
-	recieved_num = *(int *)new_list -> end -> data;
-	PRINTTESTRESULTS("TestRemove_removeEnd",5, 
-	recieved_num == 
-	*(int *)DLListGetData(DLListRemove(ReturnIteratorFromBegin(new_list, 6))));
+
+	ReturnIteratorFromBegin_iter = ReturnIteratorFromBegin(new_list, 6);
+	DLListRemove_nodeReturn = DLListRemove(ReturnIteratorFromBegin_iter);
+
+	PRINTTESTRESULTS("TestRemove_removeEnd",5, DLListRemove_nodeReturn -> next == NULL);
 	
 	i = 0;
 	for (node = DLListBegin(new_list); node != DLListEnd(new_list); 
@@ -292,7 +294,7 @@ void TestRemove()
 	{
 		PRINTTESTRESULTS("TestRemove_GetData",i + 1,
 		num_after_remove_end[i] == *(int *)DLListGetData(node));
-		++i;		
+		++i;
 	}
 	
 	printf("Destroy Doubley linked list\n");
@@ -337,7 +339,6 @@ void TestPopFront()
 	int i = 0;
 	dl_list_t *new_list = NULL;
 	dll_node_t *node = NULL;
-	dll_node_t *poped_node = NULL;
 	
 	new_list = DLListCreate();
 	printf("Create Doubley linked list\n");
@@ -348,7 +349,6 @@ void TestPopFront()
 		num[i] == *(int *)DLListGetData(DLListPushBack(new_list, &num[i])));
 	}
 	
-	poped_node = DLListBegin(new_list);
 	PRINTTESTRESULTS("TestPopFront_popFront", 5, 
 	10 == *(int *)DLListPopFront(new_list));
 	
@@ -372,7 +372,6 @@ void TestPopFront()
 			
 	printf("Destroy Doubley linked list\n");
 	DLListDestroy(new_list);
-	free(poped_node);
 	
 	printf("\n\n");
 }
@@ -384,7 +383,6 @@ void TestPopBack()
 	int i = 0;
 	dl_list_t *new_list = NULL;
 	dll_node_t *node = NULL;
-	dll_node_t *poped_node = NULL;
 	
 	new_list = DLListCreate();
 	printf("Create Doubley linked list\n");
@@ -395,7 +393,6 @@ void TestPopBack()
 		num[i] == *(int *)DLListGetData(DLListPushBack(new_list, &num[i])));
 	}
 	
-	poped_node = DLListEnd(new_list) -> prev;
 	PRINTTESTRESULTS("TestPopBack_popBack", 5, 
 	15 == *(int *)DLListPopBack(new_list));
 	
@@ -419,7 +416,6 @@ void TestPopBack()
 			
 	printf("Destroy Doubley linked list\n");
 	DLListDestroy(new_list);
-	free(poped_node);
 	
 	printf("\n\n");
 }
@@ -434,8 +430,7 @@ void TestSplice()
 	dll_node_t *node = NULL;
 	dll_node_t *s_begin = NULL;
 	dll_node_t *s_end = NULL;
-	dll_node_t *dest = NULL;
-	dll_node_t *begin_of_unattached = NULL;	
+	dll_node_t *dest = NULL;	
 	int i = 0;
 	
 	new_list_1 = DLListCreate();
@@ -473,9 +468,8 @@ void TestSplice()
 	}
 	
 	s_begin = ReturnIteratorFromBegin(new_list_2, 2);
-	s_end = ReturnIteratorFromBegin(new_list_2, 4);
+	s_end = ReturnIteratorFromBegin(new_list_2, 5);
 	dest = ReturnIteratorFromBegin(new_list_1, 2);
-	begin_of_unattached = DLListNext(s_end);
 	
 	PRINTTESTRESULTS("TestSplice_Splice", 24,
 	dest == DLListSplice(s_begin, s_end, dest));
@@ -498,10 +492,10 @@ void TestSplice()
 		++i;		
 	}
 			
-	printf("Destroy Doubley linked list\n");
+	printf("Destroy Doubley linked list\n");								   
+	
 	DLListDestroy(new_list_1);
 	DLListDestroy(new_list_2);
-	FreeAll(begin_of_unattached);	
 	
 	printf("\n\n");
 }
@@ -602,7 +596,7 @@ void TestIsSameIterator()
 	
 	printf("\n\n");
 }
-
+	
 void TestForEachAndFind()
 {
 	int num[] = {10,20,30,40,50,60};
@@ -621,7 +615,7 @@ void TestForEachAndFind()
 	}
 	
 	PRINTTESTRESULTS("TestIsSameIterator_Find", 6,
-				NULL == DLListFind(new_list -> begin -> next -> next, 
+				new_list -> end == DLListFind(new_list -> begin -> next -> next, 
 				new_list -> end, &num_to_find, FindFunc));
 				
 	PRINTTESTRESULTS("TestIsSameIterator_ForEach", 7,
@@ -629,7 +623,7 @@ void TestForEachAndFind()
 				new_list -> end -> prev, &num_to_add, ForEachFunc));
 				
 	PRINTTESTRESULTS("TestIsSameIterator_Find", 8,
-				NULL == DLListFind(new_list -> begin -> next -> next, 
+				new_list -> end == DLListFind(new_list -> begin -> next -> next, 
 				new_list -> end, &num_to_find, FindFunc));
 				
 	PRINTTESTRESULTS("TestIsSameIterator_Find", 9,
