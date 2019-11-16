@@ -13,6 +13,7 @@ void TestRemove();
 void TestMerge();
 void TestForEach();
 void TestFindIf();
+void TestFind();
 int IsMatch(const void *data1, const void *data2, void *param);
 int PrintSortedList(void *data, void *param);
 int AddToNode(void *data, void *param);
@@ -27,8 +28,9 @@ int main()
 	TestRemove();
 	TestMerge();
 	TestForEach();
-/*	TestFindIf();
-*/	
+	TestFindIf();
+	TestFind();	
+	
 	return 0;
 }
 
@@ -305,7 +307,6 @@ void TestRemove()
 		list_sorted4[i] == *(int *)SrtListGetData(srt_iter));
 		++i;
 	}
-		
 	
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist);
@@ -379,7 +380,7 @@ void TestForEach()
 		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
 		 	 srt_iter = SrtListNext(srt_iter))
 	{
-		PRINTTESTRESULTS("TestRemove_GetData",4 + i, 
+		PRINTTESTRESULTS("TestForEach_GetData",4 + i, 
 		list_sorted[i] == *(int *)SrtListGetData(srt_iter));
 		++i;
 	}
@@ -393,19 +394,18 @@ void TestForEach()
 		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
 		 	 srt_iter = SrtListNext(srt_iter))
 	{
-		PRINTTESTRESULTS("TestRemove_GetData",4 + i, 
-		(list_sorted[i] + 1) == *(int *)SrtListGetData(srt_iter));
+		PRINTTESTRESULTS("TestForEach_GetData",4 + i, 
+		(list_sorted[i] + param) == *(int *)SrtListGetData(srt_iter));
 		++i;
 	}
 	
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist);
 }
-/*
+
 void TestFindIf()
 {
 	int list_members[] = {1,2,17,6,2,9};	
-	int list_sorted[] = {1,2,2,6,9,17};
 	srt_iter_t srt_iter = {0};	
 	int i = 0;
 	int param_to_find = 17;
@@ -422,24 +422,58 @@ void TestFindIf()
 	}
 	
 	PRINTTESTRESULTS("TestFindIf_FindIf",i ,
-			1 == SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
-						 &param_to_find, FindNumber));
+	SrtListIsSameIterator(SrtListPrev(SrtListEnd(new_srtlist)), 
+	SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_to_find, FindNumber)));
 						 
-	PRINTTESTRESULTS("TestFindIf_FindIf",i ,
-			0 == SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
-						 &param_not_to_find, FindNumber));					 
+	PRINTTESTRESULTS("TestFindIf_FindIf",i + 1,
+	SrtListIsSameIterator(SrtListEnd(new_srtlist),
+	SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_not_to_find, FindNumber)));					 
 	
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist);
 }
-*/
+
+void TestFind()
+{
+	int list_members[] = {1,2,17,6,2,9};	
+	srt_iter_t srt_iter = {0};	
+	int i = 0;
+	const int param_to_find = 17;
+	const int param_not_to_find = 3;	
+	int FindNumber(const void *data, const void *param);
+	srt_list_t *new_srtlist = SrtListCreate(NULL, IsMatch);
+	printf("Create srt_list\n");
+	
+	for (i = 0; i < 6; ++i)
+	{
+		srt_iter = SrtListInsert(&list_members[i], new_srtlist);
+		PRINTTESTRESULTS("TestFind_Insert",i ,
+			list_members[i] == *(int *)SrtListGetData(srt_iter));
+	}
+	
+	PRINTTESTRESULTS("TestFind_Find",i ,
+	SrtListIsSameIterator(SrtListPrev(SrtListEnd(new_srtlist)),
+	SrtListFind(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_to_find, new_srtlist)));
+						 
+	PRINTTESTRESULTS("TestFindIf_Find",i + 1,
+	SrtListIsSameIterator(SrtListEnd(new_srtlist),
+	SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_not_to_find, FindNumber)));					 
+	
+	printf("Destroy srt_list\n\n");
+	SrtListDestroy(new_srtlist);
+}
+
 /********************************************************/
-/* list is sorted small to big */
+/* list is sorted small to big - isbefore function */
 int IsMatch(const void *data1, const void *data2, void *param)
 {
 	(void)param;
 	
-	return (*(int *)data1 <= *(int *)data2);
+	return (*(int *)data1 < *(int *)data2);
 }
 
 /* print data n a node */
@@ -450,14 +484,14 @@ int PrintSortedList(void *data, void *param)
 	
 	return 0;
 }
-
+/* foreach function */
 int AddToNode(void *data, void *param)
 {
 	*(int *)data += *(int *)param;
 		
 	return 0;
 }
-
+/* findif function */
 int FindNumber(const void *data, const void *param)
 {
 	return (*(int *)data == *(int *)param);
