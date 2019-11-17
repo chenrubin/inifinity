@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir $1
+cd $1 
 #creating files
 touch $1.c
 touch $1_tests.c
