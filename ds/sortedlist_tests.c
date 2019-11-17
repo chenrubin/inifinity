@@ -1,5 +1,5 @@
 #include <stdio.h> /* printf */
-#include <string.h>
+#include <string.h> /* strcmp */
 
 #include "sortedlist.h"
 #include "dllist.h"
@@ -14,10 +14,19 @@ void TestMerge();
 void TestForEach();
 void TestFindIf();
 void TestFind();
+void TestFindStruct();
 int IsMatch(const void *data1, const void *data2, void *param);
+int IsBeforeStringCmp(const void *data1, const void *data2, void *param);
 int PrintSortedList(void *data, void *param);
 int AddToNode(void *data, void *param);
 int FindNumber(const void *data, const void *param);
+int FindIfStudent(const void *data, const void *param);
+
+typedef struct student
+{
+	char *name;
+	int age;
+}student_t;
 
 int main()
 {
@@ -29,7 +38,8 @@ int main()
 	TestMerge();
 	TestForEach();
 	TestFindIf();
-	TestFind();	
+	TestFind();
+	TestFindStruct();	
 	
 	return 0;
 }
@@ -458,10 +468,148 @@ void TestFind()
 	SrtListFind(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
 	&param_to_find, new_srtlist)));
 						 
-	PRINTTESTRESULTS("TestFindIf_Find",i + 1,
+	PRINTTESTRESULTS("TestFind_Find",i + 1,
+	SrtListIsSameIterator(SrtListEnd(new_srtlist),
+	SrtListFind(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_not_to_find, new_srtlist)));					 
+	
+	printf("Destroy srt_list\n\n");
+	SrtListDestroy(new_srtlist);
+}
+
+void TestFindStruct()
+{
+	student_t student1 = {"maoz", 29};
+	student_t student2 = {"eyal", 41};
+	student_t student3 = {"sharon", 25};
+	student_t student4 = {"erez", 37};
+	student_t student5 = {"tamir", 26};
+	srt_iter_t srt_iter = {0};
+	
+	int i = 0;
+	const char *param_to_find = "tamir";
+	const char *param_not_to_find = "moshe";	
+	srt_list_t *new_srtlist = SrtListCreate(NULL, IsBeforeStringCmp);
+	printf("Create srt_list\n");
+	
+	SrtListInsert(&student1, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student2, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student3, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student4, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student5, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	PRINTTESTRESULTS("TestFindStruct_Find",i ,
+	SrtListIsSameIterator(SrtListPrev(SrtListEnd(new_srtlist)),
+	SrtListFind(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_to_find, new_srtlist)));
+						 
+	PRINTTESTRESULTS("TestFindStruct_Find",i + 1,
+	SrtListIsSameIterator(SrtListEnd(new_srtlist),
+	SrtListFind(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_not_to_find, new_srtlist)));					 
+	
+	printf("Destroy srt_list\n\n");
+	SrtListDestroy(new_srtlist);
+}
+
+void TestFindIfStruct()
+{
+	student_t student1 = {"maoz", 29};
+	student_t student2 = {"eyal", 41};
+	student_t student3 = {"sharon", 25};
+	student_t student4 = {"erez", 37};
+	student_t student5 = {"tamir", 26};
+	srt_iter_t srt_iter = {0};
+	
+	int i = 0;
+	const int param_to_find = 41;
+	const int param_not_to_find = 40;	
+	srt_list_t *new_srtlist = SrtListCreate(NULL, IsBeforeStringCmp);
+	printf("Create srt_list\n");
+	
+	SrtListInsert(&student1, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student2, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student3, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student4, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	SrtListInsert(&student5, new_srtlist);
+	for (srt_iter = SrtListBegin(new_srtlist);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%s, ", ((student_t *)SrtListGetData(srt_iter))->name);
+	}
+	printf("\n");
+	PRINTTESTRESULTS("TestFindIfStruct_FindIf",i ,
+	SrtListIsSameIterator(SrtListPrev(SrtListEnd(new_srtlist)), 
+	SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
+	&param_to_find, FindIfStudent)));
+						 
+	PRINTTESTRESULTS("TestFindIfStruct_FindIf",i + 1,
 	SrtListIsSameIterator(SrtListEnd(new_srtlist),
 	SrtListFindIf(SrtListBegin(new_srtlist), SrtListEnd(new_srtlist), 
-	&param_not_to_find, FindNumber)));					 
+	&param_not_to_find, FindIfStudent)));				 
 	
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist);
@@ -474,6 +622,20 @@ int IsMatch(const void *data1, const void *data2, void *param)
 	(void)param;
 	
 	return (*(int *)data1 < *(int *)data2);
+}
+
+int IsBeforeStringCmp(const void *data1, const void *data2, void *param)
+{
+	(void)param;
+	
+	if (strcmp(((student_t *)data1)->name,((student_t *)data2)->name) < 0)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;	
+	}
 }
 
 /* print data n a node */
@@ -495,4 +657,10 @@ int AddToNode(void *data, void *param)
 int FindNumber(const void *data, const void *param)
 {
 	return (*(int *)data == *(int *)param);
+}
+
+/* find function anothetr one */
+int FindIfStudent(const void *data, const void *param)
+{
+	return (((student_t *)data) -> age == *(int *)param);
 }

@@ -1,6 +1,6 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Sharon			  *
 *		sortedlist					  *
 *		7/11/2019					  *
 *									  *
@@ -9,14 +9,12 @@
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
-
+	
 #include "dllist.h"
 #include "sortedlist.h"
 #include "MyUtils.h" /* MAX2,MIN2 */
 
-int MyForEachAction(dll_node_t *node, void *wrap);
-int MyFindIfAction(const dll_node_t *node, const void *wrap);
-int MyFindAction(const dll_node_t *node, const void *wrap);
+int MyFindAction(const void *data, const void *wrap);
 
 struct srt_list
 {
@@ -24,18 +22,6 @@ struct srt_list
 	is_before_t is_before_ptr;
 	void *is_before_param;
 };
-
-typedef struct wrapper1
-{
-	void *param;
-	action_func_t ptr;
-} structWrapperForEach;
-
-typedef struct wrapper2
-{
-	const void *param;
-	is_match_func_t ptr;
-} structWrapperFindIf;
 
 typedef struct wrapper3
 {
@@ -76,6 +62,7 @@ void SrtListDestroy(srt_list_t *list)
 	list -> is_before_ptr = NULL;
 	list -> is_before_param = NULL;
 	free(list);
+	list = NULL;
 }
 
 srt_iter_t SrtListInsert(void *data, srt_list_t *list)
@@ -183,13 +170,11 @@ size_t SrtListSize(const srt_list_t *list)
 
 srt_iter_t SrtListRemove(srt_iter_t iterator)
 {
-	srt_iter_t srt_iter = {0};
-
 	assert(iterator.dll_iterator);
 		
-	srt_iter.dll_iterator = DLListRemove(iterator.dll_iterator);
+	iterator.dll_iterator = DLListRemove(iterator.dll_iterator);
 	
-	return srt_iter;
+	return iterator;
 }
 
 int SrtListIsEmpty(const srt_list_t *list)
@@ -220,23 +205,13 @@ int SrtListForEach(srt_iter_t begin, srt_iter_t end, void *param,
 				   action_func_t ptr)
 {
 	int status = 1;
-	structWrapperForEach *wrap_struct = (structWrapperForEach *)malloc(sizeof(structWrapperForEach));
-	if (NULL == wrap_struct)
-	{
-		return 1;
-	}
 	
 	assert(begin.dll_iterator);
 	assert(end.dll_iterator);
 	assert(ptr);
-	
-	wrap_struct -> ptr = ptr;
-	wrap_struct -> param = param;
-	
-	status = (DLListForEach(begin.dll_iterator, end.dll_iterator, 
-				  /*param*/wrap_struct, /*ptr*/MyForEachAction));
-	free(wrap_struct);
-	
+
+	status = (DLListForEach(begin.dll_iterator, end.dll_iterator, param, ptr));
+
 	return status;			  
 }
 
@@ -244,18 +219,13 @@ srt_iter_t SrtListFindIf(srt_iter_t begin, srt_iter_t end,
 						 const void *param, is_match_func_t ptr)
 {
 	srt_iter_t srt_iter = {0};
-	structWrapperFindIf *wrap = (structWrapperFindIf *)malloc(sizeof(structWrapperFindIf));
 	
 	assert(begin.dll_iterator);
 	assert(end.dll_iterator);
 	assert(ptr);
 	
-	wrap -> ptr = ptr;
-	wrap -> param = param;
-	
 	srt_iter.dll_iterator = DLListFind(begin.dll_iterator, end.dll_iterator, 
-					  (structWrapperFindIf *)wrap, MyFindIfAction);
-	free(wrap);				  
+					  param, ptr);	  
 					  
 	return srt_iter;				  
 }
@@ -264,7 +234,12 @@ srt_iter_t SrtListFind(srt_iter_t begin, srt_iter_t end,
 					   const void *data, srt_list_t *list)
 {
 	srt_iter_t srt_iter = {0};
-	structWrapperFind *wrap = (structWrapperFind *)malloc(sizeof(structWrapperFind));
+	structWrapperFind *wrap = 
+	(structWrapperFind *)malloc(sizeof(structWrapperFind));
+	if (NULL == wrap)
+	{
+		return end;
+	}
 	
 	assert(begin.dll_iterator);
 	assert(end.dll_iterator);
@@ -274,7 +249,7 @@ srt_iter_t SrtListFind(srt_iter_t begin, srt_iter_t end,
 	wrap -> is_before_param = list -> is_before_param;
 	wrap -> data = data;
 	
-	srt_iter.dll_iterator = DLListFind(begin.dll_iterator, end.dll_iterator, 
+	srt_iter.dll_iterator = DLListFind(begin.dll_iterator, end.dll_iterator,
 					  (structWrapperFind *)wrap, MyFindAction);
 	free(wrap);				  
 					  
@@ -282,37 +257,18 @@ srt_iter_t SrtListFind(srt_iter_t begin, srt_iter_t end,
 }					   
 
 /**************************************************/
-int MyForEachAction(dll_node_t *node, void *wrap)
-{
-	int status = 0;
-	
-	status = ((structWrapperForEach *)wrap) -> 
-	ptr(DLListGetData(node), ((structWrapperForEach *)wrap) -> param);
-	
-	return status;
-}
 
-int MyFindIfAction(const dll_node_t *node, const void *wrap)
-{
-	int status = 0;
-	
-	status = ((structWrapperFindIf *)wrap) -> 
-	ptr(DLListGetData((dll_node_t *)node), ((structWrapperFindIf *)wrap) -> param);
-	
-	return status;
-}
-
-int MyFindAction(const dll_node_t *node, const void *wrap)
+int MyFindAction(const void *data, const void *wrap)
 {
 	int status1 = 0;
 	int status2 = 0;
 	structWrapperFind *my_wrapper = (structWrapperFind *)wrap;
 
-	status1 = my_wrapper -> match_ptr(DLListGetData((dll_node_t *)node), 
-	my_wrapper -> data, my_wrapper -> is_before_param);
+	status1 = my_wrapper -> match_ptr(data, my_wrapper -> data, 
+			  my_wrapper -> is_before_param);
 	
-	status2 = my_wrapper -> match_ptr(my_wrapper -> data, 
-	DLListGetData((dll_node_t *)node), my_wrapper -> is_before_param);
+	status2 = my_wrapper -> match_ptr(my_wrapper -> data, data, 
+			  my_wrapper -> is_before_param);
 	
 	return (status1 == status2);
 }

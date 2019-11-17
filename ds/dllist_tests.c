@@ -16,8 +16,8 @@ void TestIsEmptySize();
 void TestIsSameIterator();
 void TestForEachAndFind();
 
-int FindFunc(const dll_node_t *node, const void *param);
-int ForEachFunc(dll_node_t *node, void *param);
+int FindFunc(const void *data, const void *param);
+int ForEachFunc(void *data, void *param);
 static dll_iter_t ReturnIteratorFromBegin(dl_list_t *list, int num);
 void FreeAll(dll_node_t *node);
 
@@ -649,14 +649,14 @@ static dll_iter_t ReturnIteratorFromBegin(dl_list_t *list, int num)
 	return iter;
 }
 
-int FindFunc(const dll_node_t *node, const void *param)
+int FindFunc(const void *data, const void *param)
 {
-	return (*(int *)node -> data == *(int *)param);
+	return (*(int *)data == *(int *)param);
 }
 
-int ForEachFunc(dll_node_t *node, void *param)
+int ForEachFunc(void *data, void *param)
 {
-	*(int *)node -> data += *(int *)param;					   
+	*(int *)data += *(int *)param;					   
 									   
 	return 0;
 }
