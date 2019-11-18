@@ -42,6 +42,13 @@ p_queue_t *PQCreate(void *priority_param, int(*compare_func)
 	(new_pq -> compareWrapper).compare_func = compare_func;
 	new_pq -> srt_list = 
 	SrtListCreate(&(new_pq -> compareWrapper), MyIsBefore);
+	if (NULL == new_pq -> srt_list)
+	{
+		free(new_pq);
+		new_pq = NULL;
+		
+		return NULL;
+	}
 	
 	return new_pq;
 }
