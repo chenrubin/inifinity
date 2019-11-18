@@ -2,11 +2,11 @@
 *		Author: ChenR				  *
 *		Reviewer: Tamir				  *
 *		UID							  *
-*		7/11/2019					  *
+*		17/11/2019					  *
 *									  *
 ************************************/
-#include <time.h>
-#include <unistd.h>
+#include <time.h> /* time */
+#include <unistd.h> /* getpid */
 
 #include "uid.h"
 #include "MyUtils.h" /* MAX2,MIN2 and print results macro*/
@@ -28,20 +28,24 @@ ilrd_uid_t UIDCreate(void)
 
 int UIDIsSame(ilrd_uid_t uid1, ilrd_uid_t uid2)
 {
-	if (-1 == uid1.time || -1 == uid2.time)
+	int result = 0;
+	
+	if (1 == UIDIsBad(uid1) || 1 == UIDIsBad(uid2))
 	{
-		return -1;
+		result = -1;
 	}	
 	else if (uid1.pid == uid2.pid && 
 			 uid1.time == uid2.time &&
 			 uid1.counter == uid2.counter)
 	{
-		return 1;
+		result = 1;
 	}
 	else
 	{
-		return 0;
+		result = 0;
 	}
+	
+	return result;
 }
 
 int UIDIsBad(ilrd_uid_t uid)

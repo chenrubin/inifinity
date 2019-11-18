@@ -25,8 +25,8 @@ extern const ilrd_uid_t BAD_UID;
 
 /*
 The  function creates a new UID of Counter, time stamp & Process number
-If the UID fails, the function will return BAD_UID
-It is receommended to check for BAD_UID outcome with every create
+If the UIDCreate fails, the function will return a new UID with BAD_UID stamp.
+To validate the new UID use the UIDIsBad function.
 */
 ilrd_uid_t UIDCreate(void);
 
@@ -34,14 +34,14 @@ ilrd_uid_t UIDCreate(void);
 The  function checks if 2 UIDs are the same or not
 If they are the same, the function will return 1
 If they are the differnt, the function will return 0
-If one of the UIDs received are not valid or NULL, the function will return -1
+If one of the UIDs received are not valid, the function will return -1
 */
 int UIDIsSame(ilrd_uid_t uid1, ilrd_uid_t uid2);
 
 /*
 The function checks if the UID is valid
 If the UID is valid, the function will return 0
-If the UID is bad or NULL, the function will return 1
+If the UID is not valid, the function will return 1
 */
 int UIDIsBad(ilrd_uid_t uid);
 
