@@ -5,6 +5,7 @@ cd $1
 #creating files
 touch $1.c
 touch $1_tests.c
+cp /home/student/chen-rubin/chen/MyUtils.h
 
 echo "/************************************" > $1.c
 echo "*		Author: ChenR				  *" >> $1.c

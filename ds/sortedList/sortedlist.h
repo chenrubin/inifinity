@@ -10,29 +10,20 @@
 #define SORTED_LIST_H
 
 #include <stddef.h>
+#include "dllist.h"
 
 typedef struct srt_list srt_list_t;
 typedef struct srt_iterator srt_iter_t ;
 /* data1 is the new data. data2 is the data to compare (from the list).
    param can be used for a deeper compare function */
-typedef int (*is_before_t)(const void *data1, const void *data2, void *param);
-typedef int (*find_if_srt_func_t)(const void *data, const void *param);
-typedef int (*for_each_srt_func_t)(void *data, void *param);
-
-/* these are the two structs needed - copy it to your c file */
-/*
-struct srt_list
-{
-	dl_list_t *dll;
-	is_before_t *is_before_ptr;
-	void *is_before_param;
-};
+typedef int (*is_before_t)(const void *new_data, const void *src_data, void *param);
+typedef int (*is_match_func_t)(const void *data, const void *param);
+typedef int (*action_func_t)(void *data, void *param);
 
 struct srt_iterator
 {
-	dll_iter_t iterator;
+	dll_iter_t dll_iterator;
 };
-*/
 
 /* Function creates a sorted list struct.
    Receives the sort key
@@ -83,7 +74,7 @@ int SrtListIsEmpty(const srt_list_t *list);
  * If ptr found a match, The SrtListFind returns a pointer to the matched node.
  * else - it will return an iterator to the iterator end   */
 srt_iter_t SrtListFind(srt_iter_t begin, srt_iter_t end, 
-					   const void *data);
+					   const void *data, srt_list_t *list);
 
 /* The function loops over every node, from begin (inclusive) to end (exclusive),
  * and passes it, alongside param, to the function that is pointed by ptr. 
@@ -92,14 +83,14 @@ srt_iter_t SrtListFind(srt_iter_t begin, srt_iter_t end,
  * If ptr found a match, The SrtListFind returns a pointer to the matched node.
  * else - it will return an iterator to the iterator end */
 srt_iter_t SrtListFindIf(srt_iter_t begin, srt_iter_t end, 
-						 const void *param, find_if_srt_func_t ptr);
+						 const void *param, is_match_func_t ptr);
 
 /* The function loops over every node, from from begin (inclusive) to end (exclusive),
  * and passes it along side param, to the function that is pointed by ptr. 
  * the ptr function can do whatever you want, but it should return 1 if it fails.
  * If the DLListForEach functions recieves 1 from ptr, 
  * it will stop the foreach and will return 0 passes, 1 if fails */
-int SrtListForEach(srt_iter_t begin, srt_iter_t end, void *param, for_each_srt_func_t ptr);
+int SrtListForEach(srt_iter_t begin, srt_iter_t end, void *param, action_func_t ptr);
 
 /*Function merges and sorts between two lists. 
 It receives 2 lists: source list and destination list to which to connect it. 
