@@ -5,11 +5,11 @@
 *		18/11/2019					  *
 *									  *
 ************************************/
-#include <stdlib.h> /* malloc */
-#include <assert.h> /* assert */
+#include <stdlib.h> 	/* malloc */
+#include <assert.h> 	/* assert */
 
-#include "pq.h"	/* priority queue */
-#include "dllist.h" /* doubly link list */
+#include "pq.h"			/* priority queue */
+#include "dllist.h" 	/* doubly link list */
 #include "sortedlist.h" /* sorted list */
 
 /* wrapper function to use in SrtInsert */
@@ -120,11 +120,12 @@ void *PQErase(void *data, p_queue_t *p_queue,
 	
 	if (SrtListIsSameIterator(iter_to_Find, SrtListEnd(p_queue -> srt_list)))
 	{
-		return SrtListGetData(iter_to_Find);
+		return NULL;
 	}
 	else
 	{
 		SrtListRemove(iter_to_Find);
+		
 		return res;
 	}
 }
@@ -133,9 +134,10 @@ void *PQErase(void *data, p_queue_t *p_queue,
 0 as opposed to compare func that returns -1, 0 or 1*/
 int MyIsBefore(const void *new_data, const void *src_data, void *param)
 {
-	sort_params_t *wrap = param;
-	if (1 == (wrap -> compare_func(new_data, 
-			src_data, wrap -> priority_param)))
+	sort_params_t *wrap = (sort_params_t *)param;
+	
+	if (1 == (wrap -> compare_func(new_data, src_data, 
+								   wrap -> priority_param)))
 	{
 		return 1;
 	}
