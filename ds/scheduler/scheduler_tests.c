@@ -1,5 +1,6 @@
 #include <stdio.h> /* printf */
 #include <string.h> /* strlen */
+#include <unistd.h> /* access */
 
 #include "scheduler.h"
 #include "uid.h"
@@ -10,18 +11,21 @@ void TestSchedulerAddRemove();
 void TestClear();
 void TestRun();
 void TestStop();
+void TestWithFiles();
 
 int MyTaskFunction1(void *action_func_param);
 int MyTaskFunction2(void *action_func_param);
 int MyTaskFunction3(void *action_func_param);
+int MyTaskFunction4(void *action_func_param);
 
 int main()
 {
-	TestSchedulerCreate();
+/*	TestSchedulerCreate();
 	TestSchedulerAddRemove();
 	TestClear();	
 	TestRun();
 	TestStop();
+*/	TestWithFiles();	
 	
 	return 0;
 }
@@ -149,6 +153,26 @@ void TestStop()
 	printf("\n\n");
 }
 
+void TestWithFiles()
+{
+	time_t interval1 = 1;
+	size_t action_func_param = 100;
+	
+	scheduler_t *new_sched = SchedCreate();
+	printf("Create scheduler\n");
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval1, MyTaskFunction4, &action_func_param);
+	PRINTTESTRESULTS("TestWithFiles_Size",1, 1 == SchedSize(new_sched));
+	
+	PRINTTESTRESULTS("TestWithFiles_run",4, 0 == SchedRun(new_sched));
+
+	printf("Destroy scheduler\n");
+	SchedDestroy(new_sched);
+	
+	printf("\n\n");
+}
+
 int MyTaskFunction1(void *action_func_param)
 {
 	static size_t counter = 0;
@@ -190,5 +214,18 @@ int MyTaskFunction3(void *action_func_param)
 	
 	SchedStop((scheduler_t *)action_func_param);
 	
-	return 0;
+	return 1;
+}
+
+int MyTaskFunction4(void *action_func_param)
+{
+	printf("check for file\n");
+	
+	if (0 == access("testFile.txt", F_OK))
+	{
+		printf("stop\n");
+		SchedStop((scheduler_t *)action_func_param);
+	}
+	
+	return 1;
 }
