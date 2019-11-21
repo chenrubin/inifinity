@@ -71,13 +71,12 @@ ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
 	task_t *new_task = TaskCreate(interval, action, action_func_param);
 	PQEnqueue(scheduler -> pq, new_task);
 	
-	return (TaskGetID(PQPeek(scheduler -> pq)));
+	return TaskGetID(new_task);/*(TaskGetID(PQPeek(scheduler -> pq)));*/
 }
 
 int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 {
 	task_t *task_to_remove = PQErase(&event_id, scheduler -> pq, MyIsMatch);
-	printf("uid.pid = %d, uid.time = %ld, uid.counter = %ld", event_id.pid, event_id.time, event_id.counter);
 	if (NULL == task_to_remove)
 	{
 		if (NULL != (scheduler -> running_task))
@@ -93,7 +92,6 @@ int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 	}
 	else
 	{
-		printf("inside remove before TaskRemove\n");
 		TaskRemove(task_to_remove);
 	}
 	
@@ -157,7 +155,6 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		is_repeat = TaskRun(scheduler -> running_task);
 		
 		sleep(time_to_run - CURRENT_TIME);
-		
 		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
 			TaskUpdateTimeToRun(scheduler -> running_task);
