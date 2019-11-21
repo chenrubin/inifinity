@@ -25,6 +25,8 @@ struct scheduler
 {
 	p_queue_t *pq;
 	int continue_running;
+	task_t *running_task;
+	int is_removing_itself;
 };
 
 scheduler_t *SchedCreate(void)
@@ -47,6 +49,8 @@ scheduler_t *SchedCreate(void)
 	}
 	
 	new_sched -> continue_running = 1;
+	new_sched -> running_task = NULL;
+	new_sched -> is_removing_itself = 0;
 	
 	return new_sched;
 }
@@ -72,14 +76,26 @@ ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
 
 int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 {
-	void *res = PQErase(&event_id, scheduler -> pq, MyIsMatch);
-	if (NULL == res)
+	task_t *task_to_remove = PQErase(&event_id, scheduler -> pq, MyIsMatch);
+	printf("uid.pid = %d, uid.time = %ld, uid.counter = %ld", event_id.pid, event_id.time, event_id.counter);
+	if (NULL == task_to_remove)
 	{
-		return 1;
+		if (NULL != (scheduler -> running_task))
+		{
+			if (TaskIsMatchByID(event_id, scheduler -> running_task))
+			{
+				scheduler -> is_removing_itself = 1;
+				return 0;
+			}
+			
+			return 1;
+		}
 	}
 	else
-	
-	TaskRemove(res);
+	{
+		printf("inside remove before TaskRemove\n");
+		TaskRemove(task_to_remove);
+	}
 	
 	return 0;
 }				
@@ -90,7 +106,13 @@ void SchedClear(scheduler_t *scheduler)
 	
 	while (!SchedIsEmpty(scheduler))
 	{
-		TaskRemove(PQDequeue(scheduler -> pq));
+		if ((NULL != scheduler->running_task) && 1 == SchedSize(scheduler)) 
+		{
+			scheduler -> is_removing_itself = 1;
+			break;
+		}
+		
+		TaskRemove(PQDequeue(scheduler->pq));	
 	}
 }
 
@@ -98,48 +120,75 @@ int SchedIsEmpty(const scheduler_t *scheduler)
 {
 	assert(scheduler);
 	
-	return (PQIsEmpty(scheduler -> pq));
+	if (scheduler -> running_task)
+	{
+		return 0;
+	}
+	else
+	{
+		return (PQIsEmpty(scheduler -> pq));
+	}
 }
 
 size_t SchedSize(const scheduler_t *scheduler)
 {
-	return (PQSize(scheduler -> pq));
+	size_t num = 0;
+	
+	assert(scheduler);
+	
+	if (scheduler -> running_task)
+	{
+		num += 1;
+	}
+	
+	return (PQSize(scheduler -> pq) + num);
 }
 
 enum result_status SchedRun(scheduler_t *scheduler)
 {
-	void *task = NULL;
 	time_t time_to_run = 0;
-	while (scheduler -> continue_running)
+	int is_repeat = 0;
+	int res = 0;
+	
+	while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))
 	{
-		task = PQPeek(scheduler -> pq);
-		time_to_run = TaskGetTimeToRun(task);
+		scheduler -> running_task = PQDequeue(scheduler -> pq);
+		time_to_run = TaskGetTimeToRun(scheduler -> running_task);
+		is_repeat = TaskRun(scheduler -> running_task);
+		
 		sleep(time_to_run - CURRENT_TIME);
-
-		if (!TaskRun((task_t *)task))
+		
+		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
-			if (1 == SchedRemove(scheduler, TaskGetID((task_t *)task)))
+			TaskUpdateTimeToRun(scheduler -> running_task);
+			res = PQEnqueue(scheduler -> pq, scheduler -> running_task);
+			if (1 == res)
 			{
-				return SCHEDULER_EMPTY;
+				printf("ENQUEUE_FAILED\n");
+				return ENQUEUE_FAILED;
 			}
-			else
-			{
-				return SUCCESS;
-			}
+			scheduler -> running_task = NULL;
 		}
 		else
 		{
-			TaskUpdateTimeToRun((task_t *)task);
-			if (1 == PQEnqueue(scheduler -> pq, PQDequeue(scheduler -> pq)))
-			{
-				return SCHEDULER_EMPTY;
-			}
+			TaskRemove(scheduler -> running_task);
+			scheduler -> is_removing_itself = 0;
+			scheduler -> running_task = NULL;
 		}
 	}
 	
 	scheduler -> continue_running = 1;
 	
-	return SCHEDULER_EMPTY;
+	if (0 == SchedIsEmpty(scheduler))
+	{
+		printf("STOPPED_SUCCESSFULLY\n");
+		return STOPPED_SUCCESSFULLY;
+	}
+	else
+	{
+		printf("SCHEDULER_EMPTY\n");
+		return SCHEDULER_EMPTY;
+	}
 }
 
 void SchedStop(scheduler_t *scheduler)

@@ -13,10 +13,10 @@
 
 enum result_status
 {
-	SUCCESS = 0,
-	SCHEDULER_EMPTY = 1
-	
-
+	STOPPED_SUCCESSFULLY = 0,
+	ENQUEUE_FAILED = 1,
+	SCHEDULER_EMPTY = 2,
+	SCHEDULER_DESTROYED = 3
 };
 
 typedef struct scheduler scheduler_t;
