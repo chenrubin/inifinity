@@ -17,9 +17,15 @@
 
 #define CURRENT_TIME time(NULL)
 
+/* function to use with PQErase */
 static int MyIsMatch(const void *new_data, const void *param);
+
+/* function to use when creating scheduler for PQCreate*/
 static int MyCompareFunc(const void *new_data, 
 						 const void *src_data, void *param);
+						 
+/* remove running task */						 
+static void RemoveRunningTask(scheduler_t *scheduler);
 
 struct scheduler
 {
@@ -71,7 +77,7 @@ ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
 	task_t *new_task = TaskCreate(interval, action, action_func_param);
 	PQEnqueue(scheduler -> pq, new_task);
 	
-	return TaskGetID(new_task);/*(TaskGetID(PQPeek(scheduler -> pq)));*/
+	return TaskGetID(new_task);
 }
 
 int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
@@ -159,18 +165,18 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		{
 			TaskUpdateTimeToRun(scheduler -> running_task);
 			res = PQEnqueue(scheduler -> pq, scheduler -> running_task);
+			
 			if (1 == res)
 			{
 				printf("ENQUEUE_FAILED\n");
 				return ENQUEUE_FAILED;
 			}
+			
 			scheduler -> running_task = NULL;
 		}
 		else
 		{
-			TaskRemove(scheduler -> running_task);
-			scheduler -> is_removing_itself = 0;
-			scheduler -> running_task = NULL;
+			RemoveRunningTask(scheduler);
 		}
 	}
 	
@@ -202,8 +208,8 @@ static int MyCompareFunc(const void *new_data, const void *src_data, void *param
 {
 	(void)param;
 	
-	if ((TaskGetTimeToRun((task_t *)src_data/*new_data*/)) < 
-		(TaskGetTimeToRun((task_t *)new_data/*src_data*/)))
+	if ((TaskGetTimeToRun((task_t *)src_data)) < 
+		(TaskGetTimeToRun((task_t *)new_data)))
 	{
 		return -1;
 	}
@@ -216,4 +222,11 @@ static int MyCompareFunc(const void *new_data, const void *src_data, void *param
 	{
 		return 1;
 	}
+}
+
+static void RemoveRunningTask(scheduler_t *scheduler)
+{
+	TaskRemove(scheduler -> running_task);
+	scheduler -> is_removing_itself = 0;
+	scheduler -> running_task = NULL;
 }

@@ -1,4 +1,4 @@
-#include <stdio.h> /* printf */
+#include <stdio.h> /* printf , FILE*/
 #include <string.h> /* strlen */
 #include <unistd.h> /* access */
 
@@ -18,6 +18,7 @@ void TestIsEmptyWithFile();
 void TestClearWithFile();
 void TestRemoveWithFile();
 void TestRemoveItselfWithFile();
+void TestAddTaskWithFile();
 
 int MyTaskFunction1(void *action_func_param);
 int MyTaskFunction2(void *action_func_param);
@@ -32,6 +33,9 @@ int MyTaskFunctionClear(void *action_func_param);
 int MyTaskFunctionFileRemove(void *action_func_param);
 int MyTaskFunctionCreateFile_forRemoveTests(void *action_func_param);
 int MyTaskFunctionremoveFile_ForRemoveTests(void *action_func_param);
+int MyTaskFunctionAddNewSched(void *action_func_param);
+int MyTaskFunctionremoveFile_ForAddTask(void *action_func_param);
+int MyTaskFunctionCreateFile_forAddTask(void *action_func_param);
 
 size_t counter = 0;
 
@@ -40,6 +44,7 @@ typedef struct struct_param
 	size_t action_param;
 	char *file_name;
 	scheduler_t *sched;
+	FILE *fp;
 } param;
 
 typedef struct remove_param 
@@ -47,7 +52,18 @@ typedef struct remove_param
 	ilrd_uid_t uid;
 	char *file_name;
 	scheduler_t *sched;
+	FILE *fp;
 } r_param;
+
+typedef struct add_task_param 
+{
+	size_t action_param;
+	char *file_name;
+	scheduler_t *sched;
+	action_func action;
+	time_t interval;
+	FILE *fp;
+} task_add;
 
 int main()
 {	
@@ -63,8 +79,8 @@ int main()
 	TestClearWithFile();
 	TestRemoveWithFile();
 	TestRemoveItselfWithFile();
+	TestAddTaskWithFile();
 
-	
 	return 0;
 }
 
@@ -165,7 +181,7 @@ void TestRun()
 	printf("Add Task\n");
 	SchedAdd(new_sched, interval1, MyTaskFunction1, &action_func_param);
 	PRINTTESTRESULTS("TestRun_Size",4, 1 == SchedSize(new_sched));
-	printf("size = %ld\n", SchedSize(new_sched));
+
 	printf("Add Task\n");
 	SchedAdd(new_sched, interval2, MyTaskFunction2, &action_func_param);
 	PRINTTESTRESULTS("TestRun_Size",5, 2 == SchedSize(new_sched));
@@ -227,46 +243,36 @@ void TestClearWithFile()
 	time_t interval6 = 20;
 	size_t action_func_param = 50;
 	scheduler_t *new_sched = SchedCreate();
-	param par = {10, "size.txt", NULL};
+	param par = {10, "test.txt", NULL, NULL};
 	par.sched = new_sched;
 	printf("!!!	TestClearWithFile !!!\n\n");
 	printf("Create scheduler\n");	
 
 	counter = 0;
-	
+
 	printf("Add Task\n");
 	SchedAdd(new_sched, interval1, MyTaskFunction1, &action_func_param);
-	
+
 	printf("Add Task\n");
 	SchedAdd(new_sched, interval2, MyTaskFunction2, &action_func_param);
-	
+
 	printf("Add clear task to function if file is found\n");
-	SchedAdd(new_sched, interval3, MyTaskFunctionClear, new_sched);
-	
+	SchedAdd(new_sched, interval3, MyTaskFunctionClear, &par);
+
 	printf("Add Task of creating file\n");
 	SchedAdd(new_sched, interval4, MyTaskFunctionCreateFile, &par);
-	
+
 	printf("Add Task of removing file\n");
 	SchedAdd(new_sched, interval5, MyTaskFunctionremoveFile, &par);
-	
+
 	printf("Add Task of stop\n");
 	SchedAdd(new_sched, interval6, MyTaskFunctionStop, new_sched);
-	
+
 	PRINTTESTRESULTS("TestClearWithFile_Run",0, 2 == SchedRun(new_sched));
 	
-	counter = 0;
-	
-	printf("Add Task\n");
-	SchedAdd(new_sched, interval1, MyTaskFunction1, &action_func_param);
-	
-	printf("Add Task of removing file\n");
-	SchedAdd(new_sched, interval5, MyTaskFunctionremoveFile, &par);
-	
-	PRINTTESTRESULTS("TestClearWithFile_Run",2, 0 == SchedRun(new_sched));
-
 	printf("Destroy scheduler\n");
 	SchedDestroy(new_sched);
-	
+
 	printf("\n\n");
 }
 
@@ -312,17 +318,27 @@ void TestStopWithFile()
 	Destroy scheduler
 	*/
 	time_t interval1 = 1;
+	time_t interval4 = 10;
+	time_t interval5 = 20;
 	
 	scheduler_t *new_sched = SchedCreate();
+	param par = {10, "test.txt", NULL, NULL};
+	par.sched = new_sched;
+	
 	printf("!!!	TestStopWithFile !!!\n\n");
 	printf("Create scheduler\n");
 	
 	printf("Add Task\n");
-	SchedAdd(new_sched, interval1, MyTaskFunctionFileStop, new_sched);
-	PRINTTESTRESULTS("TestStopWithFile_Size",1, 1 == SchedSize(new_sched));
+	SchedAdd(new_sched, interval1, MyTaskFunctionFileStop, &par);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval4, MyTaskFunctionCreateFile, &par);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval5, MyTaskFunctionremoveFile, &par);
 	
 	PRINTTESTRESULTS("TesStopWithFile_run",2, 0 == SchedRun(new_sched));
-
+	
 	printf("Destroy scheduler\n");
 	SchedDestroy(new_sched);
 	
@@ -342,7 +358,7 @@ void TestSizeWithFile()
 	size_t action_func_param = 30;
 	
 	scheduler_t *new_sched = SchedCreate();
-	param par = {10, "size.txt", NULL};
+	param par = {10, "test.txt", NULL, NULL};
 	par.sched = new_sched;
 	printf("!!!	TestSizeWithFile !!!\n\n");
 	printf("Create scheduler\n");
@@ -393,9 +409,12 @@ void TestRemoveWithFile()
 	time_t interval6 = 20;
 	size_t action_func_param = 30;
 	scheduler_t *new_sched = SchedCreate();
-	r_param par = {{0}, "test.txt", NULL};
-	
-	par.sched = new_sched;
+	r_param par = {{0}, "test.txt", NULL, NULL};
+/*	ilrd_uid_t uid;
+	char *file_name;
+	scheduler_t *sched;
+	FILE *fp;
+*/	par.sched = new_sched;
 	printf("!!!	TestRemoveWithFile !!!\n\n");
 	printf("Create scheduler\n");
 	
@@ -439,7 +458,7 @@ void TestRemoveItselfWithFile()
 	time_t interval6 = 20;
 	size_t action_func_param = 30;
 	scheduler_t *new_sched = SchedCreate();
-	r_param par = {{0}, "test.txt", NULL};
+	r_param par = {{0}, "test.txt", NULL, NULL};
 	
 	par.sched = new_sched;
 	printf("!!!	TestRemoveItselfWithFile !!!\n\n");
@@ -486,7 +505,7 @@ void TestIsEmptyWithFile()
 	size_t action_func_param = 40;
 	
 	scheduler_t *new_sched = SchedCreate();
-	param par = {10, "empty.txt", NULL};
+	param par = {10, "empty.txt", NULL, NULL};
 	par.sched = new_sched;
 	printf("!!!	TestIsEmptyWithFile !!!\n\n");
 	printf("Create scheduler\n");
@@ -518,6 +537,51 @@ void TestIsEmptyWithFile()
 	PRINTTESTRESULTS("TestIsEmptyWithFile_Size",6, 6 == SchedSize(new_sched));
 	
 	PRINTTESTRESULTS("TestIsEmptyWithFile_Run",7, 0 == SchedRun(new_sched));
+	
+	printf("Destroy scheduler\n");
+	SchedDestroy(new_sched);
+	
+	printf("\n\n");
+}
+
+void TestAddTaskWithFile()
+{
+	/* test creates a file after 10 sec that calls another task (MyTaskFunctionAddNewSched)
+	that adds another task (MyTaskFunction2). Then another task (MyTaskFunctionStop) stops run */ 
+	time_t interval1 = 3;
+	time_t interval2 = 2;
+	time_t interval3 = 1;
+	time_t interval4 = 10;
+	time_t interval5 = 12;
+	time_t interval6 = 25;
+	size_t action_func_param = 30;
+	
+	scheduler_t *new_sched = SchedCreate();
+	task_add par = {0/*action_param*/, "test.txt"/*file_name*/, NULL/*sched*/, MyTaskFunction2/*action_func*/, 0/*interval*/, NULL/*fp*/};
+	par.action_param = action_func_param;
+	par.sched = new_sched;
+	par.interval = interval2;
+	printf("!!!	TestAddTaskWithFile !!!\n\n");
+	printf("Create scheduler\n");
+
+	counter = 0;
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval1, MyTaskFunction1, &action_func_param);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval3, MyTaskFunctionAddNewSched, &par);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval4, MyTaskFunctionCreateFile_forAddTask, &par);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval5, MyTaskFunctionremoveFile_ForAddTask, &par);
+	
+	printf("Add Task\n");
+	SchedAdd(new_sched, interval6, MyTaskFunctionStop, new_sched);
+	
+	PRINTTESTRESULTS("TestSizeWithFile_Run",7, 0 == SchedRun(new_sched));
 	
 	printf("Destroy scheduler\n");
 	SchedDestroy(new_sched);
@@ -569,10 +633,10 @@ int MyTaskFunctionFileStop(void *action_func_param)
 {
 	printf("check for file\n");
 
-	if (0 == access("testFile.txt", F_OK))
+	if (0 == access(((param *)action_func_param) -> file_name, F_OK))
 	{
 		printf("stop\n");
-		SchedStop((scheduler_t *)action_func_param);
+		SchedStop(((param *)action_func_param) -> sched);
 	}
 	
 	return 1;
@@ -632,9 +696,10 @@ int MyTaskFunctionClear(void *action_func_param)
 
 int MyTaskFunctionCreateFile(void *action_func_param)
 {
-	FILE *fp = fopen(((param *)action_func_param) -> file_name, "w");
+	((param *)action_func_param) -> fp = 
+	fopen(((param *)action_func_param) -> file_name, "w");
 		
-	if (fp == NULL)
+	if (NULL == ((param *)action_func_param) -> fp)
 	{
 		printf("Couldn't Create file\n");
 	}
@@ -648,9 +713,10 @@ int MyTaskFunctionCreateFile(void *action_func_param)
 
 int MyTaskFunctionCreateFile_forRemoveTests(void *action_func_param)
 {
-	FILE *fp = fopen(((r_param *)action_func_param) -> file_name, "w");
+	((r_param *)action_func_param) -> fp = 
+	fopen(((r_param *)action_func_param) -> file_name, "w");
 		
-	if (fp == NULL)
+	if (NULL == ((r_param *)action_func_param) -> fp)
 	{
 		printf("Couldn't Create file\n");
 	}
@@ -664,7 +730,7 @@ int MyTaskFunctionCreateFile_forRemoveTests(void *action_func_param)
 
 int MyTaskFunctionremoveFile(void *action_func_param)
 {
-	remove(((param *)action_func_param) -> file_name);
+	fclose(((param *)action_func_param) -> fp);
 	printf("Remove file\n");
 	
 	return 0;
@@ -672,7 +738,32 @@ int MyTaskFunctionremoveFile(void *action_func_param)
 
 int MyTaskFunctionremoveFile_ForRemoveTests(void *action_func_param)
 {
-	remove(((r_param *)action_func_param) -> file_name);
+	fclose(((r_param *)action_func_param) -> fp);
+	printf("Remove file\n");
+	
+	return 0;
+}
+
+int MyTaskFunctionCreateFile_forAddTask(void *action_func_param)
+{
+	((task_add *)action_func_param) -> fp = 
+	fopen(((task_add *)action_func_param) -> file_name, "w");
+		
+	if (NULL == ((task_add *)action_func_param) -> fp)
+	{
+		printf("Couldn't Create file\n");
+	}
+	else
+	{
+		printf("Create file\n");
+	}
+	
+	return 0;
+}
+
+int MyTaskFunctionremoveFile_ForAddTask(void *action_func_param)
+{
+	printf("fclose = %d\n",fclose(((task_add *)action_func_param) -> fp));
 	printf("Remove file\n");
 	
 	return 0;
@@ -684,3 +775,19 @@ int MyTaskFunctionClearNoFile(void *action_func_param)
 	
 	return 0;
 }
+
+int MyTaskFunctionAddNewSched(void *action_func_param)
+{
+	printf("check for file\n");
+
+	if (0 == access(((task_add *)action_func_param) -> file_name, F_OK))
+	{
+		printf("found file and adding a new task\n"); 
+		SchedAdd(((task_add *)action_func_param) -> sched, 
+		((task_add *)action_func_param) -> interval, 
+		((task_add *)action_func_param) -> action,
+		&(((task_add *)action_func_param) -> action_param));
+	}
+
+	return 1;
+} 
