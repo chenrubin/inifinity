@@ -15,6 +15,7 @@
 #include "MyUtils.h" /* MAX2,MIN2 */
 
 int MyFindAction(const void *data, const void *wrap);
+int MyIsmatchWrapper(const void *data, const void *param/*wrapper*/);
 
 struct srt_list
 {
@@ -29,6 +30,13 @@ typedef struct wrapper3
 	void *is_before_param;
 	is_before_t match_ptr;
 } structWrapperFind;
+
+typedef struct insertWrapper
+{
+	void *param;
+	is_before_t ptr;
+	void *new_data;
+}my_wrapper_t;
 
 srt_list_t *SrtListCreate(void *param, is_before_t ptr)
 {
@@ -67,25 +75,32 @@ void SrtListDestroy(srt_list_t *list)
 
 srt_iter_t SrtListInsert(void *data, srt_list_t *list)
 {
-	dll_node_t *node = NULL;
 	srt_iter_t srt_iter = {0};
+	my_wrapper_t *wrapper = NULL;
 	
 	assert(list);
+	wrapper = (my_wrapper_t *)malloc(sizeof(my_wrapper_t));
 	
-	for (node = DLListBegin(list -> dll);
-		 node != DLListEnd(list -> dll);
-		 node = DLListNext(node))
-	{
-		if (1 == (list -> is_before_ptr(data, DLListGetData(node), 
-				  list -> is_before_param)))
-		{
-			break;
-		}
-	}
+	wrapper -> param = list -> is_before_param;
+	wrapper -> ptr = list -> is_before_ptr;
+	wrapper -> new_data = data;
+
+	srt_iter = SrtListFindIf(SrtListBegin(list), SrtListEnd(list), 
+						 	 wrapper, MyIsmatchWrapper);
+
+	srt_iter.dll_iterator = 
+	DLListInsert(data, srt_iter.dll_iterator, list -> dll);
 	
-	srt_iter.dll_iterator = DLListInsert(data, node, list -> dll);
+	free(wrapper);
 	
 	return srt_iter;
+}
+
+int MyIsmatchWrapper(const void *data, const void *wrapper)
+{
+	return (((my_wrapper_t *)wrapper) -> ptr
+	(((my_wrapper_t *)wrapper) -> new_data, data , 
+	((my_wrapper_t *)wrapper) -> param));
 }
 
 srt_iter_t SrtListBegin(srt_list_t *list)

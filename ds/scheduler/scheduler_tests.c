@@ -338,7 +338,7 @@ void TestStopWithFile()
 	SchedAdd(new_sched, interval5, MyTaskFunctionremoveFile, &par);
 	
 	PRINTTESTRESULTS("TesStopWithFile_run",2, 0 == SchedRun(new_sched));
-	
+
 	printf("Destroy scheduler\n");
 	SchedDestroy(new_sched);
 	
