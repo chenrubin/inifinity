@@ -234,15 +234,16 @@ static int MyIsMatchIMP(const void *new_data, const void *param)
 
 static int MyCompareFuncIMP(const void *new_data, const void *src_data, void *param)
 {
+	time_t src_data_time = TaskGetTimeToRun((task_t *)src_data);
+	time_t new_data_time = TaskGetTimeToRun((task_t *)new_data);
+	
 	(void)param;
 	
-	if ((TaskGetTimeToRun((task_t *)src_data)) < 
-		(TaskGetTimeToRun((task_t *)new_data)))
+	if (src_data_time < new_data_time)
 	{
 		return -1;
 	}
-	else if ((TaskGetTimeToRun((task_t *)new_data)) == 
-		(TaskGetTimeToRun((task_t *)src_data)))
+	else if (src_data_time == new_data_time)
 	{
 		return 0;
 	}
