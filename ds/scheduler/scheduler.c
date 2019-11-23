@@ -8,12 +8,12 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 #include <unistd.h> /* sleep */
-#include <stdio.h> /* printf */
 
 #include "uid.h"
 #include "task.h"
 #include "pq.h"
 #include "scheduler.h"
+#include "MyUtils.h"
 
 #define CURRENT_TIME time(NULL)
 
@@ -26,6 +26,9 @@ static int MyCompareFuncIMP(const void *new_data,
 						 
 /* remove running task */						 
 static void RemoveRunningTaskIMP(scheduler_t *scheduler);
+
+/* calculates time to sleep */
+static double GetTimeToSleepUntilNextTaskIMP(task_t *task);
 
 struct scheduler
 {
@@ -114,6 +117,10 @@ int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 			
 			return 1;
 		}
+		else
+		{
+			return 1;
+		}
 	}
 	else
 	{
@@ -155,31 +162,36 @@ int SchedIsEmpty(const scheduler_t *scheduler)
 
 size_t SchedSize(const scheduler_t *scheduler)
 {
-	size_t num = 0;
+	size_t result = 0;
 	
 	assert(scheduler);
 	
+	result = PQSize(scheduler -> pq);
+	
 	if (scheduler -> running_task)
 	{
-		num += 1;
+		result += 1;
 	}
 	
-	return (PQSize(scheduler -> pq) + num);
+	return result;
 }
 
 enum result_status SchedRun(scheduler_t *scheduler)
 {
-	time_t time_to_run = 0;
+/*	time_t time_to_run = 0;*/
 	int is_repeat = 0;
 	int is_failed = 0;
+	scheduler -> continue_running = 1;
 	
 	while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))
 	{
 		scheduler -> running_task = PQDequeue(scheduler -> pq);
-		time_to_run = TaskGetTimeToRun(scheduler -> running_task);
+		sleep(GetTimeToSleepUntilNextTaskIMP(scheduler -> running_task));
 		is_repeat = TaskRun(scheduler -> running_task);
+		/*time_to_run = TaskGetTimeToRun(scheduler -> running_task);
+		is_repeat = TaskRun(scheduler -> running_task);*/
 		
-		sleep(time_to_run - CURRENT_TIME);
+/*		sleep(time_to_run - CURRENT_TIME);*/
 		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
 			TaskUpdateTimeToRun(scheduler -> running_task);
@@ -187,7 +199,6 @@ enum result_status SchedRun(scheduler_t *scheduler)
 			
 			if (1 == is_failed)
 			{
-				printf("ENQUEUE_FAILED\n");
 				return ENQUEUE_FAILED;
 			}
 			
@@ -199,16 +210,12 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		}
 	}
 	
-	scheduler -> continue_running = 1;
-	
 	if (0 == SchedIsEmpty(scheduler))
 	{
-		printf("STOPPED_SUCCESSFULLY\n");
 		return STOPPED_SUCCESSFULLY;
 	}
 	else
 	{
-		printf("SCHEDULER_EMPTY\n");
 		return SCHEDULER_EMPTY;
 	}
 }
@@ -243,6 +250,11 @@ static int MyCompareFuncIMP(const void *new_data, const void *src_data, void *pa
 	{
 		return 1;
 	}
+}
+
+static double GetTimeToSleepUntilNextTaskIMP(task_t *task)
+{
+    return (MAX2(0, difftime(TaskGetTimeToRun(task), CURRENT_TIME))); 
 }
 
 static void RemoveRunningTaskIMP(scheduler_t *scheduler)
