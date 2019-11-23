@@ -1,8 +1,8 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Maoz				  *
 *		scheduler					  *
-*		7/11/2019					  *
+*		22/11/2019					  *
 *									  *
 ************************************/
 #include <stdlib.h> /* malloc */
@@ -92,6 +92,7 @@ ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
 	if (is_failed)
 	{
 		TaskRemove(new_task);
+		
 		return BAD_UID;
 	}
 	
@@ -101,6 +102,7 @@ ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
 int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 {
 	task_t *task_to_remove = NULL;
+	int status = 0;
 	
 	assert(scheduler);
 	
@@ -112,14 +114,15 @@ int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 			if (TaskIsMatchByID(event_id, scheduler -> running_task))
 			{
 				scheduler -> is_removing_itself = 1;
-				return 0;
 			}
-			
-			return 1;
+			else
+			{
+				status = 1;
+			}
 		}
 		else
 		{
-			return 1;
+			status = 1;
 		}
 	}
 	else
@@ -127,7 +130,7 @@ int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 		TaskRemove(task_to_remove);
 	}
 	
-	return 0;
+	return status;
 }				
 
 void SchedClear(scheduler_t *scheduler)
@@ -188,10 +191,7 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		scheduler -> running_task = PQDequeue(scheduler -> pq);
 		sleep(GetTimeToSleepUntilNextTaskIMP(scheduler -> running_task));
 		is_repeat = TaskRun(scheduler -> running_task);
-		/*time_to_run = TaskGetTimeToRun(scheduler -> running_task);
-		is_repeat = TaskRun(scheduler -> running_task);*/
-		
-/*		sleep(time_to_run - CURRENT_TIME);*/
+
 		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
 			TaskUpdateTimeToRun(scheduler -> running_task);
