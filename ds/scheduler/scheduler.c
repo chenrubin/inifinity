@@ -18,14 +18,14 @@
 #define CURRENT_TIME time(NULL)
 
 /* function to use with PQErase */
-static int MyIsMatch(const void *new_data, const void *param);
+static int MyIsMatchIMP(const void *new_data, const void *param);
 
 /* function to use when creating scheduler for PQCreate*/
-static int MyCompareFunc(const void *new_data, 
+static int MyCompareFuncIMP(const void *new_data, 
 						 const void *src_data, void *param);
 						 
 /* remove running task */						 
-static void RemoveRunningTask(scheduler_t *scheduler);
+static void RemoveRunningTaskIMP(scheduler_t *scheduler);
 
 struct scheduler
 {
@@ -37,15 +37,14 @@ struct scheduler
 
 scheduler_t *SchedCreate(void)
 {
-	int priority_param = 0;
-	
+	void *priority_param = NULL;
 	scheduler_t *new_sched = (scheduler_t *)malloc(sizeof(scheduler_t));
 	if (NULL == new_sched)
 	{
 		return NULL;
 	}
 	
-	new_sched -> pq = PQCreate(&priority_param, MyCompareFunc);
+	new_sched -> pq = PQCreate(priority_param, MyCompareFuncIMP);
 	if (NULL == (new_sched -> pq))
 	{
 		free(new_sched);
@@ -74,15 +73,35 @@ void SchedDestroy(scheduler_t *scheduler)
 ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
  					void *action_func_param)
 {
-	task_t *new_task = TaskCreate(interval, action, action_func_param);
-	PQEnqueue(scheduler -> pq, new_task);
+	task_t *new_task = NULL;
+	int is_failed = 0;
+	
+	assert(scheduler);
+ 	assert(action);
+ 	
+	new_task = TaskCreate(interval, action, action_func_param);
+	if (NULL == new_task)
+	{
+		return BAD_UID;
+	}
+	
+	is_failed = PQEnqueue(scheduler -> pq, new_task);
+	if (is_failed)
+	{
+		TaskRemove(new_task);
+		return BAD_UID;
+	}
 	
 	return TaskGetID(new_task);
 }
 
 int SchedRemove(scheduler_t *scheduler, ilrd_uid_t event_id)
 {
-	task_t *task_to_remove = PQErase(&event_id, scheduler -> pq, MyIsMatch);
+	task_t *task_to_remove = NULL;
+	
+	assert(scheduler);
+	
+	task_to_remove = PQErase(&event_id, scheduler -> pq, MyIsMatchIMP);
 	if (NULL == task_to_remove)
 	{
 		if (NULL != (scheduler -> running_task))
@@ -152,7 +171,7 @@ enum result_status SchedRun(scheduler_t *scheduler)
 {
 	time_t time_to_run = 0;
 	int is_repeat = 0;
-	int res = 0;
+	int is_failed = 0;
 	
 	while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))
 	{
@@ -164,9 +183,9 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
 			TaskUpdateTimeToRun(scheduler -> running_task);
-			res = PQEnqueue(scheduler -> pq, scheduler -> running_task);
+			is_failed = PQEnqueue(scheduler -> pq, scheduler -> running_task);
 			
-			if (1 == res)
+			if (1 == is_failed)
 			{
 				printf("ENQUEUE_FAILED\n");
 				return ENQUEUE_FAILED;
@@ -176,7 +195,7 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		}
 		else
 		{
-			RemoveRunningTask(scheduler);
+			RemoveRunningTaskIMP(scheduler);
 		}
 	}
 	
@@ -196,15 +215,17 @@ enum result_status SchedRun(scheduler_t *scheduler)
 
 void SchedStop(scheduler_t *scheduler)
 {
+	assert(scheduler);
+	
 	scheduler -> continue_running = 0;
 }
 
-static int MyIsMatch(const void *new_data, const void *param)
+static int MyIsMatchIMP(const void *new_data, const void *param)
 {
 	return (TaskIsMatchByID(*((ilrd_uid_t *)param), (task_t *)new_data));
 }
 
-static int MyCompareFunc(const void *new_data, const void *src_data, void *param)
+static int MyCompareFuncIMP(const void *new_data, const void *src_data, void *param)
 {
 	(void)param;
 	
@@ -224,7 +245,7 @@ static int MyCompareFunc(const void *new_data, const void *src_data, void *param
 	}
 }
 
-static void RemoveRunningTask(scheduler_t *scheduler)
+static void RemoveRunningTaskIMP(scheduler_t *scheduler)
 {
 	TaskRemove(scheduler -> running_task);
 	scheduler -> is_removing_itself = 0;

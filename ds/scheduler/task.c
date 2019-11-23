@@ -27,9 +27,21 @@ struct task
 task_t *TaskCreate(time_t interval, task_func action_func, 
 				   void* action_func_param)
 {
-	task_t *new_task = (task_t *)malloc(sizeof(task_t));
+	task_t *new_task = NULL;
+	
+	assert(action_func);
+	
+	new_task = (task_t *)malloc(sizeof(task_t));
 	if (NULL == new_task)
 	{
+		return NULL;
+	}
+	
+	new_task -> task_id = UIDCreate();
+	if (UIDIsBad(new_task -> task_id))
+	{
+		free(new_task);
+		
 		return NULL;
 	}
 	
@@ -37,14 +49,6 @@ task_t *TaskCreate(time_t interval, task_func action_func,
 	new_task -> action_func = action_func;
 	new_task -> action_func_param = action_func_param;
 	TaskUpdateTimeToRun(new_task);
-	new_task -> task_id = UIDCreate();
-	
-	if (UIDIsBad(new_task -> task_id))
-	{
-		free(new_task);
-		
-		return NULL;
-	}
 	
 	return new_task;
 }
@@ -61,21 +65,21 @@ void TaskUpdateTimeToRun(task_t *task)
 {
 	assert(task);
 	
-	task -> time_to_run = CURRENT_TIME + task -> interval;
+	task -> time_to_run = CURRENT_TIME + (task -> interval);
 }
 
 task_id_t TaskGetID(const task_t *task)
 {
 	assert(task);
 	
-	return task -> task_id;
+	return (task -> task_id);
 }
 
 time_t TaskGetTimeToRun(task_t *task)
 {
 	assert(task);
 	
-	return task -> time_to_run;
+	return (task -> time_to_run);
 }
 
 int TaskIsMatchByID(task_id_t id_to_find, task_t *task)
