@@ -11,6 +11,7 @@ void TestPopFrontSize();
 void TestPopBackSize();
 void TestRemove();
 void TestMerge();
+void TestMergeOpposite();
 void TestForEach();
 void TestFindIf();
 void TestFind();
@@ -21,6 +22,7 @@ int PrintSortedList(void *data, void *param);
 int AddToNode(void *data, void *param);
 int FindNumber(const void *data, const void *param);
 int FindIfStudent(const void *data, const void *param);
+int IsMatchOpposite(const void *data1, const void *data2, void *param);
 
 typedef struct student
 {
@@ -36,6 +38,7 @@ int main()
 	TestPopBackSize();	
 	TestRemove();
 	TestMerge();
+	TestMergeOpposite();
 	TestForEach();
 	TestFindIf();
 	TestFind();
@@ -71,7 +74,7 @@ void TestInsert()
 	}
 	
 	i = 0;
-	for (srt_iter = SrtListBegin(new_srtlist);
+		for (srt_iter = SrtListBegin(new_srtlist);
 		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist));
 		 	 srt_iter = SrtListNext(srt_iter))
 	{
@@ -90,7 +93,9 @@ void TestInsert()
 		list_sorted[5 - i] == *(int *)SrtListGetData(srt_iter));
 		++i;
 	} 	 
-				   
+	
+	printf("\n");
+		   
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist);
 }
@@ -349,6 +354,60 @@ void TestMerge()
 			list_members2[i] == *(int *)SrtListGetData(srt_iter));
 	}
 	PRINTTESTRESULTS("TestMerge_Size",i , 9 == SrtListSize(new_srtlist2));
+
+	printf("Merge lists\n");
+	SrtListMerge(new_srtlist1, new_srtlist2);
+	
+	i = 0;
+	for (srt_iter = SrtListBegin(new_srtlist2);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist2));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		PRINTTESTRESULTS("TestMerge_GetData",4 + i, 
+		list_merged[i] == *(int *)SrtListGetData(srt_iter));
+		++i;
+	}
+	
+	for (srt_iter = SrtListBegin(new_srtlist2);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist2));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%d, ", *(int *)SrtListGetData(srt_iter));
+	}
+	
+	SrtListDestroy(new_srtlist1);
+	
+	printf("Destroy srt_list\n\n");
+	SrtListDestroy(new_srtlist2);
+}
+
+void TestMergeOpposite()
+{
+	int list_members1[] = {1,2,17,6,2,9,4,8,12,14};
+	int list_members2[] = {23,-89,-65,-8,12,512,-1202,1,5};
+	int list_merged[] = {512,23,17,14,12,12,9,8,6,5,4,2,2,1,1,-8,-65,-89,-1202};
+	srt_iter_t srt_iter = {0};
+	int i = 0;
+	
+	srt_list_t *new_srtlist1 = SrtListCreate(NULL, IsMatch);
+	srt_list_t *new_srtlist2 = SrtListCreate(NULL, IsMatchOpposite);
+	printf("Create two srt_list\n");
+	
+	for (i = 0; i < 10; ++i)
+	{
+		srt_iter = SrtListInsert(&list_members1[i], new_srtlist1);
+		PRINTTESTRESULTS("TestMergeOpposite_Insert",i ,
+			list_members1[i] == *(int *)SrtListGetData(srt_iter));
+	}
+	PRINTTESTRESULTS("TestMergeOpposite_Size",i , 10 == SrtListSize(new_srtlist1));
+	
+	for (i = 0; i < 9; ++i)
+	{
+		srt_iter = SrtListInsert(&list_members2[i], new_srtlist2);
+		PRINTTESTRESULTS("TestMergeOpposite_Insert",i ,
+			list_members2[i] == *(int *)SrtListGetData(srt_iter));
+	}
+	PRINTTESTRESULTS("TestMergeOpposite_Size",i , 9 == SrtListSize(new_srtlist2));
 	
 	printf("Merge lists\n");
 	SrtListMerge(new_srtlist1, new_srtlist2);
@@ -358,11 +417,19 @@ void TestMerge()
 		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist2));
 		 	 srt_iter = SrtListNext(srt_iter))
 	{
-		PRINTTESTRESULTS("TestRemove_GetData",4 + i, 
+		PRINTTESTRESULTS("TestMergeOpposite_GetData",4 + i, 
 		list_merged[i] == *(int *)SrtListGetData(srt_iter));
 		++i;
 	}
 	
+	for (srt_iter = SrtListBegin(new_srtlist2);
+		 	 !SrtListIsSameIterator(srt_iter, SrtListEnd(new_srtlist2));
+		 	 srt_iter = SrtListNext(srt_iter))
+	{
+		printf("%d, ", *(int *)SrtListGetData(srt_iter));
+	}
+	
+	SrtListDestroy(new_srtlist1);
 	printf("Destroy srt_list\n\n");
 	SrtListDestroy(new_srtlist2);
 }
@@ -622,6 +689,13 @@ int IsMatch(const void *data1, const void *data2, void *param)
 	(void)param;
 	
 	return (*(int *)data1 < *(int *)data2);
+}
+
+int IsMatchOpposite(const void *data1, const void *data2, void *param)
+{
+	(void)param;
+	
+	return (*(int *)data1 > *(int *)data2);
 }
 
 int IsBeforeStringCmp(const void *data1, const void *data2, void *param)

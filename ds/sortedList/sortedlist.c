@@ -9,6 +9,7 @@
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+#include <stdio.h> /* printf */
 	
 #include "dllist.h"
 #include "sortedlist.h"
@@ -16,6 +17,7 @@
 
 int MyFindAction(const void *data, const void *wrap);
 int MyIsmatchWrapper(const void *data, const void *param/*wrapper*/);
+int MyNotIsmatchWrapper(const void *data, const void *wrapper);
 
 struct srt_list
 {
@@ -101,6 +103,11 @@ int MyIsmatchWrapper(const void *data, const void *wrapper)
 	return (((my_wrapper_t *)wrapper) -> ptr
 	(((my_wrapper_t *)wrapper) -> new_data, data , 
 	((my_wrapper_t *)wrapper) -> param));
+}
+
+int MyNotIsmatchWrapper(const void *data, const void *wrapper)
+{
+	return (!MyIsmatchWrapper(data, wrapper));
 }
 
 srt_iter_t SrtListBegin(srt_list_t *list)
@@ -201,19 +208,54 @@ int SrtListIsEmpty(const srt_list_t *list)
 
 void SrtListMerge(srt_list_t *src_list, srt_list_t *dest_list)
 {
-	srt_iter_t srt_iter = {0};
+	srt_iter_t src_iter = SrtListBegin(src_list);
+	srt_iter_t src_runner = src_iter;
+	srt_iter_t dest_runner = {0};
+/*	srt_iter_t srt_iter = {0};*/
+	my_wrapper_t *wrap = (my_wrapper_t *)malloc(sizeof(my_wrapper_t));
+	if (NULL == wrap)
+	{
+		printf("Malloc failed on wrapper\n");
+	}
 	
 	assert(src_list);
 	assert(dest_list);
-	
-	for (srt_iter = SrtListBegin(src_list); 
-		 !SrtListIsSameIterator(srt_iter, SrtListEnd(src_list));
-		 srt_iter = SrtListNext(srt_iter))
+
+	wrap -> param = dest_list -> is_before_param;
+	wrap -> ptr = dest_list -> is_before_ptr;
+
+	while (!SrtListIsSameIterator(src_iter, SrtListEnd(src_list)))
 	{
-		SrtListInsert(SrtListGetData(srt_iter), dest_list);
+		wrap -> new_data = SrtListGetData(src_iter);
+		dest_runner = SrtListPrev(SrtListFindIf(SrtListBegin(dest_list),
+												SrtListEnd(dest_list), 
+					  							wrap, 
+					  							MyIsmatchWrapper));	
+		
+		wrap -> new_data = SrtListGetData(SrtListNext(dest_runner));
+		src_runner = SrtListFindIf(src_iter, 
+								   SrtListEnd(src_list), 
+					  			   wrap, 
+					  			   MyIsmatchWrapper);
+
+		if (SrtListIsSameIterator(src_runner, SrtListEnd(src_list)))
+		{
+			src_runner = SrtListNext(src_iter);		
+			DLListSplice(src_iter.dll_iterator,
+						(SrtListNext(src_iter)).dll_iterator,
+						 dest_runner.dll_iterator);
+		}
+		else
+		{
+			DLListSplice(src_iter.dll_iterator,
+						src_runner.dll_iterator,
+						 dest_runner.dll_iterator);	 
+		}
+
+		src_iter = src_runner;					  				
 	}
 	
-	SrtListDestroy(src_list);
+	free(wrap);
 }
 
 int SrtListForEach(srt_iter_t begin, srt_iter_t end, void *param, 
