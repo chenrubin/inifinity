@@ -1,162 +1,144 @@
-/************************************
-*		Author: ChenR				  *
-*		Reviewer: Dvir				  *
-*		fsa							  *
-*		26/11/2019					  *
-*									  *
-************************************/
-
+/*****************************************/
+/* OL79                                  */
+/* FSA                                   */
+/* 26/11/19                              */
+/* Author- Sharon Rottner                */
+/* Reviewer- Chen Rubin                  */
+/*****************************************/
 #include <assert.h> /* assert */
+#include <stddef.h> /* size_t */
 
-#include "fsa.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "fsa.h" 
+#define WORD_SIZE sizeof(size_t)
 
-#define WORD sizeof(size_t)
-#define BLOCK_POINTER fsa_block_header_t *
+/* The function returns the actual size of block*/
+static size_t TotalSizeOfBlockIMP(size_t block_size);
+/* The function swaps two variables */
+static void SwapIMP(size_t *offset, size_t *next_free);
 
 struct fsa
 {
 	size_t next_free;
 	size_t block_size;
-} ;
+};
 
 typedef struct block_header
 {
 	size_t offset;
 } fsa_block_header_t;
 
-/* calculating block size icluding all padding and header */
-static size_t calculateActualBlockSizeIMP(size_t block_size);
-
-/* swap offsets between blocks */
-static void SwapOffsetsIMP(size_t *offset1, size_t *offset2);
-
-/* Creates block with a struct that includes offset */
-BLOCK_POINTER CreateBlockIMP(BLOCK_POINTER new_block, 
-								   size_t offset);
-
 fsa_t *FSAInit(void *memory_pool, size_t pool_size, size_t block_size)
 {
-	size_t actual_block_size = calculateActualBlockSizeIMP(block_size);
-	size_t num_of_blocks = pool_size / actual_block_size;
-	fsa_t new_fsa = {0};
-	size_t start_address = 0;
-	fsa_block_header_t new_block = {0};
-	size_t fsa_size = sizeof(fsa_t);
+	fsa_t fsa = {0};
 	size_t i = 0;
-
+	size_t num_of_block = 0;
+	char *run_pool = memory_pool;
+	fsa_block_header_t block_header = {0};
+	
 	assert(memory_pool);
 	assert(pool_size > block_size);
 	
-	start_address = (size_t)memory_pool + fsa_size;
-	new_fsa.next_free = fsa_size;
-	new_fsa.block_size = actual_block_size;
-	*(fsa_t *)memory_pool = new_fsa;
+	fsa.next_free = sizeof(fsa_t);
+	fsa.block_size = TotalSizeOfBlockIMP(block_size);
+	*(fsa_t*)run_pool = fsa;
+	run_pool += sizeof(fsa_t);
+	num_of_block = (pool_size - sizeof(fsa_t)) / (fsa.block_size); 
 	
-	for (i = 0; i < num_of_blocks - 1; ++i)
+	for (i = 0; i < (num_of_block - 1); ++i)
 	{
-		*(BLOCK_POINTER)((char *)
-								(start_address + i * actual_block_size)) =
-		*(CreateBlockIMP(&new_block, fsa_size + (i + 1) * actual_block_size));
+	
+		block_header.offset = (run_pool + (fsa.block_size)) - 
+		                      (char *)memory_pool;
+		*(fsa_block_header_t *)run_pool = block_header;
+		run_pool = run_pool + (fsa.block_size);
 	}
-	*(BLOCK_POINTER)((char *)(start_address + i * actual_block_size)) = 
-				  	  	    *(CreateBlockIMP(&new_block, 0));
-				  	  	  
-	return (fsa_t *)memory_pool;
+	
+	block_header.offset = 0;
+	*(fsa_block_header_t *)run_pool = block_header;
+	
+	return memory_pool;	
 }
 
 size_t FSASuggestedSize(size_t num_of_blocks, size_t block_size)
 {
-	size_t suggested_size = 
-	calculateActualBlockSizeIMP(block_size) * num_of_blocks;
+	size_t total_size_of_block = TotalSizeOfBlockIMP(block_size);
+	size_t total_size_of_pool = (total_size_of_block * num_of_blocks) + 
+	                             sizeof(fsa_t);
 	
-	return (suggested_size + sizeof(fsa_t));
+	return total_size_of_pool;	 
 }
 
 void *FSAAlloc(fsa_t *fsa)
-{
-	size_t free_block_offset  = 0;
-	void *res = NULL;
-	
+{	
+	void *allocated_address = NULL;
+
 	assert(fsa);
 	
-	free_block_offset = (fsa -> next_free);
-		
-	if (fsa -> next_free)
+	if (0 == FSACountFree(fsa))
 	{
-		SwapOffsetsIMP(&(fsa -> next_free), 
-		&(((BLOCK_POINTER)((char *)fsa + (fsa -> next_free))) -> offset));
-
-		res = ((char *)fsa + free_block_offset + sizeof(fsa_block_header_t));
-	} 
-
-	return res;
+		return NULL;
+	}
+	allocated_address = (char *)fsa + fsa->next_free; 
+	SwapIMP((size_t *)allocated_address, &(fsa->next_free));
+	
+	return ((char *)allocated_address + sizeof(fsa_block_header_t));				
 }
 
 void FSAFree(void *allocated_address)
-{	
-	size_t address_to_swap = 0;
-	size_t fsa_address = 0;
+{
+	fsa_block_header_t *header = NULL;
+	fsa_t *fsa = NULL;
 	
-	if (allocated_address)
+	if (NULL == allocated_address)
 	{
-		address_to_swap = (size_t)allocated_address - 
-						   sizeof(fsa_block_header_t);
-		fsa_address = address_to_swap - 
-		   	((BLOCK_POINTER)address_to_swap) -> offset;		
-		
-		if (((BLOCK_POINTER)address_to_swap) -> offset)
-			{	
-				SwapOffsetsIMP(&(((BLOCK_POINTER)address_to_swap) -> offset), 
-							   &(((fsa_t *)fsa_address) -> next_free));
-			} 
+		return;
 	}
+	
+	header = (fsa_block_header_t *)
+	         ((char *)allocated_address - sizeof(fsa_block_header_t));
+	fsa = (fsa_t *)((char *)header - (header->offset));
+	SwapIMP(&(header->offset), &(fsa->next_free));	
 }
 
 size_t FSACountFree(fsa_t *fsa)
 {
-	size_t counter = 1;
-	BLOCK_POINTER runner = 
-	(BLOCK_POINTER)((char *)fsa + (fsa -> next_free));
+	size_t next_free = 0;
+	size_t counter = 0;
+	fsa_block_header_t *header = NULL;
 	
 	assert(fsa);
 	
-	if (!(fsa -> next_free))
+	next_free = fsa->next_free;
+	while (0 != next_free)
 	{
-		counter = 0;
-	}
-	
-	while (runner -> offset)
-	{
-		runner = (BLOCK_POINTER)((char *)fsa + runner -> offset);
+		header = (fsa_block_header_t *)((char*)fsa + next_free);
+		next_free = header->offset; 
 		++counter;
 	}
 	
 	return counter;
 }
 
-static size_t calculateActualBlockSizeIMP(size_t block_size)
+static size_t TotalSizeOfBlockIMP(size_t block_size)
 {
-	size_t actual_block_size = sizeof(fsa_block_header_t) + block_size;
+	size_t size_of_block_no_padding = block_size + sizeof(fsa_block_header_t);
+	size_t size_of_padding = 0;
+	size_t total_size_of_block = 0;
 	
-	if (block_size % WORD)
+	if(0 != (size_of_block_no_padding % WORD_SIZE))
 	{
-		actual_block_size = ((actual_block_size / WORD) * WORD) + WORD;
+		size_of_padding = WORD_SIZE - (size_of_block_no_padding % WORD_SIZE);
 	}
 	
-	return actual_block_size;
-}
-
-static void SwapOffsetsIMP(size_t *offset1, size_t *offset2)
-{
-	size_t temp_offset = *offset1;
-	*offset1 = *offset2;
-	*offset2 = temp_offset;
-}
-
-BLOCK_POINTER CreateBlockIMP(BLOCK_POINTER new_block, size_t offset)
-{
-	new_block -> offset = offset;
+	total_size_of_block = size_of_block_no_padding + size_of_padding;
 	
-	return new_block;
+	return total_size_of_block;
+}
+
+static void SwapIMP(size_t *offset, size_t *next_free)
+{
+	size_t temp = *offset;
+	
+	*offset = *next_free;
+	*next_free = temp;
 }
