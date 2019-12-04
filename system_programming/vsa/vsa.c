@@ -7,7 +7,6 @@
 ************************************/
 #include <stdlib.h> /* NULL */
 #include <assert.h> /* assert */
-#include <stdio.h> /* assert */
 
 #include "vsa.h"
 #include "MyUtils.h" /* MAX2,MIN2 */
