@@ -9,11 +9,11 @@
 #include <assert.h> /* assert */
 #include <unistd.h> /* sleep */
 
-#include "uid.h"
+#include "../uid/uid.h"
 #include "task.h"
-#include "pq.h"
+#include "../pq/pq.h"
 #include "scheduler.h"
-#include "MyUtils.h"
+#include "../../chen/MyUtils.h"
 
 #define CURRENT_TIME time(NULL)
 

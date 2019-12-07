@@ -9,7 +9,7 @@
 #include <unistd.h> /* getpid */
 
 #include "uid.h"
-#include "MyUtils.h" /* MAX2,MIN2 and print results macro*/
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 and print results macro*/
 
 const ilrd_uid_t BAD_UID = {0, -1, 0};
 

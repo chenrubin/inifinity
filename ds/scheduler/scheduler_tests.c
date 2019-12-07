@@ -4,7 +4,7 @@
 
 #include "scheduler.h"
 #include "uid.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 void TestSchedulerCreate();
 void TestSchedulerAddRemove();

@@ -8,6 +8,8 @@
 #ifndef STACK_H
 #define STACK_H
 
+#include <stddef.h>
+
 typedef struct stack_t stack_t;
 
 /* This function recieves number of elements and elements size,
