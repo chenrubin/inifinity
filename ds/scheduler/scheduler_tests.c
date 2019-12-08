@@ -3,7 +3,7 @@
 #include <unistd.h> /* access */
 
 #include "scheduler.h"
-#include "uid.h"
+#include "../uid/uid.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 void TestSchedulerCreate();

@@ -11,9 +11,9 @@
 #include <assert.h> /* assert */
 #include <stdio.h> /* printf */
 	
-#include "dllist.h"
+#include "../dllist/dllist.h"
 #include "sortedlist.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 int MyFindAction(const void *data, const void *wrap);
 int MyIsmatchWrapper(const void *data, const void *param/*wrapper*/);

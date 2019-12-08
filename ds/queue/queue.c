@@ -10,7 +10,7 @@
 #include <assert.h> /* assert */
 
 #include "queue.h"
-#include "slist.h"
+#include "../slist/slist.h"
 
 struct queue
 {

@@ -1,9 +1,9 @@
 #include <stdio.h> /* printf */
 
 #include "pq.h"
-#include "dllist.h"
-#include "sortedlist.h"
-#include "MyUtils.h"
+#include "../dllist/dllist.h"
+#include "../sortedlist/sortedlist.h"
+#include "../../chen/MyUtils.h"
 
 void TestCreate();
 void TestEnqueuePeek();

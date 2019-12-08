@@ -9,8 +9,8 @@
 #include <assert.h> 	/* assert */
 
 #include "pq.h"			/* priority queue */
-#include "dllist.h" 	/* doubly link list */
-#include "sortedlist.h" /* sorted list */
+#include "../dllist/dllist.h" 	/* doubly link list */
+#include "../sortedlist/sortedlist.h" /* sorted list */
 
 /* wrapper function to use in SrtInsert */
 int MyIsBefore(const void *new_data, const void *src_data, void *wrap);

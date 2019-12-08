@@ -2,8 +2,8 @@
 #include <string.h> /* strcmp */
 
 #include "sortedlist.h"
-#include "dllist.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../dllist/dllist.h"
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 void TestCreateDestroy();
 void TestInsert();

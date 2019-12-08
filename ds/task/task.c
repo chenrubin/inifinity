@@ -10,7 +10,7 @@
 #include <assert.h> /* assert */
 #include <stdio.h> /* assert */
 
-#include "uid.h"
+#include "../uid/uid.h"
 #include "task.h"
 
 #define CURRENT_TIME time(NULL)

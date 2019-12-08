@@ -1,6 +1,6 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
-#include "slist.h"
+#include "../slist/slist.h"
 #include "queue.h"
 
 #define KNRM  "\x1B[0m"
