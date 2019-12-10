@@ -9,12 +9,13 @@ OUT_FILES := $(filter test% ,$(subst /, test/,$(subst .o,.out,$(SOURCES_O)))) #t
 DEP = $(subst .o,.d, $(SOURCES_O)) #uid/uid.d	
 T_FILES = $(subst .o,.t, $(SOURCES_O)) #uid/uid.t
 BIN = /bin
+LIBS = lib/libds_shared.so
 #BINS_O = $(patsubst %.o,%.o ,/bin/$(subst .c,.o,$(SOURCES_O)))
 #BINS_O_SEPARATE = &(subst )
 
-#all: libds_shared.so $(OUT_FILES)
-all:
-	echo $(filter bin%,$(subst /, bin/,$(SOURCES_O)))
+all: lib/libds_shared.so $(OUT_FILES)
+#all:
+#	echo $(filter bin%,$(subst /, bin/,$(SOURCES_O)))
 #	echo $(filter test%,$(subst /, test/,$(subst .c,.out,$(SOURCES_C)))) : $(SOURCES_C) lib/libds_shared.so
 #	echo $(filter test%,$(subst /, test/,$(subst .c,.out,$(SOURCES_C)))) # test/uid.out
 #	echo $(filter bin% ,$(subst /, bin/,$(subst .c,.o,$(SOURCES_C)))) #bin/uid.o
@@ -29,8 +30,8 @@ all:
 #	echo $(NAMES) # pq,sortedlist,...
 
 #creating shared library from all o files (not including tests.o)
-libds_shared.so : $(filter bin%,$(subst /, bin/,$(SOURCES_O)))
-	$(CC) $(CSOFLAGS) $^ -o lib/$@
+lib/libds_shared.so : $(filter bin%,$(subst /, bin/,$(SOURCES_O)))
+	$(CC) $(CSOFLAGS) $^ -o $@
 
 #compiling c files to o files (kind of loop)
 %.d : %.c
@@ -58,6 +59,7 @@ libds_shared.so : $(filter bin%,$(subst /, bin/,$(SOURCES_O)))
 clean:
 	rm $(DEP)
 	rm $(filter bin% ,$(subst /, bin/,$(SOURCES_O)))
+	rm $(LIBS)
 	rm $(T_FILES)
 	rm $(MAINS_O)
 	rm $(OUT_FILES)
