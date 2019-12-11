@@ -9,3 +9,5 @@ int CountingSort(const int *arr,
 				 int min_val,
 				 int max_val,
 				 int *result);
+				 
+int RadixSort(int *arr, size_t arr_size);

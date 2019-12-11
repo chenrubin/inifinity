@@ -8,7 +8,7 @@
 
 #define ARR_LENGTH (500)
 #define RAND_RANGE (100)
-#define NUM_OF_ITERATIONS (5000)
+#define NUM_OF_ITERATIONS (15000)
 
 void TestBubbleSortManyTimes();
 void TestBubbleSortVsQSort();
@@ -26,13 +26,19 @@ int QSortCompare(const void *num1, const void *num2);
 
 int main()
 {
-	TestBubbleSortVsQSort();
+/*	TestBubbleSortVsQSort();
 	TestBubbleSortManyTimes();
 	TestInsertionSortVsQSort();
 	TestInsertionSortManyTimes();
 	TestSelectionSortVsQSort();
 	TestSelectionSortManyTimes();
+*/
 
+	int x = 8 % 10;
+	int y = (-8) % 10;
+	
+	printf("x = %d\n", x);
+	printf("y = %d\n", y);
 	return 0;
 }
 
