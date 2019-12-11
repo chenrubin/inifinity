@@ -2,7 +2,7 @@
 #include <stdlib.h> /* malloc */
 
 #include "vsa.h"
-#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
+#include "../MyUtils.h" /* MAX2,MIN2 */
 
 #define SIZE_OF_ALLOC 200
 #define HEADER_NO_DEBUG 8
@@ -111,7 +111,43 @@ void TestAlloc()
 	#endif
 
 	free(memory_pool);
+	
+	memory_pool = (void *)malloc(SIZE_OF_ALLOC);
+	new_vsa = VSAInit(memory_pool, SIZE_OF_ALLOC);
+	allocated_space1 = (int *)VSAAlloc(new_vsa, 16);
+	allocated_space2 = (int *)VSAAlloc(new_vsa, 16);
+	allocated_space3 = (int *)VSAAlloc(new_vsa, 16);
+	VSAFree(allocated_space1);
+	VSAFree(allocated_space2);
+	allocated_space1 = (int *)VSAAlloc(new_vsa, 60);
+	
+	#ifdef NDEBUG
+	first_header_addr = (size_t)new_vsa;
+	second_header_addr = (size_t)((char *)new_vsa + HEADER_NO_DEBUG + 40);
+	third_header_addr = (size_t)((char *)second_header_addr + HEADER_NO_DEBUG + 16);
+	fourth_header_addr = (size_t)((char *)third_header_addr + HEADER_NO_DEBUG + 64);
+	final_header_addr = (size_t)((char *)fourth_header_addr + HEADER_NO_DEBUG + 40);
 
+	PRINTTESTRESULTS("TestAlloc",9, -40 == *((ssize_t *)first_header_addr));
+	PRINTTESTRESULTS("TestAlloc",10, 16 == *((ssize_t *)second_header_addr));
+	PRINTTESTRESULTS("TestAlloc",11, 64 == *((ssize_t *)third_header_addr));
+	PRINTTESTRESULTS("TestAlloc",12, -40 == *((ssize_t *)fourth_header_addr));
+	PRINTTESTRESULTS("TestAlloc",13, 0 == *((ssize_t *)final_header_addr));
+	#endif
+	
+	#ifndef NDEBUG
+	first_header_addr = (size_t)new_vsa;
+	second_header_addr = (size_t)((char *)new_vsa + HEADER_DEBUG + 48);
+	third_header_addr = (size_t)((char *)second_header_addr + HEADER_DEBUG + 16);
+	final_header_addr = (size_t)((char *)third_header_addr + HEADER_DEBUG + 72);
+
+	PRINTTESTRESULTS("TestAllocDebug",11, -48 == *((ssize_t *)first_header_addr));
+	PRINTTESTRESULTS("TestAllocDebug",12, 16 == *((ssize_t *)second_header_addr));
+	PRINTTESTRESULTS("TestAllocDebug",13, 72 == *((ssize_t *)third_header_addr));
+	PRINTTESTRESULTS("TestAllocDebug",14, 0 == *((ssize_t *)final_header_addr));
+	#endif
+	
+	free(memory_pool);
 }
 
 void TestFree()

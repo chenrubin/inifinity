@@ -1,4 +1,4 @@
- 	/************************************
+ /************************************
 *		Author: ChenR				  *
 *		Reviewer: Erez				  *
 *		vsa							  *
@@ -9,7 +9,7 @@
 #include <assert.h> /* assert */
 
 #include "vsa.h"
-#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
+#include "../MyUtils.h" /* MAX2,MIN2 */
 
 #define MAGIC 0x12345678
 #define WORDSIZE sizeof(size_t)
@@ -112,6 +112,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 			return (void *)((char *)first_header + HEADER_SIZE);
 		}
 		
+		first_header -> block_size = (-1) * space_to_allocate;
 		first_header = AdvanceHeaderIMP(first_header, 
 										 HEADER_SIZE + space_to_allocate);
 	}
