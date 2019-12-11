@@ -2,7 +2,7 @@
 #include <stdlib.h> /* malloc */
 
 #include "vsa.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define SIZE_OF_ALLOC 200
 #define HEADER_NO_DEBUG 8
@@ -31,13 +31,13 @@ void TestInit()
 	vsa_t *new_vsa = VSAInit(memory_pool, SIZE_OF_ALLOC);
 	size_t final_header_addr = 0;
 	
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	final_header_addr = (size_t)((char *)new_vsa + HEADER_NO_DEBUG + SIZE_OF_ALLOC - 2 * HEADER_NO_DEBUG);
 	PRINTTESTRESULTS("TestInit",1, (-1) * (SIZE_OF_ALLOC - 2 * HEADER_NO_DEBUG) == *((ssize_t *)new_vsa));
 	PRINTTESTRESULTS("TestInit",2, 0 == *((ssize_t *)final_header_addr));
 	#endif	
 
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	final_header_addr = (size_t)((char *)new_vsa + HEADER_DEBUG + SIZE_OF_ALLOC - 2 * HEADER_DEBUG);
 	PRINTTESTRESULTS("TestInitDebug",1, (-1) * (SIZE_OF_ALLOC - 2 * HEADER_DEBUG) == *((ssize_t *)new_vsa));
 	PRINTTESTRESULTS("TestInitDebug",2, 0 == *(size_t *)final_header_addr);
@@ -60,7 +60,7 @@ void TestAlloc()
 	size_t second_header_addr = 0;
 	size_t third_header_addr = 0;
 	
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	size_t fourth_header_addr = 0;
 	#endif
 	
@@ -75,7 +75,7 @@ void TestAlloc()
 	*allocated_space3 = 12;
 	
 	PRINTTESTRESULTS("TestAlloc",0, NULL == allocated_space4);
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	first_header_addr = (size_t)new_vsa;
 	second_header_addr = (size_t)((char *)new_vsa + HEADER_NO_DEBUG + 32);
 	third_header_addr = (size_t)((char *)second_header_addr + HEADER_NO_DEBUG + 72);
@@ -92,7 +92,7 @@ void TestAlloc()
 	PRINTTESTRESULTS("TestAlloc",8, 0 == *((ssize_t *)final_header_addr));
 	#endif
 	
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	first_header_addr = (size_t)new_vsa;
 	second_header_addr = (size_t)((char *)new_vsa + HEADER_DEBUG + 32);
 	third_header_addr = (size_t)((char *)second_header_addr + HEADER_DEBUG + 72);
@@ -125,7 +125,7 @@ void TestFree()
 	size_t second_header_addr = 0;
 	size_t third_header_addr = 0;
 	
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	size_t fourth_header_addr = 0;
 	#endif
 	
@@ -140,7 +140,7 @@ void TestFree()
 	
 	VSAFree(allocated_space2);
 	
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	first_header_addr = (size_t)new_vsa;
 	second_header_addr = (size_t)((char *)new_vsa + HEADER_NO_DEBUG + 32);
 	third_header_addr = (size_t)((char *)second_header_addr + HEADER_NO_DEBUG + 72);
@@ -156,7 +156,7 @@ void TestFree()
 	PRINTTESTRESULTS("TestFree",8, 0 == *((ssize_t *)final_header_addr));
 	#endif
 	
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	first_header_addr = (size_t)new_vsa;
 	second_header_addr = (size_t)((char *)new_vsa + HEADER_DEBUG + 32);
 	third_header_addr = (size_t)((char *)second_header_addr + HEADER_DEBUG + 72);
@@ -185,7 +185,7 @@ void TestLargestChunk()
 	int *allocated_space2 = NULL;
 	int *allocated_space3 = NULL;
 	
-	#ifndef NDEBUG
+	#ifdef NDEBUG
 	PRINTTESTRESULTS("TestLargestChunk",1, 184 == VSALargestChunk(new_vsa));
 	allocated_space1 = (int *)VSAAlloc(new_vsa, 30);
 	PRINTTESTRESULTS("TestLargestChunk",2, 144 == VSALargestChunk(new_vsa));
@@ -205,7 +205,7 @@ void TestLargestChunk()
 	PRINTTESTRESULTS("TestLargestChunk",8, 32 == VSALargestChunk(new_vsa));
 	#endif
 	
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	PRINTTESTRESULTS("TestLargestChunkDebug",1, 168 == VSALargestChunk(new_vsa));
 	allocated_space1 = (int *)VSAAlloc(new_vsa, 30);
 	PRINTTESTRESULTS("TestLargestChunkDebug",2, 120 == VSALargestChunk(new_vsa));

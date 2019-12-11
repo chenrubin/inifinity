@@ -9,7 +9,7 @@
 #include <assert.h> /* assert */
 
 #include "vsa.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define MAGIC 0x12345678
 #define WORDSIZE sizeof(size_t)
@@ -18,7 +18,7 @@
 typedef struct block_header
 {
 	ssize_t block_size;
-	#ifdef NDEBUG
+	#ifndef NDEBUG
         size_t magic_number;
     #endif
 }vsa_block_header_t;
@@ -49,11 +49,11 @@ vsa_t *VSAInit(void *memory_pool, size_t pool_size)
 	header = (vsa_t *)memory_pool;
 	header -> block_size = (-1) * actual_size;
 	
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	((vsa_t *)memory_pool) -> magic_number = MAGIC;
 	#endif
 	
-	#ifdef NDEBUG
+	#ifndef NDEBUG
 	((vsa_t *)((char *)memory_pool + 
 					   pool_size - 
 					   HEADER_SIZE)) -> magic_number = MAGIC;
@@ -96,7 +96,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 			block_size_after =  (-1) * (space_to_allocate - addition);
 			first_header -> block_size = size_after_padding;
 			header_after -> block_size = block_size_after;
-			#ifdef NDEBUG
+			#ifndef NDEBUG
 			first_header -> magic_number = MAGIC;
 			#endif
 			
@@ -105,7 +105,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 		else if (size_after_padding <= space_to_allocate)
 		{
 			first_header -> block_size = space_to_allocate;
-			#ifdef NDEBUG
+			#ifndef NDEBUG
 			first_header -> magic_number = MAGIC;
 			#endif
 			
@@ -125,7 +125,7 @@ void VSAFree(void *allocated_address)
 	{
 		allocated_address = (char *)allocated_address - HEADER_SIZE;
 		
-		#ifdef NDEBUG
+		#ifndef NDEBUG
 		if (MAGIC == (((vsa_t *)allocated_address) -> magic_number))
 		{
 			((vsa_t *)allocated_address) -> block_size = 
@@ -133,7 +133,7 @@ void VSAFree(void *allocated_address)
 		}
 		#endif
 		
-		#ifndef NDEBUG
+		#ifdef NDEBUG
 		((vsa_t *)allocated_address) -> block_size = 
 			-abs(((vsa_t *)allocated_address) -> block_size);
 		#endif
