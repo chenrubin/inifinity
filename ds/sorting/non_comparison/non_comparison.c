@@ -33,16 +33,16 @@ static size_t RadixBucketIMP(const void *element, const void *param);
 static int FindHighestOrderedNumberIMP(int *arr, size_t arr_size);
 
 /* copy results to result array */
-void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
+static void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
 					   size_t arr_size, unsigned int *histogram, 
 					   size_t (*GetBucket)(const void *element,const void *param),
 					   void *result, void *param);
 						   
 /* adding up each member to all its predecessors */
-void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size);
+static void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size);
 
 /* initialize histogram according to GetBucket */
-void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
+static void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
 				   size_t arr_size, size_t element_size, 
 				   size_t (*GetBucket)(const void *element,const void *param),
 				   void *param);
@@ -89,12 +89,14 @@ int CountingSort(const int *arr,
 int RadixSort(int *arr, size_t arr_size)
 {
 	size_t i = 0;
-	size_t num_of_sorting_iterations = FindNumOfIntertionsIMP(arr, arr_size);
+	size_t num_of_sorting_iterations = 0;
 	int *intermediate_arr = NULL;
 	unsigned int *histogram = NULL;
 	
 	assert(arr);
 	assert(arr_size);
+	
+	num_of_sorting_iterations = FindNumOfIntertionsIMP(arr, arr_size);
 	
 	intermediate_arr = (int *)malloc(arr_size * (sizeof(int)));
 	if (NULL == intermediate_arr)
@@ -178,12 +180,14 @@ static void CountingSortIMP(const void *arr_to_sort,
 {
 	InitHistogramIMP(histogram, arr_to_sort, arr_size, element_size, 
 				  GetBucket, param);
+				  
 	AccumulateMemebersInHistogramIMP(histogram, his_size);
+	
 	UpdateResultArrayIMP(arr_to_sort, element_size, arr_size, histogram, 
 					  GetBucket, result, param);
 }
 
-void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
+static void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
 				   size_t arr_size, size_t element_size, 
 				   size_t (*GetBucket)(const void *element,const void *param),
 				   void *param)
@@ -196,7 +200,7 @@ void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort,
 	}
 }
 
-void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size)
+static void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size)
 {
 	size_t i = 0;
 	
@@ -206,7 +210,7 @@ void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size)
 	}
 }
 
-void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
+static void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
 					   size_t arr_size, unsigned int *histogram, 
 					   size_t (*GetBucket)(const void *element,const void *param),
 					   void *result, void *param)
