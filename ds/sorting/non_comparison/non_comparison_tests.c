@@ -8,7 +8,7 @@
 
 #define ARR_LENGTH (10000)
 #define RAND_RANGE (10000)
-#define NUM_OF_ITERATIONS (10000)
+#define NUM_OF_ITERATIONS (1)
 
 void TestCountingSortVsQSort();
 void TestCountingSortManyTimes();

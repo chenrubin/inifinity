@@ -11,6 +11,7 @@
 #include <stdlib.h> /* malloc */
 #include <string.h> /* memcpy */
 #include <math.h> /* abs */
+#include <sys/types.h> /* ssize_t */
 
 #include "../sorting.h"
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
@@ -23,7 +24,7 @@
 static size_t IntGetBucketIMP(const void *element, const void *param);
 
 /* finds number of iterations in which to sort radix until it's finished */
-static int FindNumOfIntertionsIMP(int *arr, size_t arr_size);
+static size_t FindNumOfIntertionsIMP(int *arr, size_t arr_size);
 
 /* gets the index of bucket in radixSort according to element */
 static size_t RadixBucketIMP(const void *element, const void *param);
@@ -31,7 +32,22 @@ static size_t RadixBucketIMP(const void *element, const void *param);
 /* find highest ordered numbers regardiles of its sign */
 static int FindHighestOrderedNumberIMP(int *arr, size_t arr_size);
 
-void CountingSortIMP(const void *arr_to_sort,
+/* copy results to result array */
+void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
+					   size_t arr_size, unsigned int *histogram, 
+					   size_t (*GetBucket)(const void *element,const void *param),
+					   void *result, void *param);
+						   
+/* adding up each member to all its predecessors */
+void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size);
+
+/* initialize histogram according to GetBucket */
+void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
+				   size_t arr_size, size_t element_size, 
+				   size_t (*GetBucket)(const void *element,const void *param),
+				   void *param);
+
+static void CountingSortIMP(const void *arr_to_sort,
 					 size_t element_size,
 					 size_t arr_size,
 					 unsigned int *histogram,
@@ -42,7 +58,7 @@ void CountingSortIMP(const void *arr_to_sort,
 
 static size_t IntGetBucketIMP(const void *element, const void *param)
 {
-	return *(int *)element - *(int *)param;
+	return (*(int *)element - *(int *)param);
 }
 
 int CountingSort(const int *arr,
@@ -59,6 +75,10 @@ int CountingSort(const int *arr,
 		return 1;
 	}
 	
+	assert(arr);
+	assert(arr_size);
+	assert(result);
+	
 	CountingSortIMP(arr, sizeof(int), arr_size, histogram, 
 					his_size, IntGetBucketIMP, &min_val, result);
 	free(histogram);				
@@ -68,10 +88,13 @@ int CountingSort(const int *arr,
 
 int RadixSort(int *arr, size_t arr_size)
 {
-	int i = 0;
-	int num_of_sorting_iterations = FindNumOfIntertionsIMP(arr, arr_size);
+	size_t i = 0;
+	size_t num_of_sorting_iterations = FindNumOfIntertionsIMP(arr, arr_size);
 	int *intermediate_arr = NULL;
 	unsigned int *histogram = NULL;
+	
+	assert(arr);
+	assert(arr_size);
 	
 	intermediate_arr = (int *)malloc(arr_size * (sizeof(int)));
 	if (NULL == intermediate_arr)
@@ -81,6 +104,8 @@ int RadixSort(int *arr, size_t arr_size)
 	histogram = (unsigned int *)malloc(HISTOGRAM_SIZE * (sizeof(int)));
 	if (NULL == histogram)
 	{
+		free(intermediate_arr);
+		
 		return 1;
 	}
 	
@@ -89,14 +114,15 @@ int RadixSort(int *arr, size_t arr_size)
 		memset(histogram, 0, HISTOGRAM_SIZE * sizeof(int));
 		CountingSortIMP(arr, sizeof(int), arr_size, histogram, HISTOGRAM_SIZE,
 					 RadixBucketIMP, &i, intermediate_arr);
-		memcpy (arr, intermediate_arr, arr_size * sizeof(int)); 			 
+		memcpy(arr, intermediate_arr, arr_size * sizeof(int)); 			 
 	}
 	free(intermediate_arr);
+	free(histogram);
 	
 	return 0;
 }
 
-static int FindNumOfIntertionsIMP(int *arr, size_t arr_size)
+static size_t FindNumOfIntertionsIMP(int *arr, size_t arr_size)
 {
 	int max = 0;
 	size_t num_of_iterations = 0;
@@ -138,10 +164,10 @@ static size_t RadixBucketIMP(const void *element, const void *param)
 		res /= BASE;
 	}
 	
-	return (res % BASE) - RADIX_MIN;
+	return ((res % BASE) - RADIX_MIN);
 }
 				 
-void CountingSortIMP(const void *arr_to_sort,
+static void CountingSortIMP(const void *arr_to_sort,
 					 size_t element_size,
 					 size_t arr_size,
 					 unsigned int *histogram,
@@ -150,27 +176,49 @@ void CountingSortIMP(const void *arr_to_sort,
 					 void *param,
 					 void *result)
 {
-	int i = 0;
-	int index;
-	char *sort_runner = (char *)arr_to_sort;
-	char *result_runner = (char *)result;
+	InitHistogramIMP(histogram, arr_to_sort, arr_size, element_size, 
+				  GetBucket, param);
+	AccumulateMemebersInHistogramIMP(histogram, his_size);
+	UpdateResultArrayIMP(arr_to_sort, element_size, arr_size, histogram, 
+					  GetBucket, result, param);
+}
+
+void InitHistogramIMP(unsigned int *histogram, const void *arr_to_sort, 
+				   size_t arr_size, size_t element_size, 
+				   size_t (*GetBucket)(const void *element,const void *param),
+				   void *param)
+{
+	size_t i = 0;
 	
-	for (i = 0; i < (int)arr_size; ++i)
+	for (i = 0; i < arr_size; ++i)
 	{
-		++histogram[GetBucket(sort_runner + i * element_size, param)];
+		++histogram[GetBucket((char *)arr_to_sort + i * element_size, param)];
 	}
+}
+
+void AccumulateMemebersInHistogramIMP(unsigned int *histogram, size_t his_size)
+{
+	size_t i = 0;
 	
-	for (i = 1; i < (int)his_size; ++i)
+	for (i = 1; i < his_size; ++i)
 	{
 		histogram[i] += histogram[i - 1];
 	}
+}
+
+void UpdateResultArrayIMP(const void *arr_to_sort, size_t element_size, 
+					   size_t arr_size, unsigned int *histogram, 
+					   size_t (*GetBucket)(const void *element,const void *param),
+					   void *result, void *param)
+{
+	size_t index = 0;
+	ssize_t i = 0;
 	
-	/* put in result */
-	for (i = (int)arr_size - 1; i >= 0 ; --i)
+	for (i = arr_size - 1; i >= 0 ; --i)
 	{
-		index = GetBucket(sort_runner + i * element_size, param);
+		index = GetBucket((char *)arr_to_sort + i * element_size, param);
 		histogram[index] -= 1;
-		memcpy(result_runner + (histogram[index]) * element_size, 
-			   sort_runner + i * element_size, element_size);
-	}
-}					 
+		memcpy((char *)result + (histogram[index]) * element_size, 
+			   (char *)arr_to_sort + i * element_size, element_size);
+	}				   
+}
