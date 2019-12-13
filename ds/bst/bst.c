@@ -11,7 +11,7 @@
 #include <assert.h> /* assert */
 
 #include "bst.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 
 
