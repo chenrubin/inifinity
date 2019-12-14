@@ -16,6 +16,7 @@ void TestNextPrev();
 void TestSizeIsEmpty();
 void TestFind();
 void TestForEach();
+void TestRemove();
 
 int main()
 {
@@ -25,8 +26,7 @@ int main()
 	TestSizeIsEmpty();
 	TestFind();
 	TestForEach();
-	
-	
+	TestRemove();		
 	
 	return 0;
 }
@@ -102,15 +102,13 @@ void TestNextPrev()
 	PRINTTESTRESULTS("TestNextPrev_prev",8, 1 == BSTIsSameIterator(BSTPrev(iter2), iter1));
 	PRINTTESTRESULTS("TestNextPrev_prev",9, 1 == BSTIsSameIterator(BSTPrev(iter5), iter2));
 	PRINTTESTRESULTS("TestNextPrev_prev",10, 1 == BSTIsSameIterator(BSTPrev(iter6), iter5));
-
-/*	printf("Insert values into bst\n");*/
+	
+	
+	BSTDestroy(new_bst);
 	
 /*	qsort(iter_array, sizeof(values)/sizeof(int), 
 					  sizeof(bst_iter_t), QSortCompare);
 */	
-	
-	
-	BSTDestroy(new_bst);
 /*	free(iter_array);*/
 
 	printf("\n\n");
@@ -205,6 +203,72 @@ void TestForEach()
 		PRINTTESTRESULTS("TestForEach_GetData", i + 1, 
 		values_sorted[i] == *(int *)BSTGetData(runner));
 		++i;
+	}
+	
+	BSTDestroy(new_bst);
+	
+	printf("\n\n");
+}
+
+void TestRemove()
+{
+	int param = 0;
+	int values[] = {100,150,300,-20,-50,452,465,0,101,102,103};
+	int values_sorted[] = {-50,-20,0,100,101,102,103,150,300,452,465};
+	int value_removed1 = 465;
+	int values_after_remove1[] = {-50,-20,0,100,101,102,103,150,300,452};
+	int value_removed2 = -50;
+	int values_after_remove2[] = {-20,0,100,101,102,103,150,300,452};
+	int value_removed3 = 101;
+	int values_after_remove3[] = {-20,0,100,102,103,150,300,452};
+	bst_t *new_bst = BSTCreate(MyComparisonFunc, &param);
+	size_t i = 0;
+	size_t j = 0;
+	bst_iter_t removed_iter = NULL;
+	bst_iter_t runner = NULL;
+	
+	printf("Insert members into bst\n");
+	for (i = 0; i < sizeof(values) / sizeof(int); ++i)
+	{
+		BSTInsert(new_bst, &values[i]);
+	}
+
+	printf("Remove %d from bst\n", value_removed1);
+	BSTRemove(BSTFind(new_bst, &value_removed1));
+
+	for (runner = BSTBegin(new_bst); 
+	 !BSTIsSameIterator(runner, BSTEnd(new_bst));
+	 runner = BSTNext(runner))
+	{
+		PRINTTESTRESULTS("TestRemove_GetData", j + 1, 
+		values_after_remove1[j] == *(int *)BSTGetData(runner));
+		++j;
+	}
+	
+	printf("Remove %d from bst\n", value_removed2);
+	BSTRemove(BSTFind(new_bst, &value_removed2));
+
+	j = 0;
+	for (runner = BSTBegin(new_bst); 
+	 !BSTIsSameIterator(runner, BSTEnd(new_bst));
+	 runner = BSTNext(runner))
+	{
+		PRINTTESTRESULTS("TestRemove_GetData", j + 1, 
+		values_after_remove2[j] == *(int *)BSTGetData(runner));
+		++j;
+	}
+	
+	printf("Remove %d from bst\n", value_removed3);
+	BSTRemove(BSTFind(new_bst, &value_removed3));
+
+	j = 0;
+	for (runner = BSTBegin(new_bst); 
+	 !BSTIsSameIterator(runner, BSTEnd(new_bst));
+	 runner = BSTNext(runner))
+	{
+		PRINTTESTRESULTS("TestRemove_GetData", j + 1, 
+		values_after_remove3[j] == *(int *)BSTGetData(runner));
+		++j;
 	}
 	
 	BSTDestroy(new_bst);

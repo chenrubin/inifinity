@@ -45,6 +45,15 @@ static int IsLeftChildIMP(bst_iter_t parent, bst_iter_t child);
 /* Creates node */
 static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent);
 
+/* assign NULL to all iter fields  */
+static void NullifyIterFieldsIMP(bst_iter_t iter);
+
+/* Coonect iter's parent to iter's left child */
+void ConnectParentToLeftChildIMP(bst_iter_t iter);
+
+/* Coonect iter's parent to iter's right child */
+void ConnectParentToRightChildIMP(bst_iter_t iter);
+
 bst_t *BSTCreate(comparison_func func, void *param)
 {
 	bst_t *new_bst = (bst_t *)malloc(sizeof(bst_t));
@@ -148,52 +157,6 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 		
 		return parent -> left;
 	}
-}
-
-static int IsRightChildIMP(bst_iter_t parent, bst_iter_t child)
-{
-	if ((parent -> right) == child)
-	{
-		return 1;
-	}
-	
-	return 0;
-}
-
-static int IsLeftChildIMP(bst_iter_t parent, bst_iter_t child)
-{
-	if ((parent -> left) == child)
-	{
-		return 1;
-	}
-	
-	return 0;
-}
-
-static int HasRightChildIMP(bst_iter_t iter)
-{
-	return (NULL != (iter -> right));
-}
-
-static int HasLeftChildIMP(bst_iter_t iter)
-{
-	return (NULL != (iter -> left));
-}
-
-static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent)
-{
-	bst_iter_t new_node_iter = (bst_iter_t)malloc(sizeof(bst_node_t));
-	if (NULL == new_node_iter)
-	{
-		return NULL;
-	}
-	
-	new_node_iter -> data = data;
-	new_node_iter -> parent = parent;
-	new_node_iter -> left = NULL;
-	new_node_iter -> right = NULL;
-	
-	return new_node_iter;
 }
 
 bst_iter_t BSTEnd(const bst_t *tree)
@@ -317,16 +280,42 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 	
 	assert(tree);
 	
-	for (runner = BSTBegin(tree); 
-		 !BSTIsSameIterator(runner, BSTEnd(tree));
-		 runner = BSTNext(runner))
+	runner = tree -> stub.left;
+	while (NULL != runner)	
 	{
 		if (0 == (tree -> comparison_func(data, 
 									BSTGetData(runner), 
 									tree -> comparison_param)))
 		{
 			return runner; 
-		}	
+		}
+		else
+		{
+			if (0 > (tree -> comparison_func(data, 
+									BSTGetData(runner), 
+									tree -> comparison_param)))
+			{
+				if (HasLeftChildIMP(runner))
+				{
+					runner = runner -> left;
+				}
+				else
+				{
+					return BSTEnd(tree);
+				}
+			}
+			else
+			{
+				if (HasRightChildIMP(runner))
+				{
+					runner = runner -> right;
+				}
+				else
+				{
+					return BSTEnd(tree);
+				}
+			}
+		}
 	}
 	
 	return BSTEnd(tree);
@@ -348,4 +337,111 @@ int BSTForEach(bst_iter_t begin, bst_iter_t end, action_func func, void *param)
 	}
 	
 	return 0;
+}
+
+void BSTRemove(bst_iter_t iter)
+{
+	assert(iter);
+	
+	if (IsRightChildIMP(iter -> parent, iter))
+	{
+		if (HasLeftChildIMP(iter))
+		{
+			ConnectParentToLeftChildIMP(iter);
+		}
+		else
+		{
+			(iter -> parent) -> right = (iter -> right);
+			if (HasRightChildIMP(iter))
+			{
+				(iter -> right) -> parent = (iter -> parent);
+			}
+		}
+	}
+	else
+	{
+		if (HasRightChildIMP(iter))
+		{
+			ConnectParentToRightChildIMP(iter);
+		}
+		else
+		{
+			(iter -> parent) -> left = (iter -> left);
+			if (HasLeftChildIMP(iter))
+			{
+				(iter -> left) -> parent = (iter -> parent);
+			}
+		}
+	}
+	
+	NullifyIterFieldsIMP(iter);
+	free(iter);
+	iter = NULL;
+}
+
+void ConnectParentToLeftChildIMP(bst_iter_t iter)
+{
+	(iter -> parent) -> right = (iter -> left);
+	(iter -> left) -> parent = iter -> parent;
+	(iter -> left) -> right = (iter -> right);
+}
+
+void ConnectParentToRightChildIMP(bst_iter_t iter)
+{
+	(iter -> parent) -> left = (iter -> right);
+	(iter -> right) -> parent = (iter -> parent);
+	(iter -> right) -> left = (iter -> left);
+}
+
+static void NullifyIterFieldsIMP(bst_iter_t iter)
+{
+	iter -> parent = NULL;
+	iter -> left = NULL;
+	iter -> right = NULL;
+}
+
+static int IsRightChildIMP(bst_iter_t parent, bst_iter_t child)
+{
+	if ((parent -> right) == child)
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+static int IsLeftChildIMP(bst_iter_t parent, bst_iter_t child)
+{
+	if ((parent -> left) == child)
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+static int HasRightChildIMP(bst_iter_t iter)
+{
+	return (NULL != (iter -> right));
+}
+
+static int HasLeftChildIMP(bst_iter_t iter)
+{
+	return (NULL != (iter -> left));
+}
+
+static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent)
+{
+	bst_iter_t new_node_iter = (bst_iter_t)malloc(sizeof(bst_node_t));
+	if (NULL == new_node_iter)
+	{
+		return NULL;
+	}
+	
+	new_node_iter -> data = data;
+	new_node_iter -> parent = parent;
+	new_node_iter -> left = NULL;
+	new_node_iter -> right = NULL;
+	
+	return new_node_iter;
 }
