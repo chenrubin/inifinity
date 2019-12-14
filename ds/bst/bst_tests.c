@@ -1,14 +1,20 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* printf */
+#include <string.h> /* memcpy */
 
 #include "bst.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
+
+#define ARR_LENGTH 4
+#define RAND_RANGE 1000
 
 int MyComparisonFunc(const void *new_data, 
 					 const void *src_data, 
 					 const void *comp_param);
 int QSortCompare(const void *num1, const void *num2);
 int MyForEachFunc(void *data, void *for_each_param);
+void swap(int *a, int *b);
+void randomize(int arr[], int n);
 
 void TestCreateDestroy();
 void TestInsertDestroy();
@@ -17,16 +23,18 @@ void TestSizeIsEmpty();
 void TestFind();
 void TestForEach();
 void TestRemove();
+void TestCrazy();
 
 int main()
 {
-	TestCreateDestroy();
+/*	TestCreateDestroy();
 	TestInsertDestroy();
 	TestNextPrev();
 	TestSizeIsEmpty();
 	TestFind();
 	TestForEach();
 	TestRemove();		
+*/	TestCrazy();
 	
 	return 0;
 }
@@ -65,7 +73,6 @@ void TestNextPrev()
 {
 	int param = 0;
 	int values[] = {100,150,300,-20,-50,452,465,0,101,102,103};
-/*	bst_iter_t iter_array = (bst_iter_t)malloc(sizeof(values)/sizeof(int));*/
 	
 	bst_t *new_bst = BSTCreate(MyComparisonFunc, &param);
 	
@@ -106,11 +113,6 @@ void TestNextPrev()
 	
 	BSTDestroy(new_bst);
 	
-/*	qsort(iter_array, sizeof(values)/sizeof(int), 
-					  sizeof(bst_iter_t), QSortCompare);
-*/	
-/*	free(iter_array);*/
-
 	printf("\n\n");
 }
 
@@ -276,6 +278,78 @@ void TestRemove()
 	printf("\n\n");
 }
 
+void TestCrazy()
+{
+	int param = 0;
+	int values[ARR_LENGTH] = {0};
+	int values_copy[ARR_LENGTH] = {0};
+	int values_after_qsort[ARR_LENGTH] = {0};
+	int index_of_values_in_qsort_arr[ARR_LENGTH] = {0};
+	int i = 0;
+	int j = 0;
+	int temp = 0;
+	bst_iter_t runner = NULL;
+	bst_t *new_bst = BSTCreate(MyComparisonFunc, &param);
+	
+	srand(time(NULL));
+	for (i = 0; i < ARR_LENGTH; ++i)
+	{
+		temp = rand()%RAND_RANGE - RAND_RANGE/2;
+		values[i] = temp;
+		values_after_qsort[i] = temp;
+	}
+	
+	memcpy (values_copy, values, ARR_LENGTH * sizeof(int));
+	printf("Insert members into bst\n");
+	for (i = 0; i < ARR_LENGTH; ++i)
+	{
+		BSTInsert(new_bst, &values_copy[i]);
+		PRINTTESTRESULTS("TestCrazy_size",i + 1, i + 1 == BSTSize(new_bst));
+	}
+	
+	randomize(values, ARR_LENGTH);
+	qsort(values_after_qsort, sizeof(values)/sizeof(int), 
+					  		  sizeof(int), QSortCompare);
+	
+	/* finding indice */
+	for (i = 0; i < ARR_LENGTH; ++i)
+	{
+		for (j = 0; j < ARR_LENGTH; ++j)
+		{
+			if (values[i] == values_after_qsort[j])
+			{
+				index_of_values_in_qsort_arr[i] = j;
+				break;
+			}
+		}
+	}
+	
+	j = 0;
+	for (i = 0; i < ARR_LENGTH; ++i)
+	{
+		PRINTTESTRESULTS("TestCrazy_size",i + 1, ARR_LENGTH - i == BSTSize(new_bst));
+		printf("Remove members from bst\n");
+		BSTRemove(BSTFind(new_bst, &values[i]));
+		
+		for (runner = BSTBegin(new_bst); 
+		 !BSTIsSameIterator(runner, BSTEnd(new_bst));
+		 runner = BSTNext(runner))
+		{
+			if (j == index_of_values_in_qsort_arr[i])
+			{
+				j += 1;
+			}
+			PRINTTESTRESULTS("TestForEach_GetData", i + 1, 
+			values_after_qsort[j] == *(int *)BSTGetData(runner));
+			++j;
+		}
+	}	
+	
+	BSTDestroy(new_bst);
+
+	printf("\n\n");
+}
+
 int MyComparisonFunc(const void *new_data, 
 					 const void *src_data, 
 					 const void *comp_param)
@@ -305,3 +379,41 @@ int QSortCompare(const void *num1, const void *num2)
 {
 	return (*(int *)num1 - *(int *)num2);
 }
+
+void swap(int *a, int *b) 
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void randomize(int arr[], int n) 
+{
+    int i = 0;
+    
+    srand(time(NULL));
+    for(i = n-1; i > 0; i--) 
+    {
+        int j = rand() % (i+1);
+        swap(&arr[i], &arr[j]);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
