@@ -1,59 +1,49 @@
-CFLAGS := -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -O3
-DFLAGS := -ansi -pedantic-errors -Wall -Wextra -g
-CSOFLAGS := -shared
-CC := gcc
-MAINS_C := $(filter %tests.c, $(wildcard */*.c)) #uid/uid_tests.c
-MAINS_O := $(subst .c,.o, $(MAINS_C))
-SOURCES_C := $(filter-out %tests.c, $(wildcard */*.c)) #uid/uid.c
-SOURCES_O := $(subst .c,.o, $(SOURCES_C)) #uid/uid.o
-OUT_FILES := $(filter test% ,$(subst /, test/,$(subst .o,.out,$(SOURCES_O)))) #test/uid.out
-DEP = $(subst .o,.d, $(SOURCES_O)) #uid/uid.d	
-T_FILES = $(subst .o,.t, $(SOURCES_O)) #uid/uid.t
-LIBS = lib/Release/libds_shared.so lib/Debug/libds_shared.so
+CFLAGS = -ansi -pedantic-errors -Wall -Wextra
+CC = gcc
+SOURCES := $(filter-out %_tests.c, $(wildcard */*.c)) #e.g uid/uid.c
+OBJECTS := $(patsubst %.c,%.o,$(SOURCES))            #e.g uid/uid.o
+OBJ := $(addprefix obj/,$(notdir $(OBJECTS)))		 #e.g obj/uid.o
+DEP := $(patsubst %.c,%.d,$(SOURCES))				 #e.g uid/uid.d
 
-all: release Debug
+EXE := $(patsubst %.o,%.out ,$(OBJECTS))			 #e.g uid/uid.out
+
+.PHONY: all
+all: release debug
 
 .PHONY: release
-release: XFLAGS := $(CFLAGS)
-release: BIN := bin/Release/
-release: LIB := lib/Release/libds_shared.so
-release:
-	echo $(BIN) $(LIB)
-release: lib/Release/libds_shared.so 
+release: CFLAGS += -O3 -DNDEBUG
+release: libDS_Release.so
 
+.PHONY: debug
+debug: CFLAGS += -g
+debug: libDS_Debug.so 
 
-debug: XFLAGS := $(DFLAGS)  BIN := bin/Debug/ LIB := lib/Debug/libds_shared.so $(LIB)
+.PHONY: test
+test: CFLAGS += -g
+test: libDS.so $(EXE)
+
+#%.t:%_test.c
+#	%.out:%_test.c libDS.so > $@
+#	echo '\t'$(CC) $(CFLAGS) $< -lDS -L. -Wl,-rpath=.. >> $@
+
+%.out:  %_tests.o libDS.so
+	$(CC) $(CFLAGS) -o test/$(notdir $@) $^ -lDS -L. -Wl,-rpath=..
 	
-test: lib/Debug/libds_shared.so $(OUT_FILES)
-
-#creating release shared library from all o files (not including tests.o)
-lib/Release/libds_shared.so : $(filter bin%,$(subst /, $(BIN),$(SOURCES_O)))
-	$(CC) $(CSOFLAGS) $^ -o $@
+libDS_Release.so: $(OBJ)
+	gcc -o libDS_Release.so -shared $(OBJ) $(CFLAGS)
 	
-#creating debug shared library from all o files (not including tests.o)
-lib/Debug/libds_shared.so : $(filter bin%,$(subst /, $(BIN),$(SOURCES_O)))
-	$(CC) $(CSOFLAGS) $^ -o $@
+libDS_Debug.so: $(OBJ)
+	gcc -o libDS_Debug.so -shared $(OBJ) $(CFLAGS)	
 
-#compiling c files to o files (kind of loop)
-%.d : %.c
-	$(CC) -MM $^ -MT $(filter bin%,$(subst /, $(BIN),$(subst .c,.o,$<))) > $@
-	echo '\t'$(CC) $(XFLAGS) -c  $< -fPIC -o $(filter bin% ,$(subst /, $(BIN),$(subst .c,.o,$<))) >> $@
-							   
--include                           (DEP)
-
-%.t : %.c
-	echo $(filter test%,$(subst /, test/,$(subst .c,.out,$<))) : $(subst .c,_tests.o,$<) $(LIB) > $@
-	echo '\t'$(CC) $(XFLAGS) $(subst .c,_tests.o,$<) $(LIB) -o $(filter test%,$(subst /, test/,$(subst .c,.out,$<))) >> $@
-
--include $(T_FILES)
+%.d:%.c
+	$(CC) -MM -MTobj/$(patsubst %.c,%.o,$(lastword $(subst /, ,$^))) $^ > $@	
+	echo '\t'$(CC) $(CFLAGS) -c -fPIC $^ -o  obj/$(patsubst %.c,%.o,$(lastword $(subst /, ,$^))) >> $@
 	
+-include $(DEP)
+
 .PHONY: clean
-
 clean:
-	rm $(DEP)
-	rm $(filter bin% ,$(subst /, bin/Release/,$(SOURCES_O)))
-	rm $(filter bin% ,$(subst /, bin/Debug/,$(SOURCES_O)))
-	rm $(LIBS)
-	rm $(T_FILES)
-	rm $(MAINS_O)
-	rm $(OUT_FILES)
+	$(RM) libDS_Release.so libDS_Debug.so **/*.o **/*.out **/*.d **/*.t
+	
+print:
+	echo $(SOURCES)

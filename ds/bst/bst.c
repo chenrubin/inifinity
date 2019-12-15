@@ -1,8 +1,8 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Tamir				  *
 *		bst							  *
-*		7/11/2019					  *
+*		15/12/2019					  *
 *									  *
 ************************************/
 
@@ -13,7 +13,8 @@
 #include "bst.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-
+#define NEXT 1
+#define PREV 0
 
 struct bst_node
 {
@@ -30,12 +31,6 @@ struct bst
 	struct bst_node stub;
 };
 
-/* checks if iterator has a right child */
-static int HasRightChildIMP(bst_iter_t);
-
-/* checks if iterator has a left child */
-static int HasLeftChildIMP(bst_iter_t);
-
 /* checks if child is the right child of parent or not */
 static int IsRightChildIMP(bst_iter_t parent, bst_iter_t child);
 
@@ -48,11 +43,20 @@ static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent);
 /* assign NULL to all iter fields  */
 static void NullifyIterFieldsIMP(bst_iter_t iter);
 
-/* Coonect iter's parent to iter's left child */
-void ConnectParentToLeftChildIMP(bst_iter_t iter);
+/* connect parent to child */
+static void ConnectParentToChildIMP(bst_iter_t iter, 
+									const char *str, bst_iter_t parent);
 
-/* Coonect iter's parent to iter's right child */
-void ConnectParentToRightChildIMP(bst_iter_t iter);
+/* Advance through nodes to the right or left until reaching a leaf*/
+static bst_iter_t AdvanceThroughNodesIMP(bst_iter_t iter, char *str);
+
+static int IsChildIMP(bst_iter_t parent, bst_iter_t child, char *direction);
+
+int HasChildIMP(bst_iter_t iter, char *direction);
+
+static void MoveToOtherNode(bst_iter_t *iter, char *direction);
+
+static bst_iter_t GoToDirectionIMP(bst_iter_t iter, int next_prev);
 
 bst_t *BSTCreate(comparison_func func, void *param)
 {
@@ -83,20 +87,20 @@ void BSTDestroy(bst_t *tree)
 	
 	while (NULL != BSTEnd(tree) -> left)
 	{
-		if (HasRightChildIMP(runner))
+		if (HasChildIMP(runner, "right"))
 		{
-			runner = runner -> right;
+			MoveToOtherNode(&runner, "right");
 		}
 		else
 		{
-			if (HasLeftChildIMP(runner))
+			if (HasChildIMP(runner, "left"))
 			{
-				runner = runner -> left;
+				MoveToOtherNode(&runner, "left");
 			}
 			else
 			{
-				is_right_child = IsRightChildIMP(runner -> parent, runner);
-				runner = runner -> parent;
+				is_right_child = IsChildIMP(runner -> parent, runner, "right");
+				MoveToOtherNode(&runner, "parent");
 				
 				if (is_right_child)
 				{
@@ -135,12 +139,12 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 												  tree -> comparison_param);
 		if (child_type_flag < 0)												  
 		{
-			runner = runner -> left;
+			MoveToOtherNode(&runner, "left");
 			is_parent_right_child = 0;
 		}
 		else
 		{
-			runner = runner -> right;
+			MoveToOtherNode(&runner, "right");
 			is_parent_right_child = 1;
 		}
 	}
@@ -171,62 +175,90 @@ void *BSTGetData(bst_iter_t iter)
 	return (iter -> data);
 }
 
-bst_iter_t BSTNext(bst_iter_t iter)
-{
-	if (HasRightChildIMP(iter))
+int HasChildIMP(bst_iter_t iter, char *direction)
+{	
+	if ("right" == direction)
 	{
-		iter = iter -> right;
-		while (HasLeftChildIMP(iter))
+		return (NULL != (iter -> right));
+	}
+	else
+	{
+		return (NULL != (iter -> left));
+	}
+}
+
+static void MoveToOtherNode(bst_iter_t *iter, char *direction)
+{
+	if ("right" == direction)
+	{
+		*iter = (*iter) -> right;
+	}
+	else if ("left" == direction)
+	{
+		*iter = (*iter) -> left;
+	}
+	else
+	{
+		*iter = (*iter) -> parent;
+	}
+}
+
+static bst_iter_t GoToDirectionIMP(bst_iter_t iter, int next_prev)
+{
+	int has_child = 0;
+	bst_iter_t temp = NULL;
+	char *direction1 = NULL;
+	char *direction2 = NULL;
+	
+	switch (next_prev)
+	{
+		case NEXT:
+			direction1 = "right";
+			direction2 = "left";
+			break;
+		
+		default:
+			direction1 = "left";
+			direction2 = "right";	
+	}
+
+	if (HasChildIMP(iter, direction1))
+	{
+		MoveToOtherNode(&iter, direction1);
+
+		while (HasChildIMP(iter, direction2))
 		{
-			iter = (iter -> left);
+			MoveToOtherNode(&iter, direction2);
 		}
 		
 		return iter;
 	}
 	else
 	{
-		while (IsRightChildIMP(iter -> parent, iter))
+		while (IsChildIMP(iter -> parent, iter, direction1))
 		{
-			iter = (iter -> parent);
+			MoveToOtherNode(&iter, "parent");
 		}
-		
+
 		return (iter -> parent);
 	}
-	
+
 	return NULL;
+}
+
+bst_iter_t BSTNext(bst_iter_t iter)
+{
+	return (GoToDirectionIMP(iter, NEXT));
 }
 
 bst_iter_t BSTPrev(bst_iter_t iter)
 {
-	if (HasLeftChildIMP(iter))
-	{
-		iter = iter -> left;
-		while (HasRightChildIMP(iter))
-		{
-			iter = (iter -> right);
-		}
-		
-		return iter;
-	}
-	else
-	{
-		while (IsLeftChildIMP(iter -> parent, iter))
-		{
-			iter = (iter -> parent);
-		}
-		
-		return (iter -> parent);
-	}
-	
-	return NULL;
+	return (GoToDirectionIMP(iter, PREV));
 }
 
 int BSTIsSameIterator(bst_iter_t iter1, bst_iter_t iter2)
 {
-	if (((iter1 -> parent) == (iter2 -> parent)) &&
-		((iter1 -> left) == (iter2 -> left)) &&
-		((iter1 -> right) == (iter2 -> right)) &&
-		(BSTGetData(iter1) == BSTGetData(iter2)))
+	if (iter1 == iter2)
 	{
 		return 1;
 	}
@@ -242,12 +274,7 @@ bst_iter_t BSTBegin(const bst_t *tree)
 	
 	runner = (bst_iter_t)(&(tree -> stub));
 	
-	while (NULL != (runner -> left))
-	{
-		runner = (runner -> left);
-	}
-	
-	return runner;
+	return (AdvanceThroughNodesIMP(runner, "left"));
 }
 
 size_t BSTSize(const bst_t *tree)
@@ -295,9 +322,9 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 									BSTGetData(runner), 
 									tree -> comparison_param)))
 			{
-				if (HasLeftChildIMP(runner))
+				if (HasChildIMP(runner, "left"))
 				{
-					runner = runner -> left;
+					MoveToOtherNode(&runner, "left");
 				}
 				else
 				{
@@ -306,9 +333,9 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 			}
 			else
 			{
-				if (HasRightChildIMP(runner))
+				if (HasChildIMP(runner, "right"))
 				{
-					runner = runner -> right;
+					MoveToOtherNode(&runner, "right");
 				}
 				else
 				{
@@ -341,36 +368,33 @@ int BSTForEach(bst_iter_t begin, bst_iter_t end, action_func func, void *param)
 
 void BSTRemove(bst_iter_t iter)
 {
-	assert(iter);
+	bst_iter_t last_left_child = NULL;
 	
-	if (IsRightChildIMP(iter -> parent, iter))
+	if (HasChildIMP(iter, "left") && HasChildIMP(iter, "right"))
 	{
-		if (HasLeftChildIMP(iter))
-		{
-			ConnectParentToLeftChildIMP(iter);
-		}
-		else
-		{
-			(iter -> parent) -> right = (iter -> right);
-			if (HasRightChildIMP(iter))
-			{
-				(iter -> right) -> parent = (iter -> parent);
-			}
-		}
+		ConnectParentToChildIMP(iter, "RightChild", iter -> parent);
+		
+		last_left_child = AdvanceThroughNodesIMP(iter -> right, "left");
+		last_left_child -> left = iter -> left;
+		(iter -> left) -> parent = last_left_child;
+	}
+	else if (HasChildIMP(iter, "left"))
+	{
+		ConnectParentToChildIMP(iter, "LeftChild", iter -> parent);
+	}
+	else if (HasChildIMP(iter, "right"))
+	{
+		ConnectParentToChildIMP(iter, "RightChild", iter -> parent);
 	}
 	else
 	{
-		if (HasRightChildIMP(iter))
+		if (IsChildIMP(iter -> parent, iter, "right"))
 		{
-			ConnectParentToRightChildIMP(iter);
+			(iter -> parent) -> right = NULL;
 		}
 		else
 		{
-			(iter -> parent) -> left = (iter -> left);
-			if (HasLeftChildIMP(iter))
-			{
-				(iter -> left) -> parent = (iter -> parent);
-			}
+			(iter -> parent) -> left = NULL;
 		}
 	}
 	
@@ -379,18 +403,56 @@ void BSTRemove(bst_iter_t iter)
 	iter = NULL;
 }
 
-void ConnectParentToLeftChildIMP(bst_iter_t iter)
+static bst_iter_t AdvanceThroughNodesIMP(bst_iter_t iter, char *str)
 {
-	(iter -> parent) -> right = (iter -> left);
-	(iter -> left) -> parent = iter -> parent;
-	(iter -> left) -> right = (iter -> right);
+	bst_iter_t runner = iter;
+	
+	if ("right" == str)
+	{
+		while (NULL != (runner -> right))
+		{
+			MoveToOtherNode(&runner, str);
+		}
+	}
+	else
+	{
+		while (NULL != (runner -> left))
+		{
+			MoveToOtherNode(&runner, str);
+		}
+	}
+	
+	return runner;
 }
 
-void ConnectParentToRightChildIMP(bst_iter_t iter)
+static void ConnectParentToChildIMP(bst_iter_t iter, const char *str, bst_iter_t parent)
 {
-	(iter -> parent) -> left = (iter -> right);
-	(iter -> right) -> parent = (iter -> parent);
-	(iter -> right) -> left = (iter -> left);
+	if (IsRightChildIMP(iter -> parent, iter))
+	{
+		if ("RightChild" == str)
+		{
+			(iter -> parent) -> right = (iter -> right);
+			(iter -> right) -> parent = iter -> parent;
+		}
+		else
+		{
+			(iter -> parent) -> right = (iter -> left);
+			(iter -> left) -> parent = iter -> parent;
+		}
+	}
+	else
+	{
+		if ("RightChild" == str)
+		{
+			(iter -> parent) -> left = (iter -> right);
+			(iter -> right) -> parent = iter -> parent;
+		}
+		else
+		{
+			(iter -> parent) -> left = (iter -> left);
+			(iter -> left) -> parent = iter -> parent;
+		}
+	} 
 }
 
 static void NullifyIterFieldsIMP(bst_iter_t iter)
@@ -420,14 +482,26 @@ static int IsLeftChildIMP(bst_iter_t parent, bst_iter_t child)
 	return 0;
 }
 
-static int HasRightChildIMP(bst_iter_t iter)
+static int IsChildIMP(bst_iter_t parent, bst_iter_t child, char *direction)
 {
-	return (NULL != (iter -> right));
-}
-
-static int HasLeftChildIMP(bst_iter_t iter)
-{
-	return (NULL != (iter -> left));
+	int res = 0;
+	
+	if ("left" == direction)
+	{
+		if ((parent -> left) == child)
+		{
+			return 1;
+		}	
+	}
+	else
+	{
+		if ((parent -> right) == child)
+		{
+			return 1;
+		}	
+	}
+	
+	return 0;
 }
 
 static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent)

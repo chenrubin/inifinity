@@ -5,8 +5,9 @@
 #include "bst.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-#define ARR_LENGTH 4
+#define ARR_LENGTH 100
 #define RAND_RANGE 1000
+#define NUM_OF_ITERATIONS 20
 
 int MyComparisonFunc(const void *new_data, 
 					 const void *src_data, 
@@ -27,14 +28,14 @@ void TestCrazy();
 
 int main()
 {
-/*	TestCreateDestroy();
+	TestCreateDestroy();
 	TestInsertDestroy();
 	TestNextPrev();
 	TestSizeIsEmpty();
 	TestFind();
 	TestForEach();
 	TestRemove();		
-*/	TestCrazy();
+	TestCrazy();
 	
 	return 0;
 }
@@ -287,65 +288,76 @@ void TestCrazy()
 	int index_of_values_in_qsort_arr[ARR_LENGTH] = {0};
 	int i = 0;
 	int j = 0;
+	int k = 0;
 	int temp = 0;
+	int status = 1;
 	bst_iter_t runner = NULL;
-	bst_t *new_bst = BSTCreate(MyComparisonFunc, &param);
+	bst_t *new_bst = NULL;
 	
-	srand(time(NULL));
-	for (i = 0; i < ARR_LENGTH; ++i)
+	for (k = 0; k < NUM_OF_ITERATIONS ; ++k)
 	{
-		temp = rand()%RAND_RANGE - RAND_RANGE/2;
-		values[i] = temp;
-		values_after_qsort[i] = temp;
-	}
-	
-	memcpy (values_copy, values, ARR_LENGTH * sizeof(int));
-	printf("Insert members into bst\n");
-	for (i = 0; i < ARR_LENGTH; ++i)
-	{
-		BSTInsert(new_bst, &values_copy[i]);
-		PRINTTESTRESULTS("TestCrazy_size",i + 1, i + 1 == BSTSize(new_bst));
-	}
-	
-	randomize(values, ARR_LENGTH);
-	qsort(values_after_qsort, sizeof(values)/sizeof(int), 
-					  		  sizeof(int), QSortCompare);
-	
-	/* finding indice */
-	for (i = 0; i < ARR_LENGTH; ++i)
-	{
-		for (j = 0; j < ARR_LENGTH; ++j)
+		
+		new_bst = BSTCreate(MyComparisonFunc, &param);
+		srand(time(NULL));
+		for (i = 0; i < ARR_LENGTH; ++i)
 		{
-			if (values[i] == values_after_qsort[j])
+			temp = rand()%RAND_RANGE - RAND_RANGE/2;
+			values[i] = temp;
+			values_after_qsort[i] = temp;
+		}
+		
+		memcpy (values_copy, values, ARR_LENGTH * sizeof(int));
+		printf("\n\nInsert to bst\n");
+		for (i = 0; i < ARR_LENGTH; ++i)
+		{
+			BSTInsert(new_bst, &values_copy[i]);
+		}
+		
+		randomize(values, ARR_LENGTH);
+		
+		qsort(values_after_qsort, sizeof(values)/sizeof(int), 
+						  		  sizeof(int), QSortCompare);
+		
+		/* finding indice */
+		for (i = 0; i < ARR_LENGTH; ++i)
+		{
+			for (j = 0; j < ARR_LENGTH; ++j)
 			{
-				index_of_values_in_qsort_arr[i] = j;
-				break;
+				if (values[i] == values_after_qsort[j])
+				{
+					index_of_values_in_qsort_arr[i] = j;
+					break;
+				}
 			}
 		}
-	}
-	
-	j = 0;
-	for (i = 0; i < ARR_LENGTH; ++i)
-	{
-		PRINTTESTRESULTS("TestCrazy_size",i + 1, ARR_LENGTH - i == BSTSize(new_bst));
-		printf("Remove members from bst\n");
-		BSTRemove(BSTFind(new_bst, &values[i]));
 		
+		j = 0;
+		PRINTTESTRESULTS("TestCrazy_size",1, ARR_LENGTH == BSTSize(new_bst));
+		printf("Remove %d from bst\n", values[i]);
+		BSTRemove(BSTFind(new_bst, &values[0]));
+		PRINTTESTRESULTS("TestCrazy_size",2, ARR_LENGTH - 1 == BSTSize(new_bst));
+		
+		i = 0;
 		for (runner = BSTBegin(new_bst); 
 		 !BSTIsSameIterator(runner, BSTEnd(new_bst));
 		 runner = BSTNext(runner))
 		{
-			if (j == index_of_values_in_qsort_arr[i])
+			if (j == index_of_values_in_qsort_arr[0])
 			{
 				j += 1;
 			}
-			PRINTTESTRESULTS("TestForEach_GetData", i + 1, 
-			values_after_qsort[j] == *(int *)BSTGetData(runner));
+			status |= (values_after_qsort[j] == *(int *)BSTGetData(runner));
+			/*PRINTTESTRESULTS("TestCrazy_GetData", i + 1, 
+			values_after_qsort[j] == *(int *)BSTGetData(runner));*/
 			++j;
+			++i;
 		}
-	}	
+		
+		PRINTTESTRESULTS("TestCrazy_Remove", i + 1, status);
+
+		BSTDestroy(new_bst);
+	}
 	
-	BSTDestroy(new_bst);
 
 	printf("\n\n");
 }
