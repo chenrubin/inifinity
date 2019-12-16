@@ -9,6 +9,7 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+#include <string.h> /* strcmp */
 
 #include "bst.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
@@ -58,6 +59,9 @@ static bst_iter_t GoToDirectionIMP(bst_iter_t iter, int next_prev);
 /* increments counter for the size function using forEach */
 int MyIncrementFuncIMP(void *data, void *for_each_param);
 
+/* The function returns the root node */ 
+static bst_iter_t GetRootIMP(const bst_t *tree);
+
 bst_t *BSTCreate(comparison_func func, void *param)
 {
 	bst_t *new_bst = (bst_t *)malloc(sizeof(bst_t));
@@ -65,6 +69,8 @@ bst_t *BSTCreate(comparison_func func, void *param)
 	{
 		return NULL;
 	}
+	
+	assert(func);
 	
 	new_bst -> comparison_func = func;
 	new_bst -> comparison_param = param;
@@ -117,6 +123,7 @@ void BSTDestroy(bst_t *tree)
 	}
 	
 	free(tree);
+	tree = NULL;
 }
 
 bst_iter_t BSTInsert(bst_t *tree, void *data)
@@ -127,9 +134,10 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 	int is_parent_right_child = 0;
 	
 	assert(tree);
+	assert(data);
 	
 	parent = &(tree -> stub);
-	runner = (tree -> stub.left);
+	runner = GetRootIMP(tree);
 	
 	while (NULL != runner)
 	{
@@ -187,12 +195,7 @@ bst_iter_t BSTPrev(bst_iter_t iter)
 
 int BSTIsSameIterator(bst_iter_t iter1, bst_iter_t iter2)
 {
-	if (iter1 == iter2)
-	{
-		return 1;
-	}
-	
-	return 0;
+	return (iter1 == iter2);
 }
 
 bst_iter_t BSTBegin(const bst_t *tree)
@@ -209,7 +212,6 @@ bst_iter_t BSTBegin(const bst_t *tree)
 size_t BSTSize(const bst_t *tree)
 {
 	size_t counter = 0;
-	bst_iter_t runner = NULL;
 	
 	assert(tree);
 	
@@ -222,58 +224,50 @@ int BSTIsEmpty(const bst_t *tree)
 {
 	assert(tree);
 	
-	return (NULL == (tree -> stub.left));
+	return (NULL == GetRootIMP(tree));
 }
 
 bst_iter_t BSTFind(bst_t *tree, void *data)
 {
 	bst_iter_t runner = NULL;
+	int result = 0;
 	
 	assert(tree);
 	
-	runner = tree -> stub.left;
+	runner = GetRootIMP(tree);
 	while (NULL != runner)	
 	{
-		if (0 == (tree -> comparison_func(data, 
+		result = (tree -> comparison_func(data, 
 										  BSTGetData(runner), 
-										  tree -> comparison_param)))
+										  tree -> comparison_param));
+		if (0 == result)
 		{
 			return runner; 
 		}
 		else
 		{
-			if (0 > (tree -> comparison_func(data, 
-									BSTGetData(runner), 
-									tree -> comparison_param)))
+			if (0 > result)
 			{
-				if (HasChildIMP(runner, "left"))
-				{
-					MoveToAdjacentNodeIMP(&runner, "left");
-				}
-				else
-				{
-					return BSTEnd(tree);
-				}
+				MoveToAdjacentNodeIMP(&runner, "left");
 			}
 			else
 			{
-				if (HasChildIMP(runner, "right"))
-				{
-					MoveToAdjacentNodeIMP(&runner, "right");
-				}
-				else
-				{
-					return BSTEnd(tree);
-				}
+				MoveToAdjacentNodeIMP(&runner, "right");
 			}
 		}
 	}
+	
+	return BSTEnd(tree);
 }
 
 int BSTForEach(bst_iter_t begin, bst_iter_t end, action_func func, void *param)
 {
 	bst_iter_t runner = NULL;
 	(void)param;
+	
+	assert(begin);
+	assert(end);
+	assert(func);
 
 	for (runner = begin; 
 		 !BSTIsSameIterator(runner, end);
@@ -327,7 +321,7 @@ void BSTRemove(bst_iter_t iter)
 
 static int HasChildIMP(bst_iter_t iter, char *direction)
 {	
-	if ("right" == direction)
+	if (0 == strcmp("right" ,direction))
 	{
 		return (NULL != (iter -> right));
 	}
@@ -339,11 +333,11 @@ static int HasChildIMP(bst_iter_t iter, char *direction)
 
 static void MoveToAdjacentNodeIMP(bst_iter_t *iter, char *direction)
 {
-	if ("right" == direction)
+	if (0 == strcmp("right" ,direction))
 	{
 		*iter = (*iter) -> right;
 	}
-	else if ("left" == direction)
+	else if (0 == strcmp("left" ,direction))
 	{
 		*iter = (*iter) -> left;
 	}
@@ -355,8 +349,6 @@ static void MoveToAdjacentNodeIMP(bst_iter_t *iter, char *direction)
 
 static bst_iter_t GoToDirectionIMP(bst_iter_t iter, int next_prev)
 {
-	int has_child = 0;
-	bst_iter_t temp = NULL;
 	char *direction1 = NULL;
 	char *direction2 = NULL;
 	
@@ -400,7 +392,7 @@ static bst_iter_t AdvanceThroughNodesIMP(bst_iter_t iter, char *str)
 {
 	bst_iter_t runner = iter;
 	
-	if ("right" == str)
+	if (0 == strcmp("right" ,str))
 	{
 		while (NULL != (runner -> right))
 		{
@@ -422,7 +414,7 @@ static void ConnectParentToChildIMP(bst_iter_t iter, const char *str)
 {
 	if (IsChildIMP(iter, "right"))
 	{
-		if ("RightChild" == str)
+		if (0 == strcmp("RightChild" ,str))
 		{
 			(iter -> parent) -> right = (iter -> right);
 			(iter -> right) -> parent = iter -> parent;
@@ -435,7 +427,7 @@ static void ConnectParentToChildIMP(bst_iter_t iter, const char *str)
 	}
 	else
 	{
-		if ("RightChild" == str)
+		if (0 == strcmp("RightChild" ,str))
 		{
 			(iter -> parent) -> left = (iter -> right);
 			(iter -> right) -> parent = iter -> parent;
@@ -455,31 +447,9 @@ static void NullifyIterFieldsIMP(bst_iter_t iter)
 	iter -> right = NULL;
 }
 
-static int IsRightChildIMP(bst_iter_t parent, bst_iter_t child)
-{
-	if ((parent -> right) == child)
-	{
-		return 1;
-	}
-	
-	return 0;
-}
-
-static int IsLeftChildIMP(bst_iter_t parent, bst_iter_t child)
-{
-	if ((parent -> left) == child)
-	{
-		return 1;
-	}
-	
-	return 0;
-}
-
 static int IsChildIMP(bst_iter_t child, char *direction)
 {
-	int res = 0;
-	
-	if ("left" == direction)
+	if (0 == strcmp("left" ,direction))
 	{
 		if (((child -> parent) -> left) == child)
 		{
@@ -515,7 +485,14 @@ static bst_iter_t CreateNodeIMP(void *data, bst_iter_t parent)
 
 int MyIncrementFuncIMP(void *data, void *for_each_param)
 {	
+	(void)data;
+	
 	*(size_t *)for_each_param += 1;
 
 	return 0;
+}
+
+static bst_iter_t GetRootIMP(const bst_t *tree)
+{
+	return (tree->stub).left;
 }
