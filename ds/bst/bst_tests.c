@@ -5,7 +5,7 @@
 #include "bst.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-#define ARR_LENGTH 100
+#define ARR_LENGTH 20
 #define RAND_RANGE 1000
 #define NUM_OF_ITERATIONS 20
 
@@ -73,44 +73,47 @@ void TestInsertDestroy()
 void TestNextPrev()
 {
 	int param = 0;
-	int values[] = {100,150,300,-20,-50,452,465,0,101,102,103};
+	int values[] = {200,100,250,300,350,225,150,-50,125,170,230,180};
 	
 	bst_t *new_bst = BSTCreate(MyComparisonFunc, &param);
 	
-	bst_iter_t iter4 = BSTInsert(new_bst, &values[4]);
-	bst_iter_t iter3 = BSTInsert(new_bst, &values[3]);
-	bst_iter_t iter7 = BSTInsert(new_bst, &values[7]);
-	bst_iter_t iter0 = BSTInsert(new_bst, &values[0]);
-	bst_iter_t iter8 = BSTInsert(new_bst, &values[8]);
-	bst_iter_t iter9 = BSTInsert(new_bst, &values[9]);
-	bst_iter_t iter10 = BSTInsert(new_bst, &values[10]);
+	
+	bst_iter_t iter6 = BSTInsert(new_bst, &values[0]);
 	bst_iter_t iter1 = BSTInsert(new_bst, &values[1]);
-	bst_iter_t iter2 = BSTInsert(new_bst, &values[2]);
-	bst_iter_t iter5 = BSTInsert(new_bst, &values[5]);
-	bst_iter_t iter6 = BSTInsert(new_bst, &values[6]);
+	bst_iter_t iter9 = BSTInsert(new_bst, &values[2]);
+	bst_iter_t iter10 = BSTInsert(new_bst, &values[3]);
+	bst_iter_t iter11 = BSTInsert(new_bst, &values[4]);
+	bst_iter_t iter7 = BSTInsert(new_bst, &values[5]);
+	bst_iter_t iter3 = BSTInsert(new_bst, &values[6]);
+	bst_iter_t iter0 = BSTInsert(new_bst, &values[7]);
+	bst_iter_t iter2 = BSTInsert(new_bst, &values[8]);
+	bst_iter_t iter4 = BSTInsert(new_bst, &values[9]);
+	bst_iter_t iter8 = BSTInsert(new_bst, &values[10]);
+	bst_iter_t iter5 = BSTInsert(new_bst, &values[11]);
 	
-	PRINTTESTRESULTS("TestNextPrev_next",1, 1 == BSTIsSameIterator(BSTNext(iter4), iter3));
-	PRINTTESTRESULTS("TestNextPrev_next",2, 1 == BSTIsSameIterator(BSTNext(iter3), iter7));
-	PRINTTESTRESULTS("TestNextPrev_next",3, 1 == BSTIsSameIterator(BSTNext(iter7), iter0));
-	PRINTTESTRESULTS("TestNextPrev_next",4, 1 == BSTIsSameIterator(BSTNext(iter0), iter8));
-	PRINTTESTRESULTS("TestNextPrev_next",5, 1 == BSTIsSameIterator(BSTNext(iter8), iter9));
-	PRINTTESTRESULTS("TestNextPrev_next",6, 1 == BSTIsSameIterator(BSTNext(iter9), iter10));
-	PRINTTESTRESULTS("TestNextPrev_next",7, 1 == BSTIsSameIterator(BSTNext(iter10), iter1));
-	PRINTTESTRESULTS("TestNextPrev_next",8, 1 == BSTIsSameIterator(BSTNext(iter1), iter2));
-	PRINTTESTRESULTS("TestNextPrev_next",9, 1 == BSTIsSameIterator(BSTNext(iter2), iter5));
-	PRINTTESTRESULTS("TestNextPrev_next",10, 1 == BSTIsSameIterator(BSTNext(iter5), iter6));
+	PRINTTESTRESULTS("TestNextPrev_next",1, 1 == BSTIsSameIterator(BSTNext(iter0), iter1));
+	PRINTTESTRESULTS("TestNextPrev_next",2, 1 == BSTIsSameIterator(BSTNext(iter1), iter2));
+	PRINTTESTRESULTS("TestNextPrev_next",3, 1 == BSTIsSameIterator(BSTNext(iter2), iter3));
+	PRINTTESTRESULTS("TestNextPrev_next",4, 1 == BSTIsSameIterator(BSTNext(iter3), iter4));
+	PRINTTESTRESULTS("TestNextPrev_next",5, 1 == BSTIsSameIterator(BSTNext(iter4), iter5));
+	PRINTTESTRESULTS("TestNextPrev_next",6, 1 == BSTIsSameIterator(BSTNext(iter5), iter6));
+	PRINTTESTRESULTS("TestNextPrev_next",7, 1 == BSTIsSameIterator(BSTNext(iter6), iter7));
+	PRINTTESTRESULTS("TestNextPrev_next",8, 1 == BSTIsSameIterator(BSTNext(iter7), iter8));
+	PRINTTESTRESULTS("TestNextPrev_next",9, 1 == BSTIsSameIterator(BSTNext(iter8), iter9));
+	PRINTTESTRESULTS("TestNextPrev_next",10, 1 == BSTIsSameIterator(BSTNext(iter9), iter10));
+	PRINTTESTRESULTS("TestNextPrev_next",11, 1 == BSTIsSameIterator(BSTNext(iter10), iter11));
 	
-	PRINTTESTRESULTS("TestNextPrev_prev",1, 1 == BSTIsSameIterator(BSTPrev(iter3), iter4));
-	PRINTTESTRESULTS("TestNextPrev_prev",2, 1 == BSTIsSameIterator(BSTPrev(iter7), iter3));
-	PRINTTESTRESULTS("TestNextPrev_prev",3, 1 == BSTIsSameIterator(BSTPrev(iter0), iter7));
-	PRINTTESTRESULTS("TestNextPrev_prev",4, 1 == BSTIsSameIterator(BSTPrev(iter8), iter0));
-	PRINTTESTRESULTS("TestNextPrev_prev",5, 1 == BSTIsSameIterator(BSTPrev(iter9), iter8));
-	PRINTTESTRESULTS("TestNextPrev_prev",6, 1 == BSTIsSameIterator(BSTPrev(iter10), iter9));
-	PRINTTESTRESULTS("TestNextPrev_prev",7, 1 == BSTIsSameIterator(BSTPrev(iter1), iter10));
-	PRINTTESTRESULTS("TestNextPrev_prev",8, 1 == BSTIsSameIterator(BSTPrev(iter2), iter1));
-	PRINTTESTRESULTS("TestNextPrev_prev",9, 1 == BSTIsSameIterator(BSTPrev(iter5), iter2));
-	PRINTTESTRESULTS("TestNextPrev_prev",10, 1 == BSTIsSameIterator(BSTPrev(iter6), iter5));
-	
+	PRINTTESTRESULTS("TestNextPrev_prev",1, 1 == BSTIsSameIterator(BSTPrev(iter1), iter0));
+	PRINTTESTRESULTS("TestNextPrev_prev",2, 1 == BSTIsSameIterator(BSTPrev(iter2), iter1));
+	PRINTTESTRESULTS("TestNextPrev_prev",3, 1 == BSTIsSameIterator(BSTPrev(iter3), iter2));
+	PRINTTESTRESULTS("TestNextPrev_prev",4, 1 == BSTIsSameIterator(BSTPrev(iter4), iter3));
+	PRINTTESTRESULTS("TestNextPrev_prev",5, 1 == BSTIsSameIterator(BSTPrev(iter5), iter4));
+	PRINTTESTRESULTS("TestNextPrev_prev",6, 1 == BSTIsSameIterator(BSTPrev(iter6), iter5));
+	PRINTTESTRESULTS("TestNextPrev_prev",7, 1 == BSTIsSameIterator(BSTPrev(iter7), iter6));
+	PRINTTESTRESULTS("TestNextPrev_prev",8, 1 == BSTIsSameIterator(BSTPrev(iter8), iter7));
+	PRINTTESTRESULTS("TestNextPrev_prev",9, 1 == BSTIsSameIterator(BSTPrev(iter9), iter8));
+	PRINTTESTRESULTS("TestNextPrev_prev",10, 1 == BSTIsSameIterator(BSTPrev(iter10), iter9));
+	PRINTTESTRESULTS("TestNextPrev_prev",11, 1 == BSTIsSameIterator(BSTPrev(iter11), iter10));
 	
 	BSTDestroy(new_bst);
 	
@@ -289,6 +292,8 @@ void TestCrazy()
 	int i = 0;
 	int j = 0;
 	int k = 0;
+	int t;
+	int tempRand;
 	int temp = 0;
 	int status = 1;
 	bst_iter_t runner = NULL;
@@ -296,12 +301,14 @@ void TestCrazy()
 	
 	for (k = 0; k < NUM_OF_ITERATIONS ; ++k)
 	{
-		
+		printf("iteration k = %d\n", k);
+		sleep(1);
+		srand(time(0));
 		new_bst = BSTCreate(MyComparisonFunc, &param);
-		srand(time(NULL));
 		for (i = 0; i < ARR_LENGTH; ++i)
 		{
-			temp = rand()%RAND_RANGE - RAND_RANGE/2;
+			tempRand = rand();
+			temp = tempRand%RAND_RANGE - RAND_RANGE/2;
 			values[i] = temp;
 			values_after_qsort[i] = temp;
 		}
@@ -313,8 +320,7 @@ void TestCrazy()
 			BSTInsert(new_bst, &values_copy[i]);
 		}
 		
-		randomize(values, ARR_LENGTH);
-		
+		randomize(values, ARR_LENGTH);		
 		qsort(values_after_qsort, sizeof(values)/sizeof(int), 
 						  		  sizeof(int), QSortCompare);
 		
@@ -333,7 +339,7 @@ void TestCrazy()
 		
 		j = 0;
 		PRINTTESTRESULTS("TestCrazy_size",1, ARR_LENGTH == BSTSize(new_bst));
-		printf("Remove %d from bst\n", values[i]);
+		printf("Remove %d from bst\n", values[0]);
 		BSTRemove(BSTFind(new_bst, &values[0]));
 		PRINTTESTRESULTS("TestCrazy_size",2, ARR_LENGTH - 1 == BSTSize(new_bst));
 		
@@ -346,7 +352,7 @@ void TestCrazy()
 			{
 				j += 1;
 			}
-			status |= (values_after_qsort[j] == *(int *)BSTGetData(runner));
+			status &= (values_after_qsort[j] == *(int *)BSTGetData(runner));
 			/*PRINTTESTRESULTS("TestCrazy_GetData", i + 1, 
 			values_after_qsort[j] == *(int *)BSTGetData(runner));*/
 			++j;
@@ -410,22 +416,3 @@ void randomize(int arr[], int n)
         swap(&arr[i], &arr[j]);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
