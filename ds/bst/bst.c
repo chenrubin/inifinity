@@ -6,7 +6,6 @@
 *									  *
 ************************************/
 
-#include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 #include <string.h> /* strcmp */
@@ -62,6 +61,12 @@ int MyIncrementFuncIMP(void *data, void *for_each_param);
 /* The function returns the root node */ 
 static bst_iter_t GetRootIMP(const bst_t *tree);
 
+/* Initialize all tub's fields */
+static void InitStubIMP(bst_t *tree);
+
+/* Destroy node */
+static bst_iter_t DestroyNode(bst_iter_t iter);
+
 bst_t *BSTCreate(comparison_func func, void *param)
 {
 	bst_t *new_bst = (bst_t *)malloc(sizeof(bst_t));
@@ -74,10 +79,8 @@ bst_t *BSTCreate(comparison_func func, void *param)
 	
 	new_bst -> comparison_func = func;
 	new_bst -> comparison_param = param;
-	(new_bst -> stub).data = (void *)0xDEADBEEF;
-	(new_bst -> stub).parent = NULL;
-	(new_bst -> stub).left = NULL;
-	(new_bst -> stub).right = NULL;
+	
+	InitStubIMP(new_bst);
 	
 	return new_bst;
 }
@@ -85,7 +88,6 @@ bst_t *BSTCreate(comparison_func func, void *param)
 void BSTDestroy(bst_t *tree)
 {
 	bst_iter_t runner = NULL;
-	int is_right_child = 0;
 	
 	assert(tree);
 	
@@ -93,32 +95,17 @@ void BSTDestroy(bst_t *tree)
 	
 	while (NULL != BSTEnd(tree) -> left)
 	{
-		if (HasChildIMP(runner, "right"))
+		if (!HasChildIMP(runner, "left") && !HasChildIMP(runner, "right"))
+		{
+			runner = DestroyNode(runner);
+		}
+		else if (HasChildIMP(runner, "right"))
 		{
 			MoveToAdjacentNodeIMP(&runner, "right");
 		}
 		else
 		{
-			if (HasChildIMP(runner, "left"))
-			{
-				MoveToAdjacentNodeIMP(&runner, "left");
-			}
-			else
-			{
-				is_right_child = IsChildIMP(runner, "right");
-				MoveToAdjacentNodeIMP(&runner, "parent");
-				
-				if (is_right_child)
-				{
-					free(runner -> right);
-					runner -> right = NULL;
-				}
-				else
-				{
-					free(runner -> left);
-					runner -> left = NULL;
-				}
-			}
+			MoveToAdjacentNodeIMP(&runner, "left");
 		}
 	}
 	
@@ -233,6 +220,7 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 	int result = 0;
 	
 	assert(tree);
+	assert(data);
 	
 	runner = GetRootIMP(tree);
 	while (NULL != runner)	
@@ -240,20 +228,18 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 		result = (tree -> comparison_func(data, 
 										  BSTGetData(runner), 
 										  tree -> comparison_param));
-		if (0 == result)
+		switch (result)
 		{
-			return runner; 
-		}
-		else
-		{
-			if (0 > result)
-			{
-				MoveToAdjacentNodeIMP(&runner, "left");
-			}
-			else
-			{
+			case 1:
 				MoveToAdjacentNodeIMP(&runner, "right");
-			}
+				break;
+				
+			case -1:
+				MoveToAdjacentNodeIMP(&runner, "left");
+				break;
+				
+			default:
+				return runner;				
 		}
 	}
 	
@@ -263,7 +249,7 @@ bst_iter_t BSTFind(bst_t *tree, void *data)
 int BSTForEach(bst_iter_t begin, bst_iter_t end, action_func func, void *param)
 {
 	bst_iter_t runner = NULL;
-	(void)param;
+/*	(void)param;*/
 	
 	assert(begin);
 	assert(end);
@@ -495,4 +481,31 @@ int MyIncrementFuncIMP(void *data, void *for_each_param)
 static bst_iter_t GetRootIMP(const bst_t *tree)
 {
 	return (tree->stub).left;
+}
+
+static void InitStubIMP(bst_t *tree)
+{
+	(tree -> stub).data = (void *)0xDEADBEEF;
+	(tree -> stub).parent = NULL;
+	(tree -> stub).left = NULL;
+	(tree -> stub).right = NULL;
+}
+
+static bst_iter_t DestroyNode(bst_iter_t iter)
+{
+	bst_iter_t parent = iter -> parent;
+	
+	if (IsChildIMP(iter, "right"))
+	{
+		parent -> right = NULL;
+	}
+	else
+	{
+		parent -> left = NULL;
+	}
+	
+	NullifyIterFieldsIMP(iter);
+	free(iter);
+	
+	return parent;
 }
