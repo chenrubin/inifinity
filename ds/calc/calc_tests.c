@@ -8,12 +8,16 @@
 
 int main()
 {
-	char sentence[] = "1+2";
+	char sentence[] = "541+568+1";
+	char sentence1[] = "5-2";
 	double res;
 	
 	Calc(sentence, &res);
+	printf("res = %f\n", res);
 	
-	printf("res = %f\n");
+	Calc(sentence1, &res);
+	printf("res = %f\n", res);
+
 	
 	return 0;
 }

@@ -88,7 +88,9 @@ status Calc(const char *exp, double *res)
 	*res = *(double *)StackPeek(num_stack);
 	
 	free(num_stack);
-	free(op_stack);	
+	free(op_stack);
+	
+	return SUCCESS;
 }
 
 sm_state PushToNum(const char **exp)
@@ -101,6 +103,8 @@ sm_state PushToNum(const char **exp)
 
 sm_state ErrorFunc(const char **exp)
 {
+	(void)exp;
+	
 	printf("Stupid moron\n");
 	
 	return ERROR;
