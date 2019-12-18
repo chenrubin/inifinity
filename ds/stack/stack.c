@@ -16,7 +16,7 @@ stack_t *StackCreate(size_t num_of_elements, size_t elements_size)
 {
 	size_t num_of_Bytes = num_of_elements * elements_size;
 	char *actual_stack_p = (char *)malloc(num_of_elements * elements_size);
-	stack_t *new_stack = (stack_t *)malloc(num_of_Bytes);	
+	stack_t *new_stack = (stack_t *)malloc(sizeof(stack_t));	
 	if (NULL == actual_stack_p)
 	{
 		printf("no allocation was made to stack\n");

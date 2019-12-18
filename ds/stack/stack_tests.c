@@ -79,15 +79,15 @@ void TestStackPopIsEmpty()
 		new_stack = StackCreate(NUM_OF_ELEMENTS, element_size);
 		
 		PRINTTESTRESULTS("TestStackPopIsEmpty_IsEmpty", i + 1,
-					  	  0 == StackIsEmpty(new_stack));
+					  	  1 == StackIsEmpty(new_stack));
 		PRINTTESTRESULTS("TestStackPopIsEmpty_push", i + 1, 
 					  	  0 == StackPush(new_stack, int_p));
 		PRINTTESTRESULTS("TestStackPopIsEmpty_IsEmpty", i + 1, 
-					  	  1 == StackIsEmpty(new_stack));
+					  	  0 == StackIsEmpty(new_stack));
 		StackPop(new_stack);
 		
 		PRINTTESTRESULTS("TestStackPopIsEmpty_IsEmpty", i + 1, 
-					  	  0 == StackIsEmpty(new_stack));
+					  	  1 == StackIsEmpty(new_stack));
 		StackDestroy(new_stack); 
 		printf("\n");			  	  
 	} 
@@ -115,12 +115,12 @@ void TestStackfull()
 		if (0 == i)		
 		{
 			PRINTTESTRESULTS("TestFillStack_IsEmpty", i + 1, 
-					  	  0 == StackIsEmpty(new_stack));
+					  	  1 == StackIsEmpty(new_stack));
 		}
 		else
 		{
 			PRINTTESTRESULTS("TestFillStack_IsEmpty", i + 1, 
-					  	  1 == StackIsEmpty(new_stack));
+					  	  0 == StackIsEmpty(new_stack));
 		}
 		
 		PRINTTESTRESULTS("TestFillStack_push", i + 1, 
@@ -142,12 +142,12 @@ void TestStackfull()
 		if (i == ((int)len - 1))		
 		{
 			PRINTTESTRESULTS("TestEmptyStack_IsEmpty", i + 1, 
-					  	  0 == StackIsEmpty(new_stack));
+					  	  1 == StackIsEmpty(new_stack));
 		}
 		else
 		{
 			PRINTTESTRESULTS("TestEmptyStack_IsEmpty", i + 1, 
-					  	  1 == StackIsEmpty(new_stack));
+					  	  0 == StackIsEmpty(new_stack));
 		}
 	
 		printf("\n");			  	  
@@ -163,7 +163,6 @@ void TestStackDifferentDataTypes()
 	size_t size_t_element = 56;
 	long long_element = 4891489416489;
 	char ch = 5;
-	stack_t *stack_t_pointer = StackCreate(NUM_OF_ELEMENTS, 1);
 	size_t *size_t_pointer = &size_t_element;
 	long *long_pointer = &long_element;
 	char *char_pointer = &ch;
@@ -210,9 +209,9 @@ void TestStackDifferentDataTypes()
 	StackPop(new_stack);
 	StackDestroy(new_stack);
 	printf("\n");
-	
+
 	/* char */
-	new_stack = StackCreate(NUM_OF_ELEMENTS, element_size1);
+	new_stack = StackCreate(NUM_OF_ELEMENTS, 1);
 	
 	PRINTTESTRESULTS("TestStackDifferentDataTypes_char_size", 1,
 					  	  0 == StackSize(new_stack));
@@ -230,42 +229,7 @@ void TestStackDifferentDataTypes()
 					  	  				  	  
 	StackPop(new_stack);
 	StackDestroy(new_stack);
-	StackDestroy(stack_t_pointer);
-	printf("\n");
-	
-	/* stack_t */
-	new_stack = StackCreate(NUM_OF_ELEMENTS, element_size1);
-	
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_size", 1,
-					  	  0 == StackSize(new_stack));
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_push", 2,
-				  	  0 == StackPush(new_stack, stack_t_pointer));
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_size", 3,
-					  	  1 == StackSize(new_stack));
-					  	  
-	stack_t_pointer = (stack_t *)StackPeek(new_stack);
-					  	  
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_peek_current", 4,
-		((char *)(stack_t_pointer -> current)) == 
-		((char *)(((stack_t *)StackPeek(new_stack)) -> current)));
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_peek_head", 5,
-		((char *)(stack_t_pointer -> head)) == 
-		((char *)(((stack_t *)StackPeek(new_stack)) -> head)));
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_peek_tail", 6,
-		((char *)(stack_t_pointer -> tail)) == 
-		((char *)(((stack_t *)StackPeek(new_stack)) -> tail)));
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_peek_elementSize", 7,
-		((size_t *)(stack_t_pointer -> elements_size)) == 
-		((size_t *)(((stack_t *)StackPeek(new_stack)) -> elements_size)));			
-		
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_stackT_size", 8,
-					  	  1 == StackSize(new_stack));
-	StackPop(new_stack);
-	PRINTTESTRESULTS("TestStackDifferentDataTypes_char_size", 9,
-					  	  0 == StackSize(new_stack));
-					  	  				  	  
-	StackPop(new_stack);
-	StackDestroy(new_stack);
+
 	printf("\n");
 }
 
