@@ -15,7 +15,7 @@ typedef enum status
 	DIVISION_BY_ZERO,
 	INVALID_EXP,
 	ALLOC_FAIL
-} status;
+} status_t;
 
 /* Calc receives two arguments and returns a status type
  * @exp: a pointer of type const char *
@@ -26,6 +26,6 @@ typedef enum status
  * INVALID_EXP if otherwise.
  * Check status before using @res
  */
-status Calc(const char *exp, double *res);
+status_t Calc(const char *exp, double *res);
 
 #endif

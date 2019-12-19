@@ -8,7 +8,7 @@ void TestAdd();
 void TestSubtract();
 void TestMultiply();
 void TestDivide();
-void TestAddSubtractMultiplyDivide();
+void TestAllOperations();
 void TestInvalid();
 void TestParentheses();
 void TestPower();
@@ -20,7 +20,7 @@ int main()
 	TestSubtract();
 	TestMultiply();
 	TestDivide();
-	TestAddSubtractMultiplyDivide();	
+	TestAllOperations();
 	TestInvalid();
 	TestParentheses();
 	TestPower();	
@@ -41,8 +41,10 @@ void TestAdd()
 	PRINTTESTRESULTS("TestAdd_calc",3, 0 == Calc(sentence2, &res));
 	PRINTTESTRESULTS("TestAdd",4, 36 == res);
 	PRINTTESTRESULTS("TestAdd_calc",5, 0 == Calc(sentence3, &res));
+	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestAdd",6, 12 == res);
 	PRINTTESTRESULTS("TestAdd_calc",7, 0 == Calc(sentence4, &res));
+	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestAdd",8, 2 == res);
 }
 
@@ -100,22 +102,27 @@ void TestDivide()
 	PRINTTESTRESULTS("TestDivide",8, 0.5 == res);
 }
 
-void TestAddSubtractMultiplyDivide()
+void TestAllOperations()
 {
 	char *sentence1 = "100*52*56/2+54*5-8/4-6";
 	char *sentence2 = "32*32/32+9/3*8-4*5";
 	char *sentence3 = "0.2*5-9.5*6";
 	char *sentence4 = "1-1/2*2+1";
+	char *sentence5 = "1-1/2^2+9*(64/(20+12))/8-1";
+	
 	double res = 0;
 		
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide_calc",1, 0 == Calc(sentence1, &res));
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide",2, 145862 == res);
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide_calc",3, 0 == Calc(sentence2, &res));
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide",4, 36 == res);
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide_calc",5, 0 == Calc(sentence3, &res));
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide",6, -56 == res);
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide_calc",7, 0 == Calc(sentence4, &res));
-	PRINTTESTRESULTS("TestAddSubtractMultiplyDivide",8, 1 == res);	
+	PRINTTESTRESULTS("TestAllOperations_calc",1, 0 == Calc(sentence1, &res));
+	PRINTTESTRESULTS("TestAllOperations",2, 145862 == res);
+	PRINTTESTRESULTS("TestAllOperations_calc",3, 0 == Calc(sentence2, &res));
+	PRINTTESTRESULTS("TestAllOperations",4, 36 == res);
+	PRINTTESTRESULTS("TestAllOperations_calc",5, 0 == Calc(sentence3, &res));
+	PRINTTESTRESULTS("TestAllOperations",6, -56 == res);
+	PRINTTESTRESULTS("TestAllOperations_calc",7, 0 == Calc(sentence4, &res));
+	PRINTTESTRESULTS("TestAllOperations",8, 1 == res);
+	PRINTTESTRESULTS("TestAllOperations_calc",9, 0 == Calc(sentence5, &res));
+	printf("res = %f\n", res);
+	PRINTTESTRESULTS("TestAllOperations",10, 2 == res);
 }
 
 void TestInvalid()
@@ -127,17 +134,21 @@ void TestInvalid()
 	char *sentence5 = "152*+5";
 	char *sentence6 = "152-*5";
 	char *sentence7 = "152/0";
+	char *sentence8 = "(152/0";
+	char *sentence9 = "(152/0))";
 	
 	double res = 0;
 		
-	PRINTTESTRESULTS("TestInvalid_calc",1, 2 == Calc(sentence1, &res));
-	printf("res = %f\n", res);
-	PRINTTESTRESULTS("TestInvalid_calc",3, 2 == Calc(sentence2, &res));
-	PRINTTESTRESULTS("TestInvalid_calc",5, 2 == Calc(sentence3, &res));
-	PRINTTESTRESULTS("TestInvalid_calc",7, 2 == Calc(sentence4, &res));
-	PRINTTESTRESULTS("TestInvalid_calc",1, 2 == Calc(sentence5, &res));
-	PRINTTESTRESULTS("TestInvalid_calc",3, 2 == Calc(sentence6, &res));
-	PRINTTESTRESULTS("TestInvalid_calc",5, 1 == Calc(sentence7, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",1, 0 == Calc(sentence1, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",2, 0 == Calc(sentence2, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",3, 2 == Calc(sentence3, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",4, 2 == Calc(sentence4, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",5, 0 == Calc(sentence5, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",6, 2 == Calc(sentence6, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",7, 1 == Calc(sentence7, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",8, 2 == Calc(sentence8, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",9, 2 == Calc(sentence9, &res));
+
 }
 
 void TestParentheses()
@@ -157,6 +168,7 @@ void TestParentheses()
 	PRINTTESTRESULTS("TestParentheses_calc",5, 0 == Calc(sentence3, &res));
 	PRINTTESTRESULTS("TestParentheses",6, 16638 == res);
 	PRINTTESTRESULTS("TestParentheses_calc",7, 0 == Calc(sentence4, &res));
+	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestParentheses",8, -74811 == res);
 	PRINTTESTRESULTS("TestParentheses_calc",9, 0 == Calc(sentence5, &res));
 	PRINTTESTRESULTS("TestParentheses",10, -10 == res);
@@ -180,9 +192,9 @@ void TestPower()
 	PRINTTESTRESULTS("TestPower_calc",3, 0 == Calc(sentence2, &res));
 	PRINTTESTRESULTS("TestPower",4, 32 == res);
 	PRINTTESTRESULTS("TestPower_calc",5, 0 == Calc(sentence3, &res));
-	PRINTTESTRESULTS("TestPower",6, 64 == res);
+	PRINTTESTRESULTS("TestPower",6, 512 == res);
 	PRINTTESTRESULTS("TestPower_calc",7, 0 == Calc(sentence4, &res));
-	PRINTTESTRESULTS("TestPower",8, 1 == res);
+	PRINTTESTRESULTS("TestPower",8, 36 == res);
 	PRINTTESTRESULTS("TestPower_calc",9, 0 == Calc(sentence5, &res));
 	PRINTTESTRESULTS("TestPower",10, 1 == res);
 	PRINTTESTRESULTS("TestPower_calc",11, 0 == Calc(sentence6, &res));
