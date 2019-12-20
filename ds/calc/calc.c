@@ -1,6 +1,6 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: EyalR				  *
 *		calc						  *
 *		7/11/2019					  *
 *									  *
@@ -16,27 +16,30 @@
 #define STACK_SIZE 30
 #define ROWS 2
 #define COLUMNS 256
-#define SM_LUT_10 {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},	   \
-				  {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM}
-#define SM_LUT_100 SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,\
-		SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10
+#define SM_LUT_10 {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},   \
+				  {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},   \
+				  {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},   \
+				  {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},   \
+				  {ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM}
+#define SM_LUT_100 SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,		   \
+		SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10,SM_LUT_10
 #define SM_LUT_256 SM_LUT_100,SM_LUT_100,SM_LUT_10,SM_LUT_10,SM_LUT_10, 	   \
-		SM_LUT_10,SM_LUT_10,{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},	   \
+		SM_LUT_10,SM_LUT_10,{ErrorFuncIMP, WAIT_FOR_NUM},					   \
+		{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},			   \
+		{ErrorFuncIMP, WAIT_FOR_NUM},{ErrorFuncIMP, WAIT_FOR_NUM},	   		   \
 		{ErrorFuncIMP, WAIT_FOR_NUM}
-#define NULL_10 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-#define NULL_46 NULL_10,NULL_10,NULL_10,NULL_10,NULL, NULL, NULL, NULL, NULL,  \
-		NULL
-#define NULL_STRUCT_10 {0},{0},{0},{0},{0},{0},{0},{0},{0},{0}
-#define NULL_STRUCT_46 NULL_STRUCT_10,NULL_STRUCT_10,NULL_STRUCT_10,		   \
-		NULL_STRUCT_10,{0},{0},{0},{0},{0},{0}
-#define NULL_STRUCT_100 NULL_STRUCT_10,NULL_STRUCT_10,NULL_STRUCT_10,		   \
-						NULL_STRUCT_10,NULL_STRUCT_10,NULL_STRUCT_10,		   \
-						NULL_STRUCT_10,NULL_STRUCT_10,NULL_STRUCT_10,		   \
-						NULL_STRUCT_10
-#define NULL_STRUCT_256 NULL_STRUCT_100,NULL_STRUCT_100,NULL_STRUCT_10,		   \
-						NULL_STRUCT_10,NULL_STRUCT_10,NULL_STRUCT_10,		   \
-						NULL_STRUCT_10,{0},{0},{0},{0},{0},{0}					
-		
+#define CALCULATE_NULL_10 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 	   \
+						  NULL,NULL
+#define CALCULATE_NULL_46 CALCULATE_NULL_10,CALCULATE_NULL_10,				   \
+						  CALCULATE_NULL_10,CALCULATE_NULL_10,				   \
+						  NULL, NULL, NULL, NULL, NULL,NULL
+#define PRECEDENCE_NULL_10 {0},{0},{0},{0},{0},{0},{0},{0},{0},{0}
+#define PRECEDENCE_NULL_46 PRECEDENCE_NULL_10,PRECEDENCE_NULL_10,			   \
+						   PRECEDENCE_NULL_10,PRECEDENCE_NULL_10,			   \
+						   {0},{0},{0},{0},{0},{0}
+#define PRECEDENCE_LUT_SIZE 55												
+#define CALCULATE_LUT_SIZE 53
+
 typedef enum state
 {
 	WAIT_FOR_NUM = 0,
@@ -45,10 +48,16 @@ typedef enum state
 	ERROR = 3
 } state_t;
 
+typedef enum associativity
+{
+	LEFT = 0,
+	RIGHT = 1
+} assoc_t;
+
 typedef struct precedence_struct
 {
 	int precedence;
-	int associativity;
+	assoc_t assoc;
 } precedence_t;
 
 typedef status_t (*func)(void *exp, status_t *status);
@@ -60,40 +69,62 @@ typedef struct state_machine_lut
 	state_t state;
 } sm_lut_t;
 
+/* add two numbeers */
 static double AddNumbersIMP(double num1, double num2, status_t *status);
+
+/* subtract num2 from num1 */
 static double SubtractNumbersIMP(double num1, double num2, status_t *status);
+
+/* multiply two numbers */
 static double MultiplyNumbersIMP(double num1, double num2, status_t *status);
-static double DevideNumbersIMP(double num1, double num2, status_t *status);
+
+/* divide num1 by num2 */
+static double DivideNumbersIMP(double num1, double num2, status_t *status);
+
+/* base = num1, power = num2 */
 static double PowerOfNumbersIMP(double num1, double num2, status_t *status);
 
+/* handles the end calcultion in which you calulate what is left until
+   final result is located in the num)stack */
 static void EndCalc(void *exp, status_t *status);
-static void PopTwoFromNumStackAndCalcIMP(status_t *status); /* doesn't need exp */
+
+/* calulate top two numbers in num_stack with the top operator in op_stack */
+static void PopTwoFromNumStackAndCalcIMP(status_t *status);
+
+/* calls PopTwoFromNumStackAndCalcIMP until reaching ')' */
 static status_t HandleClosingParatheses(void *exp, status_t *status);
+
+/* push operator to op_stack wihtout checking precedence */
 static status_t PushToOpNoPrecedenceIMP(void *exp, status_t *status);
+
+/* push operator to op_stack after checking precedence */
 static status_t PushToOpWithPrecedenceIMP(void *exp, status_t *status);
 
+/* returns 1 if ch1 precedence is lower the ch2 precedence and 0 if not */
 static int IsPrecedenceLowerIMP(char ch1, char ch2);
-static int IsParenthesesValidIMP(const char *exp);
-static void InitializeLUTIMP();
-/*static void *ParseStringIMP(state_t current_state, char **exp, double *num, 
-							char *ch);*/
 
-/* Sends to Error */
+/* checks if string is valid parantheses wise */
+static int IsParenthesesValidIMP(const char *exp);
+
+/* initialize state machine LUT */
+static void InitializeLUTIMP();
+
+/* Error function returns ERROR */
 static status_t ErrorFuncIMP(void *exp, status_t *status);
 
 /* push number to num stack */
-static status_t PushToNumIMP(void *exp, status_t *status);
-
-/* push operator to stack while considering precedence */
-static status_t PushToOpWithPrecedenceIMP(void *exp, status_t *status);
+static status_t PushToNumIMP(void *exp, status_t *status);	
 
 sm_lut_t LUT[ROWS][COLUMNS] = {{SM_LUT_256}, {SM_LUT_256}};
-calculate calc_lut[53] = {MultiplyNumbersIMP,AddNumbersIMP,NULL,
-						  SubtractNumbersIMP, NULL,DevideNumbersIMP,
-						  NULL_46, PowerOfNumbersIMP};
-
-precedence_t precedence_LUT[55] = {{1, 0},{0},{3, 0},{2, 0},{0},{2, 0}, {0},
-									{3, 0}, NULL_STRUCT_46, {4, 1}};						  
+calculate calc_lut[CALCULATE_LUT_SIZE] = {MultiplyNumbersIMP,AddNumbersIMP,
+										  NULL,SubtractNumbersIMP, NULL,
+										  DivideNumbersIMP,CALCULATE_NULL_46,
+										  PowerOfNumbersIMP};
+precedence_t precedence_LUT[PRECEDENCE_LUT_SIZE] = {{1, LEFT},{0},{3, LEFT},
+													{2, LEFT},{0},{2, LEFT},
+													{0},{3, LEFT},
+													PRECEDENCE_NULL_46, 
+													{4, RIGHT}};						  
 
 stack_t *num_stack = NULL;
 stack_t *op_stack = NULL;
@@ -101,9 +132,7 @@ stack_t *op_stack = NULL;
 status_t Calc(const char *exp, double *res)
 {
 	state_t st = WAIT_FOR_NUM;
-/*	char ch = '\0';*/
 	status_t current_status = SUCCESS;
-/*	char *runner = (char *)exp;*/
 
 	if (!IsParenthesesValidIMP(exp))
 	{
@@ -135,8 +164,8 @@ status_t Calc(const char *exp, double *res)
 			if ('(' != current_char)
 			{
 				num = strtod(exp, (char **)&exp);
-				current_status = LUT[st][/*(int)*exp*/(int)current_char].function(&num, &current_status);
-				st = LUT[st][(int)current_char/**exp*/].state;
+				current_status = LUT[st][(int)current_char].function(&num, &current_status);
+				st = LUT[st][(int)current_char].state;
 			}
 			else
 			{
@@ -187,7 +216,6 @@ static status_t HandleClosingParatheses(void *exp, status_t *status)
 	}
 	
 	StackPop(op_stack);
-
 	
 	return SUCCESS;
 }
@@ -241,19 +269,19 @@ static double AddNumbersIMP(double num1, double num2, status_t *status)
 
 static double SubtractNumbersIMP(double num1, double num2, status_t *status)
 {
-	(void)status;
+	*status = SUCCESS;
 	
 	return num1 - num2;
 }
 
 static double MultiplyNumbersIMP(double num1, double num2, status_t *status)
 {
-	(void)status;
+	*status = SUCCESS;
 	
 	return num1 * num2;
 }
 
-static double DevideNumbersIMP(double num1, double num2, status_t *status)
+static double DivideNumbersIMP(double num1, double num2, status_t *status)
 {
 	if (0 == num2)
 	{
@@ -271,7 +299,7 @@ static double DevideNumbersIMP(double num1, double num2, status_t *status)
 
 static double PowerOfNumbersIMP(double num1, double num2, status_t *status)
 {
-	(void)status;
+	*status = SUCCESS;
 	
 	return pow(num1, num2);
 }
@@ -280,10 +308,10 @@ static int IsPrecedenceLowerIMP(char ch1, char ch2)
 {
 	int ch1_prec = precedence_LUT[ch1 - '('].precedence;
 	int ch2_prec = precedence_LUT[ch2 - '('].precedence;
-	int ch1_assoc = precedence_LUT[ch1 - '('].associativity;
+	int ch1_assoc = precedence_LUT[ch1 - '('].assoc;
 	
 	return ((ch1_prec < ch2_prec) || 
-			((ch1_prec == ch2_prec) &&	(ch1_assoc == 0)));
+			((ch1_prec == ch2_prec) &&	(ch1_assoc == LEFT)));
 }	
 
 static int IsParenthesesValidIMP(const char *exp)
@@ -357,7 +385,6 @@ static void InitializeLUTIMP()
 	sm_lut_t push_no_prec_to_wfn = {PushToOpNoPrecedenceIMP, WAIT_FOR_NUM};
 	sm_lut_t push_prec_wfn = {PushToOpWithPrecedenceIMP, WAIT_FOR_NUM};
 	sm_lut_t handle_close_par_to_wfo = {HandleClosingParatheses, WAIT_FOR_OP};
-/*	sm_lut_t end = {EndCalc, END};*/
 
 	for (i = 0; i < 10; ++i)
 	{
@@ -372,7 +399,6 @@ static void InitializeLUTIMP()
 	LUT[WAIT_FOR_OP]['/'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP]['^'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP][')'] = handle_close_par_to_wfo;
-/*	LUT[WAIT_FOR_OP]['\0'] = end;*/
 }
 /*
 static void *ParseStringIMP(state_t current_state, 
