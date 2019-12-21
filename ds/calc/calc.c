@@ -6,12 +6,11 @@
 *									  *
 ************************************/
 
-#include <stdlib.h> /* strtod */
-#include <math.h> /* strtod */
+#include <stdlib.h> /* strtod , malloc */
+#include <math.h> /* pow */
  
 #include "calc.h"
 #include "../stack/stack.h"
-#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define STACK_SIZE 30
 #define ROWS 2
@@ -60,7 +59,22 @@ typedef struct precedence_struct
 	assoc_t assoc;
 } precedence_t;
 
-typedef status_t (*func)(void *exp, status_t *status);
+typedef union char_or_double
+{
+	double num;
+	char ch;
+} ch_or_doub_t;
+
+typedef struct parser_tagged_union
+{
+	enum {number = 0, character = 1} type_flag;
+	ch_or_doub_t type;
+}tagged_uni_t;
+
+typedef status_t (*func)(tagged_uni_t *parser_res,
+						 stack_t *op_stack, 
+						 stack_t *num_stack,  
+						 status_t *status);
 typedef double (*calculate)(double num1, double num2, status_t *status);
 
 typedef struct state_machine_lut
@@ -69,7 +83,7 @@ typedef struct state_machine_lut
 	state_t state;
 } sm_lut_t;
 
-/* add two numbeers */
+/* add two numbers */
 static double AddNumbersIMP(double num1, double num2, status_t *status);
 
 /* subtract num2 from num1 */
@@ -86,19 +100,33 @@ static double PowerOfNumbersIMP(double num1, double num2, status_t *status);
 
 /* handles the end calcultion in which you calulate what is left until
    final result is located in the num)stack */
-static void EndCalc(void *exp, status_t *status);
+static void EndCalc(tagged_uni_t *parser_res, 
+					stack_t *op_stack, 
+					stack_t *num_stack, 
+					status_t *status);
 
 /* calulate top two numbers in num_stack with the top operator in op_stack */
-static void PopTwoFromNumStackAndCalcIMP(status_t *status);
+static void PopTwoFromNumStackAndCalcIMP(stack_t *op_stack, 
+										 stack_t *num_stack, 
+										 status_t *status);
 
 /* calls PopTwoFromNumStackAndCalcIMP until reaching ')' */
-static status_t HandleClosingParatheses(void *exp, status_t *status);
+static status_t HandleClosingParatheses(tagged_uni_t *parser_res, 
+										stack_t *op_stack, 
+										stack_t *num_stack,
+										status_t *status);
 
 /* push operator to op_stack wihtout checking precedence */
-static status_t PushToOpNoPrecedenceIMP(void *exp, status_t *status);
+static status_t PushToOpNoPrecedenceIMP(tagged_uni_t *parser_res, 
+										stack_t *op_stack, 
+										stack_t *num_stack,
+	 									status_t *status);
 
 /* push operator to op_stack after checking precedence */
-static status_t PushToOpWithPrecedenceIMP(void *exp, status_t *status);
+static status_t PushToOpWithPrecedenceIMP(tagged_uni_t *parser_res, 
+										  stack_t *op_stack, 
+										  stack_t *num_stack,
+										  status_t *status);
 
 /* returns 1 if ch1 precedence is lower the ch2 precedence and 0 if not */
 static int IsPrecedenceLowerIMP(char ch1, char ch2);
@@ -110,10 +138,19 @@ static int IsParenthesesValidIMP(const char *exp);
 static void InitializeLUTIMP();
 
 /* Error function returns ERROR */
-static status_t ErrorFuncIMP(void *exp, status_t *status);
+static status_t ErrorFuncIMP(tagged_uni_t *parser_res, 
+							 stack_t *op_stack, 
+							 stack_t *num_stack, 
+							 status_t *status);
 
 /* push number to num stack */
-static status_t PushToNumIMP(void *exp, status_t *status);	
+static status_t PushToNumIMP(tagged_uni_t *parser_res,
+							 stack_t *op_stack, 
+							 stack_t *num_stack, 
+							 status_t *status);
+
+/* returns either digit or character from string and updates union accordingly*/
+static tagged_uni_t ParserIMP(char **exp, state_t state);
 
 sm_lut_t LUT[ROWS][COLUMNS] = {{SM_LUT_256}, {SM_LUT_256}};
 calculate calc_lut[CALCULATE_LUT_SIZE] = {MultiplyNumbersIMP,AddNumbersIMP,
@@ -124,15 +161,15 @@ precedence_t precedence_LUT[PRECEDENCE_LUT_SIZE] = {{1, LEFT},{0},{3, LEFT},
 													{2, LEFT},{0},{2, LEFT},
 													{0},{3, LEFT},
 													PRECEDENCE_NULL_46, 
-													{4, RIGHT}};						  
-
-stack_t *num_stack = NULL;
-stack_t *op_stack = NULL;
+													{4, RIGHT}};
 
 status_t Calc(const char *exp, double *res)
 {
 	state_t st = WAIT_FOR_NUM;
 	status_t current_status = SUCCESS;
+	tagged_uni_t parser_res = {0};
+	stack_t *num_stack = NULL;
+	stack_t *op_stack = NULL;
 
 	if (!IsParenthesesValidIMP(exp))
 	{
@@ -151,40 +188,29 @@ status_t Calc(const char *exp, double *res)
 	{
 		StackDestroy(num_stack);
 		
-		current_status = ALLOC_FAIL;
+		return ALLOC_FAIL;
 	}
 		
 	while ((0 != *exp) && SUCCESS == current_status)
 	{
 		char current_char = *exp;
-		double num = 0;
+		parser_res = ParserIMP((char **)&exp, st);
 		
-		if (WAIT_FOR_NUM == st)
+		current_status = LUT[st][(int)current_char].function(&parser_res, 
+															 op_stack, 
+															 num_stack,
+															 &current_status);
+		st = LUT[st][(int)current_char].state;
+
+		if (parser_res.type_flag == character)
 		{
-			if ('(' != current_char)
-			{
-				num = strtod(exp, (char **)&exp);
-				current_status = LUT[st][(int)current_char].function(&num, &current_status);
-				st = LUT[st][(int)current_char].state;
-			}
-			else
-			{
-				current_status = LUT[st][(int)*exp].function((char **)exp, &current_status);
-				st = LUT[st][(int)*exp].state;
-				++exp;
-			}
-		}
-		else
-		{
-			current_status = LUT[st][(int)*exp].function((char **)exp, &current_status);
-			st = LUT[st][(int)*exp].state;
 			++exp;
-		}	
+		}
 	}
 	
-	if (SUCCESS == current_status /*&& !StackIsEmpty(op_stack)*/)
+	if (SUCCESS == current_status)
 	{
-		EndCalc(&exp, &current_status);
+		EndCalc(&parser_res, op_stack, num_stack, &current_status);
 	}
 	if (SUCCESS == current_status)
 	{
@@ -197,22 +223,36 @@ status_t Calc(const char *exp, double *res)
 	return current_status;
 }
 
-static status_t PushToNumIMP(void *exp, status_t *status)
+static status_t PushToNumIMP(tagged_uni_t *parser_res, 
+							 stack_t *op_stack, 
+							 stack_t *num_stack, 
+							 status_t *status)
 {
-	(void)status;
+	(void)op_stack;
 	
-	StackPush(num_stack, (double *)exp);
+	if ((parser_res -> type_flag) == number)
+	{
+		StackPush(num_stack, &parser_res->type.num);
+		*status = SUCCESS;
+	}
+	else
+	{
+		*status = INVALID_EXP;
+	}
 	
-	return SUCCESS;
+	return *status;
 }
 
-static status_t HandleClosingParatheses(void *exp, status_t *status)
+static status_t HandleClosingParatheses(tagged_uni_t *parser_res, 
+										stack_t *op_stack, 
+										stack_t *num_stack, 
+										status_t *status)
 {
-	(void)exp;
+	(void)parser_res;
 	
 	while ('(' != *(char *)StackPeek(op_stack))
 	{
-		PopTwoFromNumStackAndCalcIMP(status);
+		PopTwoFromNumStackAndCalcIMP(op_stack, num_stack, status);
 	}
 	
 	StackPop(op_stack);
@@ -220,42 +260,74 @@ static status_t HandleClosingParatheses(void *exp, status_t *status)
 	return SUCCESS;
 }
 
-static status_t ErrorFuncIMP(void *exp, status_t *status)
+static status_t ErrorFuncIMP(tagged_uni_t *parser_res, 
+							 stack_t *op_stack, 
+							 stack_t *num_stack, 
+							 status_t *status)
 {
-	(void)exp;
+	(void)parser_res;
 	(void)status;
+	(void)op_stack;
+	(void)num_stack;
 	
 	return INVALID_EXP;
 }
 
-static void EndCalc(void *exp, status_t *status)
+static void EndCalc(tagged_uni_t *parser_res, 
+					stack_t *op_stack, 
+					stack_t *num_stack, 
+					status_t *status)
 {	
-	(void)exp;
+	(void)parser_res;
 	
 	while (!StackIsEmpty(op_stack))
 	{
-		PopTwoFromNumStackAndCalcIMP(status);
+		PopTwoFromNumStackAndCalcIMP(op_stack, num_stack, status);
 	}
 }
 
-static status_t PushToOpWithPrecedenceIMP(void *exp, status_t *status)
+static status_t PushToOpWithPrecedenceIMP(tagged_uni_t *parser_res,
+										  stack_t *op_stack, 
+										  stack_t *num_stack, 
+										  status_t *status)
 {			
-	while (StackSize(op_stack) > 0 && 
-		   IsPrecedenceLowerIMP(*(char *)exp,*(char *)StackPeek(op_stack)))
+	(void)num_stack;
+	
+	if ((parser_res -> type_flag) == character)
 	{
-		PopTwoFromNumStackAndCalcIMP(status);
+		while (StackSize(op_stack) > 0 && 
+		   	   IsPrecedenceLowerIMP(parser_res->type.ch,
+		   	   					  *(char *)StackPeek(op_stack)))
+		{
+			PopTwoFromNumStackAndCalcIMP(op_stack, num_stack, status);
+		}
+		StackPush(op_stack, &parser_res->type.ch);
+		*status = SUCCESS;
+	}
+	else
+	{
+		*status = INVALID_EXP;
 	}
 	
-	StackPush(op_stack, (char *)exp);
-	
-	return SUCCESS;
+	return *status;
 }
 
-static status_t PushToOpNoPrecedenceIMP(void *exp, status_t *status)
+static status_t PushToOpNoPrecedenceIMP(tagged_uni_t *parser_res, 
+										stack_t *op_stack, 
+										stack_t *num_stack, 
+										status_t *status)
 {			
-	StackPush(op_stack, (char *)exp);
+	(void)num_stack;
 	
-	*status = SUCCESS;
+	if ((parser_res -> type_flag) == character)
+	{
+		StackPush(op_stack, &parser_res->type.ch);
+		*status = SUCCESS;
+	}
+	else
+	{
+		*status = INVALID_EXP;
+	}
 	
 	return *status;
 }
@@ -358,7 +430,9 @@ static int IsParenthesesValidIMP(const char *exp)
 	}
 }
 
-static void PopTwoFromNumStackAndCalcIMP(status_t *status)
+static void PopTwoFromNumStackAndCalcIMP(stack_t *op_stack, 
+										 stack_t *num_stack, 
+										 status_t *status)
 {
 	char op_stack_top = '\0';
 	double top = 0;
@@ -392,6 +466,7 @@ static void InitializeLUTIMP()
 	}
 	LUT[WAIT_FOR_NUM]['-'] = push_wfo;
 	LUT[WAIT_FOR_NUM]['+'] = push_wfo;
+	LUT[WAIT_FOR_NUM]['.'] = push_wfo;
 	LUT[WAIT_FOR_NUM]['('] = push_no_prec_to_wfn;
 	LUT[WAIT_FOR_OP]['+'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP]['-'] = push_prec_wfn;
@@ -400,18 +475,23 @@ static void InitializeLUTIMP()
 	LUT[WAIT_FOR_OP]['^'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP][')'] = handle_close_par_to_wfo;
 }
-/*
-static void *ParseStringIMP(state_t current_state, 
-						 char **exp, 
-						 double *num, 
-						 char *ch)
-{	
-	if (current_state == WAIT_FOR_NUM)
+
+static tagged_uni_t ParserIMP(char **exp, state_t state)
+{
+	tagged_uni_t parser_union = {0};
+	double num = 0;
+	
+	if (WAIT_FOR_NUM == state && ('(' != **exp))
 	{
-		*num = strtod(*exp, exp);
+		num = strtod(*exp, exp);
+		parser_union.type_flag = number;
+		parser_union.type.num = num;
 	}
 	else
 	{
-		*ch = *exp;
+		parser_union.type_flag = character;
+		parser_union.type.ch = **exp;
 	}
-}*/
+		
+	return parser_union;
+}

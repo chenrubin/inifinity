@@ -1,7 +1,6 @@
 #include <stdio.h> /* printf */
 
 #include "calc.h"
-#include "../stack/stack.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 void TestAdd();
@@ -41,10 +40,8 @@ void TestAdd()
 	PRINTTESTRESULTS("TestAdd_calc",3, 0 == Calc(sentence2, &res));
 	PRINTTESTRESULTS("TestAdd",4, 36 == res);
 	PRINTTESTRESULTS("TestAdd_calc",5, 0 == Calc(sentence3, &res));
-	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestAdd",6, 12 == res);
 	PRINTTESTRESULTS("TestAdd_calc",7, 0 == Calc(sentence4, &res));
-	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestAdd",8, 2 == res);
 }
 
@@ -109,6 +106,7 @@ void TestAllOperations()
 	char *sentence3 = "0.2*5-9.5*6";
 	char *sentence4 = "1-1/2*2+1";
 	char *sentence5 = "1-1/2^2+9*(64/(20+12))/8-1";
+	char *sentence6 = "0.54+.46-0.5*4^8-(+25)";
 	
 	double res = 0;
 		
@@ -121,8 +119,9 @@ void TestAllOperations()
 	PRINTTESTRESULTS("TestAllOperations_calc",7, 0 == Calc(sentence4, &res));
 	PRINTTESTRESULTS("TestAllOperations",8, 1 == res);
 	PRINTTESTRESULTS("TestAllOperations_calc",9, 0 == Calc(sentence5, &res));
-	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestAllOperations",10, 2 == res);
+	PRINTTESTRESULTS("TestAllOperations_calc",11, 0 == Calc(sentence6, &res));
+	PRINTTESTRESULTS("TestAllOperations",12, -32792 == res);
 }
 
 void TestInvalid()
@@ -168,7 +167,6 @@ void TestParentheses()
 	PRINTTESTRESULTS("TestParentheses_calc",5, 0 == Calc(sentence3, &res));
 	PRINTTESTRESULTS("TestParentheses",6, 16638 == res);
 	PRINTTESTRESULTS("TestParentheses_calc",7, 0 == Calc(sentence4, &res));
-	printf("res = %f\n", res);
 	PRINTTESTRESULTS("TestParentheses",8, -74811 == res);
 	PRINTTESTRESULTS("TestParentheses_calc",9, 0 == Calc(sentence5, &res));
 	PRINTTESTRESULTS("TestParentheses",10, -10 == res);
