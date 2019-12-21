@@ -6,11 +6,13 @@
 *									  *
 ************************************/
 
-#include <stdlib.h> /* strtod , malloc */
-#include <math.h> /* pow */
+#include <stdlib.h> /* strtod */
+#include <math.h> /* strtod */
+#include <string.h> /* strlen */
  
 #include "calc.h"
 #include "../stack/stack.h"
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define STACK_SIZE 30
 #define ROWS 2
@@ -100,7 +102,7 @@ static double PowerOfNumbersIMP(double num1, double num2, status_t *status);
 
 /* handles the end calcultion in which you calulate what is left until
    final result is located in the num)stack */
-static void EndCalc(tagged_uni_t *parser_res, 
+static status_t EndCalc(tagged_uni_t *parser_res, 
 					stack_t *op_stack, 
 					stack_t *num_stack, 
 					status_t *status);
@@ -166,6 +168,8 @@ precedence_t precedence_LUT[PRECEDENCE_LUT_SIZE] = {{1, LEFT},{0},{3, LEFT},
 status_t Calc(const char *exp, double *res)
 {
 	state_t st = WAIT_FOR_NUM;
+	size_t len = strlen(exp) + 1;
+	size_t steps = 0;
 	status_t current_status = SUCCESS;
 	tagged_uni_t parser_res = {0};
 	stack_t *num_stack = NULL;
@@ -191,11 +195,13 @@ status_t Calc(const char *exp, double *res)
 		return ALLOC_FAIL;
 	}
 		
-	while ((0 != *exp) && SUCCESS == current_status)
+	while (steps < len && SUCCESS == current_status)
 	{
 		char current_char = *exp;
-		parser_res = ParserIMP((char **)&exp, st);
+		char *location = (char *)exp;
 		
+		parser_res = ParserIMP((char **)&exp, st);
+		steps += (size_t)(exp - location);
 		current_status = LUT[st][(int)current_char].function(&parser_res, 
 															 op_stack, 
 															 num_stack,
@@ -205,13 +211,10 @@ status_t Calc(const char *exp, double *res)
 		if (parser_res.type_flag == character)
 		{
 			++exp;
+			++steps;
 		}
 	}
-	
-	if (SUCCESS == current_status)
-	{
-		EndCalc(&parser_res, op_stack, num_stack, &current_status);
-	}
+
 	if (SUCCESS == current_status)
 	{
 		*res = *(double *)StackPeek(num_stack);
@@ -273,7 +276,7 @@ static status_t ErrorFuncIMP(tagged_uni_t *parser_res,
 	return INVALID_EXP;
 }
 
-static void EndCalc(tagged_uni_t *parser_res, 
+static status_t EndCalc(tagged_uni_t *parser_res, 
 					stack_t *op_stack, 
 					stack_t *num_stack, 
 					status_t *status)
@@ -284,6 +287,8 @@ static void EndCalc(tagged_uni_t *parser_res,
 	{
 		PopTwoFromNumStackAndCalcIMP(op_stack, num_stack, status);
 	}
+	
+	return *status;
 }
 
 static status_t PushToOpWithPrecedenceIMP(tagged_uni_t *parser_res,
@@ -459,6 +464,7 @@ static void InitializeLUTIMP()
 	sm_lut_t push_no_prec_to_wfn = {PushToOpNoPrecedenceIMP, WAIT_FOR_NUM};
 	sm_lut_t push_prec_wfn = {PushToOpWithPrecedenceIMP, WAIT_FOR_NUM};
 	sm_lut_t handle_close_par_to_wfo = {HandleClosingParatheses, WAIT_FOR_OP};
+	sm_lut_t final_calculation = {EndCalc, WAIT_FOR_OP};
 
 	for (i = 0; i < 10; ++i)
 	{
@@ -474,7 +480,8 @@ static void InitializeLUTIMP()
 	LUT[WAIT_FOR_OP]['/'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP]['^'] = push_prec_wfn;
 	LUT[WAIT_FOR_OP][')'] = handle_close_par_to_wfo;
-}
+	LUT[WAIT_FOR_OP]['\0'] = final_calculation;
+}	
 
 static tagged_uni_t ParserIMP(char **exp, state_t state)
 {
