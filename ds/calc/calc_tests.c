@@ -136,6 +136,8 @@ void TestInvalid()
 	char *sentence8 = "(152/0";
 	char *sentence9 = "(152/0))";
 	char *sentence10 = "152*5+";
+	char *sentence11 = "0^0";
+	char *sentence12 = "2250/4/0/125";
 	
 	double res = 0;
 		
@@ -149,6 +151,8 @@ void TestInvalid()
 	PRINTTESTRESULTS("TestInvalid_calc",8, 2 == Calc(sentence8, &res));
 	PRINTTESTRESULTS("TestInvalid_calc",9, 2 == Calc(sentence9, &res));
 	PRINTTESTRESULTS("TestInvalid_calc",10, 2 == Calc(sentence10, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",11, 2 == Calc(sentence11, &res));
+	PRINTTESTRESULTS("TestInvalid_calc",12, 1 == Calc(sentence12, &res));
 
 }
 

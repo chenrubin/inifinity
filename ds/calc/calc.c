@@ -2,7 +2,7 @@
 *		Author: ChenR				  *
 *		Reviewer: EyalR				  *
 *		calc						  *
-*		7/11/2019					  *
+*		22/12/2019					  *
 *									  *
 ************************************/
 
@@ -307,7 +307,7 @@ static status_t PushToOpWithPrecedenceIMP(tagged_uni_t *parser_res,
 			PopTwoFromNumStackAndCalcIMP(op_stack, num_stack, status);
 		}
 		StackPush(op_stack, &parser_res->type.ch);
-		*status = SUCCESS;
+		*status |= SUCCESS;
 	}
 	else
 	{
@@ -378,6 +378,11 @@ static double PowerOfNumbersIMP(double num1, double num2, status_t *status)
 {
 	*status = SUCCESS;
 	
+	if (0 == num1 && 0 == num2)
+	{
+		*status = INVALID_EXP;
+	}
+
 	return pow(num1, num2);
 }
 
