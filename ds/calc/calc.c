@@ -236,7 +236,7 @@ static status_t PushToNumIMP(tagged_uni_t *parser_res,
 	if ((parser_res -> type_flag) == number)
 	{
 		StackPush(num_stack, &parser_res->type.num);
-		*status = SUCCESS;
+		*status |= SUCCESS;
 	}
 	else
 	{
@@ -327,7 +327,7 @@ static status_t PushToOpNoPrecedenceIMP(tagged_uni_t *parser_res,
 	if ((parser_res -> type_flag) == character)
 	{
 		StackPush(op_stack, &parser_res->type.ch);
-		*status = SUCCESS;
+		*status |= SUCCESS;
 	}
 	else
 	{
@@ -339,21 +339,21 @@ static status_t PushToOpNoPrecedenceIMP(tagged_uni_t *parser_res,
 
 static double AddNumbersIMP(double num1, double num2, status_t *status)
 {
-	*status = SUCCESS;
+	*status |= SUCCESS;
 	
 	return num1 + num2;
 }
 
 static double SubtractNumbersIMP(double num1, double num2, status_t *status)
 {
-	*status = SUCCESS;
+	*status |= SUCCESS;
 	
 	return num1 - num2;
 }
 
 static double MultiplyNumbersIMP(double num1, double num2, status_t *status)
 {
-	*status = SUCCESS;
+	*status |= SUCCESS;
 	
 	return num1 * num2;
 }
@@ -368,7 +368,7 @@ static double DivideNumbersIMP(double num1, double num2, status_t *status)
 	}
 	else
 	{
-		*status = SUCCESS;
+		*status |= SUCCESS;
 		
 		return num1 / num2;
 	}
@@ -376,7 +376,7 @@ static double DivideNumbersIMP(double num1, double num2, status_t *status)
 
 static double PowerOfNumbersIMP(double num1, double num2, status_t *status)
 {
-	*status = SUCCESS;
+	*status |= SUCCESS;
 	
 	if (0 == num1 && 0 == num2)
 	{

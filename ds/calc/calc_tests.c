@@ -138,6 +138,7 @@ void TestInvalid()
 	char *sentence10 = "152*5+";
 	char *sentence11 = "0^0";
 	char *sentence12 = "2250/4/0/125";
+	char *sentence13 = "1.1+1*2.4+5/2.5/0";
 	
 	double res = 0;
 		
@@ -153,7 +154,7 @@ void TestInvalid()
 	PRINTTESTRESULTS("TestInvalid_calc",10, 2 == Calc(sentence10, &res));
 	PRINTTESTRESULTS("TestInvalid_calc",11, 2 == Calc(sentence11, &res));
 	PRINTTESTRESULTS("TestInvalid_calc",12, 1 == Calc(sentence12, &res));
-
+	PRINTTESTRESULTS("TestInvalid_calc",13, 1 == Calc(sentence13, &res));
 }
 
 void TestParentheses()
