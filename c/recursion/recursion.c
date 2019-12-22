@@ -7,6 +7,7 @@
 ************************************/
 
 #include <stdio.h> /* printf */
+#include <string.h> /*strcmp, strlen, strcpy, strcat, strstr */
 
 #include "recursion.h"
 #include "MyUtils.h" /* MAX2,MIN2 */
@@ -69,5 +70,71 @@ int Strcmp(const char *str1, const char *str2)
 	else
 	{
 		return (Strcmp(str1 + 1, str2 + 1) | (*str1 - *str2));
+	}
+}
+
+char *Strcpy(char *dest, const char *src)
+{
+	if ('\0' == *src)
+	{
+		*dest  = *src;
+	}
+	else
+	{
+		return (Strcpy(dest + 1, src + 1));
+	}
+	
+	return dest;
+}
+
+char *Strcat(char *dest, const char *src)
+{	
+	*(dest + strlen(dest)) = *src;
+	
+	if ('\0' == *src)
+	{
+		return dest;
+	}
+	else
+	{
+		return (Strcat(dest, src + 1));
+	}
+}
+
+char *Strstr(const char *haystack, const char *needle)
+{
+	if ('\0' == *needle)
+	{
+		return (char *)haystack;
+	}
+	else if ('\0' == *haystack)
+	{
+		return NULL;
+	}
+	if (*needle == *haystack && 
+	   (Strstr(haystack + 1, needle + 1) == haystack + 1))
+	{
+		return (char *)haystack;
+	}
+	
+	return(Strstr(haystack + 1, needle));
+}
+
+sl_node_t *Flip(sl_node_t *head)
+{
+	sl_node_t *temp = NULL;
+	sl_node_t *begin = NULL;
+	
+	if (NULL == (head -> next))
+	{
+		return head;
+	}
+	else
+	{
+		temp = head -> next;
+		begin = Flip(head -> next);
+		temp -> next = head;
+		head -> next = NULL;
+		return begin;
 	}
 }
