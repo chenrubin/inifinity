@@ -1,5 +1,6 @@
 #include <stdio.h> /* printf */
-#include <string.h> /*strcmp, strlen, strcpy, strcat, strstr */
+#include <string.h> /*RecStrcmp, RecStrlen, RecStrcpy, RecStrcat, RecStrstr */
+#include <strings.h> /*RecStrcmp, RecStrlen, RecStrcpy, RecStrcat, RecStrstr */
 
 #include "recursion.h"
 #include "MyUtils.h" /* MAX2,MIN2 */
@@ -9,23 +10,27 @@
 
 void TestIterativeFibonachi();
 void TestRecursiveFibonachi();
-void TestStrlen();
-void TestStrcmp();
-void TestStrcpy();
-void TestStrcat();
-void TestStrstr();
-void TestFlip();
+void TestRecStrlen();
+void TestRecStrcmp();
+void TestRecStrcpy();
+void TestRecStrcat();
+void TestRecStrstr();
+void TestRecFlip();
+void TestSortStack();
+
+int MyCompareFunc(void *data1, void *data2);
 
 int main()
 {
 	TestIterativeFibonachi();
 	TestRecursiveFibonachi();
-	TestStrlen();
-	TestStrcmp();
-	TestStrcpy();
-	TestStrcat();
-	TestStrstr();
-	TestFlip();
+	TestRecStrlen();
+	TestRecStrcmp();
+	TestRecStrcpy();
+	TestRecStrcat();
+	TestRecStrstr();
+	TestRecFlip();
+	TestSortStack();
 	
 	return 0;
 }
@@ -42,24 +47,24 @@ void TestIterativeFibonachi()
 
 void TestRecursiveFibonachi()
 {
-	PRINTTESTRESULTS("RecursiveFibonacci",1, 0 == RecursiveFibonacci(0));
-	PRINTTESTRESULTS("RecursiveFibonacci",2, 1 == RecursiveFibonacci(1));
-	PRINTTESTRESULTS("RecursiveFibonacci",3, 1 == RecursiveFibonacci(2));
-	PRINTTESTRESULTS("RecursiveFibonacci",4, 610 == RecursiveFibonacci(15));
-	PRINTTESTRESULTS("RecursiveFibonacci",5, 2178309  == RecursiveFibonacci(32));
-	PRINTTESTRESULTS("RecursiveFibonacci",6, 55 == RecursiveFibonacci(10));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",1, 0 == RecursiveFibonacci(0));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",2, 1 == RecursiveFibonacci(1));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",3, 1 == RecursiveFibonacci(2));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",4, 610 == RecursiveFibonacci(15));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",5, 2178309  == RecursiveFibonacci(32));
+	PRINTTESTRESULTS("TestRecursiveFibonachi",6, 55 == RecursiveFibonacci(10));
 }
 
-void TestStrlen()
+void TestRecStrlen()
 {
 	char *str1 = "moshe and I went shopping";
 	char *str2 = "";
 	
-	PRINTTESTRESULTS("TestStrlen",1, strlen(str1) == Strlen(str1));
-	PRINTTESTRESULTS("TestStrlen",2, strlen(str2) == Strlen(str2));
+	PRINTTESTRESULTS("TestRecStrlen",1, RecStrlen(str1) == RecStrlen(str1));
+	PRINTTESTRESULTS("TestRecStrlen",2, RecStrlen(str2) == RecStrlen(str2));
 }
 
-void TestStrcmp()
+void TestRecStrcmp()
 {
 	char *str1 = "moshe and I went shopping";
 	char *str2 = "moshe and I went shopping";
@@ -70,47 +75,47 @@ void TestStrcmp()
 	char *str7 = "aaaaak";
 	char *str8 = "aaaaam";
 	
-	PRINTTESTRESULTS("TestStrcmp",1, strcmp(str1, str2) == Strcmp(str1, str2));
-	PRINTTESTRESULTS("TestStrcmp",2, strcmp(str3, str4) == Strcmp(str3, str4));
-	PRINTTESTRESULTS("TestStrcmp",3, strcmp(str5, str6) == Strcmp(str5, str6));
-	PRINTTESTRESULTS("TestStrcmp",4, strcmp(str7, str8) == Strcmp(str7, str8));
+	PRINTTESTRESULTS("TestRecStrcmp",1, RecStrcmp(str1, str2) == RecStrcmp(str1, str2));
+	PRINTTESTRESULTS("TestRecStrcmp",2, RecStrcmp(str3, str4) == RecStrcmp(str3, str4));
+	PRINTTESTRESULTS("TestRecStrcmp",3, RecStrcmp(str5, str6) == RecStrcmp(str5, str6));
+	PRINTTESTRESULTS("TestRecStrcmp",4, RecStrcmp(str7, str8) == RecStrcmp(str7, str8));
 }
 
-void TestStrcpy()
+void TestRecStrcpy()
 {
-	char str_MyStrcpy[50] = {0};
-	char str_strcpy[50] = {0};
+	char str_MyRecStrcpy[50] = {0};
+	char str_RecStrcpy[50] = {0};
 	char *str1 = "m";
 	char *str2 = "85476)(*";
 	char *str3 = "   ";
 	
-	Strcpy(str_MyStrcpy, str1);
-	Strcpy(str_strcpy, str1);
-	PRINTTESTRESULTS("TestStrcpy",1, 0 == strcmp(str_strcpy, str_MyStrcpy));
-	Strcpy(str_MyStrcpy, str2);
-	Strcpy(str_strcpy, str2);
-	PRINTTESTRESULTS("TestStrcpy",2, 0 == strcmp(str_strcpy, str_MyStrcpy));
-	Strcpy(str_MyStrcpy, str3);
-	Strcpy(str_strcpy, str3);
-	PRINTTESTRESULTS("TestStrcpy",3, 0 == strcmp(str_strcpy, str_MyStrcpy));
+	RecStrcpy(str_MyRecStrcpy, str1);
+	RecStrcpy(str_RecStrcpy, str1);
+	PRINTTESTRESULTS("TestRecStrcpy",1, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	RecStrcpy(str_MyRecStrcpy, str2);
+	RecStrcpy(str_RecStrcpy, str2);
+	PRINTTESTRESULTS("TestRecStrcpy",2, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	RecStrcpy(str_MyRecStrcpy, str3);
+	RecStrcpy(str_RecStrcpy, str3);
+	PRINTTESTRESULTS("TestRecStrcpy",3, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
 }
 
-void TestStrcat()
+void TestRecStrcat()
 {
-	char str_MyStrcpy[50] = "Moshe";
-	char str_strcpy[50] = "Moshe";
+	char str_MyRecStrcpy[50] = "Moshe";
+	char str_RecStrcpy[50] = "Moshe";
 	char *str1 = "85476)(*";
 	char *str2 = "Maoz Can't write CV";
 	
-	Strcat(str_MyStrcpy, str1);
-	strcat(str_strcpy, str1);
-	PRINTTESTRESULTS("TestStrcat",1, 0 == strcmp(str_strcpy, str_MyStrcpy));
-	Strcat(str_MyStrcpy, str2);
-	strcat(str_strcpy, str2);
-	PRINTTESTRESULTS("TestStrcat",2, 0 == strcmp(str_strcpy, str_MyStrcpy));
+	RecStrcat(str_MyRecStrcpy, str1);
+	RecStrcat(str_RecStrcpy, str1);
+	PRINTTESTRESULTS("TestRecStrcat",1, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	RecStrcat(str_MyRecStrcpy, str2);
+	RecStrcat(str_RecStrcpy, str2);
+	PRINTTESTRESULTS("TestRecStrcat",2, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
 }
 
-void TestStrstr()
+void TestRecStrstr()
 {
 	char *str1 = "Maoz dum is dumb";
 	char *str2 = "dumb";
@@ -119,15 +124,15 @@ void TestStrstr()
 	char *res1 = NULL;
 	char *res2 = NULL;
 	
-	res1 = Strstr(str1, str2);
-	res2 = strstr(str1, str2);
-	PRINTTESTRESULTS("TestStrstr",1, res1 == res2);
-	res1 = Strstr(str3, str4);
-	res2 = strstr(str3, str4);
-	PRINTTESTRESULTS("TestStrstr",2, res1 == res2);
+	res1 = RecStrstr(str1, str2);
+	res2 = RecStrstr(str1, str2);
+	PRINTTESTRESULTS("TestRecStrstr",1, res1 == res2);
+	res1 = RecStrstr(str3, str4);
+	res2 = RecStrstr(str3, str4);
+	PRINTTESTRESULTS("TestRecStrstr",2, res1 == res2);
 }
 
-void TestFlip()
+void TestRecFlip()
 {
 	int data1 = 1;
 	int data2 = 2;
@@ -140,14 +145,59 @@ void TestFlip()
 	sl_node_t *second_node = SListCreateNode(&data2, third_node);
 	sl_node_t *first_node = SListCreateNode(&data1, second_node);
 	
-	sl_node_t *head_after_flip = Flip(first_node);
+	sl_node_t *head_after_RecFlip = RecFlip(first_node);
 
-	PRINTTESTRESULTS("TestFlip",1, 5 == *(int *)head_after_flip -> data);
-	PRINTTESTRESULTS("TestFlip",2, head_after_flip == fifth_node);
-	PRINTTESTRESULTS("TestFlip",3, 4 == *(int *)head_after_flip -> next -> data);
-	PRINTTESTRESULTS("TestFlip",4, 3 == *(int *)head_after_flip -> next -> next -> data);
-	PRINTTESTRESULTS("TestFlip",5, 2 == *(int *)head_after_flip -> next -> next -> next -> data);
-	PRINTTESTRESULTS("TestFlip",6, 1 == *(int *)head_after_flip -> next -> next -> next -> next -> data);
+	PRINTTESTRESULTS("TestRecFlip",1, 5 == *(int *)head_after_RecFlip -> data);
+	PRINTTESTRESULTS("TestRecFlip",2, head_after_RecFlip == fifth_node);
+	PRINTTESTRESULTS("TestRecFlip",3, 4 == *(int *)head_after_RecFlip -> next -> data);
+	PRINTTESTRESULTS("TestRecFlip",4, 3 == *(int *)head_after_RecFlip -> next -> next -> data);
+	PRINTTESTRESULTS("TestRecFlip",5, 2 == *(int *)head_after_RecFlip -> next -> next -> next -> data);
+	PRINTTESTRESULTS("TestRecFlip",6, 1 == *(int *)head_after_RecFlip -> next -> next -> next -> next -> data);
 	
-	SListFreeAll(head_after_flip);
+	SListFreeAll(head_after_RecFlip);
+}
+
+void TestSortStack()
+{
+	int data1 = 1;
+	int data2 = 10;
+	int data3 = -8;
+	int data4 = 5;
+	int data5 = 0;
+	stack_t *new_stack = StackCreate(5, sizeof(int));
+	
+	StackPush(new_stack, &data1);
+	StackPush(new_stack, &data2);
+	StackPush(new_stack, &data3);
+	StackPush(new_stack, &data4);
+	StackPush(new_stack, &data5);
+	
+	new_stack = RecSortStack(new_stack, 4, MyCompareFunc);
+	
+	PRINTTESTRESULTS("TestSortStack",1, 10 == *(int *)StackPeek(new_stack));
+	StackPop(new_stack);
+	PRINTTESTRESULTS("TestSortStack",2, 5 == *(int *)StackPeek(new_stack));
+	StackPop(new_stack);
+	PRINTTESTRESULTS("TestSortStack",3, 1 == *(int *)StackPeek(new_stack));
+	StackPop(new_stack);
+	PRINTTESTRESULTS("TestSortStack",4, 0 == *(int *)StackPeek(new_stack));
+	StackPop(new_stack);
+	PRINTTESTRESULTS("TestSortStack",5, -8 == *(int *)StackPeek(new_stack));
+	StackPop(new_stack);
+	
+	StackDestroy(new_stack);
+}
+
+int MyCompareFunc(void *data1, void *data2)
+{
+	if (*(int *)data1 < *(int *)data2)
+	{
+		return 1;
+	}
+	else if (*(int *)data1 == *(int *)data2)
+	{
+		return 0;
+	}
+	
+	return -1;
 }
