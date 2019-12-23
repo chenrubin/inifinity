@@ -12,7 +12,6 @@
 #include "recursion.h"
 #include "MyUtils.h" /* MAX2,MIN2 */
 
-
 unsigned long IterativeFibonacci(unsigned int n)
 {
 	unsigned long i = 0;
@@ -137,4 +136,9 @@ sl_node_t *Flip(sl_node_t *head)
 		head -> next = NULL;
 		return begin;
 	}
+}
+
+stack_t *SortStack(stack_t *stack,compare_func func)
+{
+	stack_t *second_stack = StackCreate(StackSize(stack), sizeof(int));
 }
