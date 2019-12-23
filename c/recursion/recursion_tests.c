@@ -3,7 +3,7 @@
 #include <strings.h> /*RecStrcmp, RecStrlen, RecStrcpy, RecStrcat, RecStrstr */
 
 #include "recursion.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 #include "../../ds/stack/stack.h"
 #include "../../ds/slist/slist.h"
 

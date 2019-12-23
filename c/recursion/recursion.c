@@ -1,20 +1,21 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Gal				  *
 *		recursion					  *
-*		7/11/2019					  *
+*		23/12/2019					  *
 *									  *
 ************************************/
 
-#include <stdio.h> /* printf */
-#include <string.h> /*RecStrcmp, RecStrlen, RecStrcpy, RecStrcat, RecStrstr */
-#include <stdlib.h> /*malloc*/
-#include <assert.h> /*malloc*/
+#include <string.h> /* memcpy */
+#include <stdlib.h> /* malloc */
+#include <assert.h> /* assert */
 
 #include "recursion.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-static void CopyElementAndPopFromStackIMP(void *element , stack_t *stack, size_t element_size);
+static void CopyElementAndPopFromStackIMP(void *element , 
+										  stack_t *stack, 
+										  size_t element_size);
 
 unsigned long IterativeFibonacci(unsigned int n)
 {
@@ -23,7 +24,7 @@ unsigned long IterativeFibonacci(unsigned int n)
 	unsigned long higher_element = 1;
 	unsigned long res = 0;
 	
-	if (0 == n || 1 == n)
+	if (n <= 1)
 	{
 		return n;
 	}
@@ -42,7 +43,7 @@ unsigned long IterativeFibonacci(unsigned int n)
 
 unsigned long RecursiveFibonacci(unsigned int n)
 {
-	if (0 == n || 1 == n)
+	if (n <= 1)
 	{
 		return n;
 	}
@@ -205,7 +206,9 @@ stack_t *RecSortStack(stack_t *stack, size_t element_size, cmp_func_t func)
 	return stack;
 }
 
-static void CopyElementAndPopFromStackIMP(void *element , stack_t *stack, size_t element_size)
+static void CopyElementAndPopFromStackIMP(void *element , 
+										  stack_t *stack, 
+										  size_t element_size)
 {
 	memcpy(element,StackPeek(stack), element_size);
 	StackPop(stack);
