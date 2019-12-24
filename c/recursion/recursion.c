@@ -69,6 +69,19 @@ int RecStrcmp(const char *str1, const char *str2)
 {
 	assert(str1);
 	assert(str2);
+
+	if ((*str1 != *str2) || (('\0' == *str1) || ('\0' == *str2)))
+	{
+		return (*str1 - *str2);
+	}
+	
+	return (RecStrcmp(str1 + 1, str2 + 1));
+}
+/*
+int RecStrcmp(const char *str1, const char *str2)
+{
+	assert(str1);
+	assert(str2);
 	
 	if ('\0' == *str1 || '\0' == *str2)
 	{
@@ -79,21 +92,22 @@ int RecStrcmp(const char *str1, const char *str2)
 		return (RecStrcmp(str1 + 1, str2 + 1) | (*str1 - *str2));
 	}
 }
-
+*/
 char *RecStrcpy(char *dest, const char *src)
 {
 	assert(dest);
 	assert(src);
-	
+
 	if ('\0' == *src)
 	{
-		*dest  = *src;
+		*dest = *src;
+		
+		return dest;
 	}
-	else
-	{
-		return (RecStrcpy(dest + 1, src + 1));
-	}
-	
+
+	RecStrcpy(dest + 1, src + 1);
+	*dest = *src;
+
 	return dest;
 }
 
@@ -174,6 +188,8 @@ stack_t *RecSortStack(stack_t *stack, size_t element_size, cmp_func_t func)
 	element2 = (void *)malloc(element_size);
 	if (NULL == element2)
 	{
+		free(element1);
+		
 		return NULL;
 	}
 

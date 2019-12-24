@@ -91,13 +91,13 @@ void TestRecStrcpy()
 	
 	RecStrcpy(str_MyRecStrcpy, str1);
 	RecStrcpy(str_RecStrcpy, str1);
-	PRINTTESTRESULTS("TestRecStrcpy",1, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	PRINTTESTRESULTS("TestRecStrcpy",1, 0 == strcmp(str_RecStrcpy, str_MyRecStrcpy));
 	RecStrcpy(str_MyRecStrcpy, str2);
 	RecStrcpy(str_RecStrcpy, str2);
-	PRINTTESTRESULTS("TestRecStrcpy",2, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	PRINTTESTRESULTS("TestRecStrcpy",2, 0 == strcmp(str_RecStrcpy, str_MyRecStrcpy));
 	RecStrcpy(str_MyRecStrcpy, str3);
 	RecStrcpy(str_RecStrcpy, str3);
-	PRINTTESTRESULTS("TestRecStrcpy",3, 0 == RecStrcmp(str_RecStrcpy, str_MyRecStrcpy));
+	PRINTTESTRESULTS("TestRecStrcpy",3, 0 == strcmp(str_RecStrcpy, str_MyRecStrcpy));
 }
 
 void TestRecStrcat()
