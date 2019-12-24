@@ -5,7 +5,8 @@
 *		7/11/2019					  *
 *									  *
 ************************************/
-#include <stdlib.h>
+#include <stdlib.h> /* malloc */
+#include <assert.h> /* assert */
 
 #include "avl.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
@@ -33,6 +34,9 @@ static avl_node_t *BalanceTreeIMP();
 avl_node_t *RecInsertIMP(avl_node_t *node, 
 						 void *data, 
 						 comparison_func comparison_func);
+static size_t RecAvlSizeIMP(avl_node_t *node);
+static int RecForEachIMP(avl_node_t *node, action_func func, void *param);
+static int IsLeafIMP(avl_node_t *node);
 
 avl_t *AVLCreate(comparison_func func)
 {
@@ -41,6 +45,8 @@ avl_t *AVLCreate(comparison_func func)
 	{
 		return NULL;
 	}
+	
+	assert(func);
 	
 	new_avl -> comparison_func = func;
 	new_avl -> root = NULL;
@@ -70,17 +76,12 @@ static void RecDestroyIMP(avl_node_t *node)
 
 int AVLInsert(avl_t *tree, void *data)
 {
-	avl_node_t *node = tree -> root;
+	assert(tree);
 	
-	node = RecInsertIMP(node, data, tree -> comparison_func);
-	if (NULL == node)
-	{
-		return 1;
-	}
-	
+	tree -> root = RecInsertIMP(tree -> root, data, tree -> comparison_func);
 	if (NULL == tree -> root)
 	{
-		(tree -> root) = node;
+		return 1;
 	}
 	
 	return 0;	
@@ -151,6 +152,75 @@ int GetDirectionIMP(int result)
 	
 	return 1;
 }
+
+size_t AVLSize(const avl_t *tree)
+{
+	return RecAvlSizeIMP(tree -> root);
+}
+
+static size_t RecAvlSizeIMP(avl_node_t *node)
+{
+	if (NULL == node)
+	{
+		return 0;
+	}
+	else
+	{
+		return (RecAvlSizeIMP(node -> children[0]) + 
+				RecAvlSizeIMP(node -> children[1]) + 1);
+	}
+}
+
+int AVLForEach(avl_t *tree, action_func func, void *param)
+{
+	assert(tree);
+	
+	if (NULL == tree -> root)
+	{
+		return 0;
+	}
+	
+	return RecForEachIMP(tree -> root, func, param);
+}
+
+static int RecForEachIMP(avl_node_t *node, action_func func, void *param)
+{
+	int status = 0;
+	
+	if (NULL == node)
+	{
+		return 0;
+	}
+	
+	status |= RecForEachIMP(node -> children[0], func, param);
+	
+	if (func(node -> data, param) == 1)
+	{
+		return 1;
+	}
+	
+	status |= RecForEachIMP(node -> children[1], func, param);
+	
+	return status;
+}
+
+static int IsLeafIMP(avl_node_t *node)
+{
+	return (NULL == node -> children[0] &&
+			NULL == node -> children[1]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
