@@ -1,7 +1,7 @@
 #include <stdio.h> /* printf */
 
 #include "avl.h"
-#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
+#include "MyUtils.h" /* MAX2,MIN2 */
 
 int MyCompareFuncIMP(const void *new_data, const void *src_data);
 int MyForEachFunctionPrintData(void *data, void *for_each_param);
@@ -13,10 +13,10 @@ void TestRemove();
 
 int main()
 {
-/*	TestCreateDestroy();
+	TestCreateDestroy();
 	TestInsert();
 	TestFind();
-*/	TestRemove();
+	TestRemove();
 	
 	return 0;
 }
@@ -65,10 +65,10 @@ void TestRemove()
 	printf("\nbefore remove\n");
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	
-	AVLRemove(new_avl, &arr[0]);
+	/*AVLRemove(new_avl, &arr[0]);*/
 	/*AVLRemove(new_avl, &arr[3]);*/
 	/*AVLRemove(new_avl, &arr[1]);*/
-	/*AVLRemove(new_avl, &arr[2]);*/
+	AVLRemove(new_avl, &arr[2]);
 	printf("after remove\n");
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	
