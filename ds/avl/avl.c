@@ -144,7 +144,7 @@ void AVLRemove(avl_t *tree, const void *data)
 	tree -> root = RecRemoveIMP(tree -> root, (void *)data, 
 								tree -> comparison_func);
 	tree -> root = BalanceTreeIMP(tree -> root);							
-	UpdateHeightIMP(tree -> root);									   					 				   					 	
+/*	UpdateHeightIMP(tree -> root);*/
 }
 
 
@@ -334,7 +334,8 @@ static avl_node_t *SimpleRotation(avl_node_t *node, int direction)
 	node -> children[direction] = pivot -> children[!direction];
 	pivot -> children[!direction] = node;
 	
-	--(node -> height);
+	UpdateHeightIMP(node);
+/*	--(node -> height);*/
 	
 	return pivot;									  
 }
@@ -349,8 +350,10 @@ static void DoubleRotation(avl_node_t *node, int direction)
 	pivot -> children[!direction] = node_to_connect -> children[direction];
 	node_to_connect -> children[direction] = pivot;
 	
-	--(pivot -> height);
-	++(node_to_connect -> height);
+	UpdateHeightIMP(node_to_connect);
+	UpdateHeightIMP(pivot);
+/*	--(pivot -> height);
+	++(node_to_connect -> height);*/
 }
 
 int GetDirectionIMP(void *new_data, void *src_data, 

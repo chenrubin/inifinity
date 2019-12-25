@@ -13,10 +13,10 @@ void TestRemove();
 
 int main()
 {
-/*	TestCreateDestroy();
+	TestCreateDestroy();
 	TestInsert();
-/*	TestFind();
-*/	TestRemove();
+	TestFind();
+	TestRemove();
 	
 	return 0;
 }
@@ -109,7 +109,7 @@ void TestInsert()
 
 void TestRemove()
 {
-	int arr[] = {5,3,-8,-5,6,8,-56,9,-45,0,7};
+	int arr[] = {61,59,48,51,62,64,0,65,11,56,63};
 	avl_t *new_avl = NULL;
 	unsigned int i = 0;
 	int param = 0;
@@ -125,6 +125,7 @@ void TestRemove()
 	printf("remove right Leaf - number %d\n", arr[9]);
 	AVLRemove(new_avl, &arr[9]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
 	printf("after remove of %d\n", arr[9]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
@@ -141,6 +142,7 @@ void TestRemove()
 	AVLRemove(new_avl, &arr[10]);
 	printf("after remove of %d\n", arr[10]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
 	printf("\n\n");
@@ -155,6 +157,7 @@ void TestRemove()
 	printf("remove one with two chilren - number %d\n", arr[2]);
 	AVLRemove(new_avl, &arr[2]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
 	printf("after remove of %d\n", arr[2]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
@@ -170,6 +173,7 @@ void TestRemove()
 	printf("remove one with two chilren - number %d\n", arr[5]);
 	AVLRemove(new_avl, &arr[5]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
 	printf("after remove of %d\n", arr[5]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
@@ -185,6 +189,7 @@ void TestRemove()
 	printf("remove root - number %d\n", arr[0]);
 	AVLRemove(new_avl, &arr[0]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
 	printf("after remove of %d\n", arr[0]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
@@ -202,7 +207,8 @@ void TestRemove()
 	printf("remove root - number %d\n", arr[9]);
 	AVLRemove(new_avl, &arr[9]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
-	printf("after remove of %d\n", arr[0]);
+	PRINTTESTRESULTS("TestRemove_size",1, 9 == AVLSize(new_avl));
+	printf("after remove of %d and %d\n", arr[8], arr[9]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
 	printf("\n\n");
@@ -217,7 +223,8 @@ void TestRemove()
 	printf("remove root - number %d\n", arr[1]);
 	AVLRemove(new_avl, &arr[1]);
 	PRINTTESTRESULTS("TestRemove_AVLGetHeight",1, 3 == AVLGetHeight(new_avl));
-	printf("after remove of %d\n", arr[0]);
+	PRINTTESTRESULTS("TestRemove_size",1, 10 == AVLSize(new_avl));
+	printf("after remove of %d\n", arr[1]);
 	AVLForEach(new_avl, MyForEachFunctionPrintData, &param);
 	AVLDestroy(new_avl);
 	printf("\n\n");	
