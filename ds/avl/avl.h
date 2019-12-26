@@ -13,37 +13,20 @@
 
 
 typedef struct avl avl_t;
-typedef int (*comparison_func)(const void *new_data, const void *src_data);
-typedef int (*action_func)(void *data, void *for_each_param);
+typedef int (*comparison_func_t)(const void *new_data, const void *src_data);
+typedef int (*action_func_t)(void *data, void *for_each_param);
 
-typedef int (*is_match)(void *data, void *func_param);
-typedef int (*should_remove)(void *data, void *func_param);
+typedef int (*is_match_t)(void *data, void *func_param);
+typedef int (*should_remove_t)(void *data, void *func_param);
 
-/*
-Paste this in your C file:
-typedef struct avl_node avl_node_t;
-struct avl_node
-{
-	struct avl_node_t *children[2];
-	void *data;
-	size_t height; 
-};
 
-struct avl
-{
-	comparison_func comparison_func;
-	struct avl_node_t *root;
-};
-
-PHASE 1. only build avl without balance and with recursion (place stub balance func)
-*/
 /* Function creates a Binary AVL Search Tree struct.
  * Receives the sort function pointer
  * returns pointer to the Binary AVL Search Tree struct header
  * The comparison_func should return 1 if new_data is larger,
  * -1 if src_data is larger and 0 if they are equal.
  * if the function fails, it returns NULL */
-avl_t *AVLCreate(comparison_func func);
+avl_t *AVLCreate(comparison_func_t func);
 
 /* The function destroys all nodes in tree and frees all memory allocations,
  * In Post-order. */
@@ -54,16 +37,20 @@ void AVLDestroy(avl_t *tree);
  * The function returns an allocation status.
  * If the same data already exists in the struct, the behavior is undefined
  * The pointer must point to a valid AVL struct 
- * Function will insert the new node to optimized location. */
+ * Function will insert the new node to optimized location. 
+ * returns 0 if success, non-zero if otherwise. 
+ * If Tree is Empty, function is undefined. */
 int AVLInsert(avl_t *tree, void *data);
 
 /* Function removes the node that is matching with data sent.
  * After AVLRemove call, the access data will be lost!
- * The tree pointer must point to a valid AVL tree */
+ * The tree pointer must point to a valid AVL tree 
+ * If data is not found then function is terminated */
 void AVLRemove(avl_t *tree, const void *data);
 
 /* Function returns height of tree (distance of furthest leaf from root).
- * The tree pointer must point to a valid AVL tree */
+ * The tree pointer must point to a valid AVL tree.
+ * If tree is empty than result is undefined. */
 size_t AVLGetHeight(const avl_t *tree);
 
 /* The function should look for data in the tree.
@@ -93,14 +80,14 @@ size_t AVLSize(const avl_t *tree);
  * the AVLForEach will return 0 if completed its task, 
  * else the non - zero value it received from the action_func function 
  * Func will run at In-order */
-int AVLForEach(avl_t *tree, action_func func, void *param);
+int AVLForEach(avl_t *tree, action_func_t func, void *param);
 
 /*
 BONUS FUNCS!
-void avlMultiFind(avl_t *tree, dl_list_t *list,
-			 is_match func, void* func_param);
+void AVLMultiFind(avl_t *tree, dl_list_t *list,
+			 is_match_t func, void* func_param);
 
-void avlMultiRemove(avl_t *tree, should_remove func, void *func_param);
+void AVLMultiRemove(avl_t *tree, should_remove_t func, void *func_param);
 */
 
 #endif

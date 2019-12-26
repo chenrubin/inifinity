@@ -1,8 +1,8 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Sharon			  *
 *		avl							  *
-*		7/11/2019					  *
+*		26/12/2019					  *
 *									  *
 ************************************/
 #include <stdlib.h> /* malloc */
@@ -10,7 +10,7 @@
 #include <stdio.h> /* assert */
 
 #include "avl.h"
-#include "MyUtils.h" /* MAX2,MIN2 */
+#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 typedef struct avl_node avl_node_t;
 
@@ -30,7 +30,7 @@ struct avl_node
 
 struct avl
 {
-	comparison_func comparison_func;
+	comparison_func_t comparison_func;
 	avl_node_t *root;
 };
 
@@ -46,20 +46,20 @@ static void UpdateHeightIMP(avl_node_t *node);
 /* gets direction if where to go when serching for a number or looking where 
    to insert it */
 static int GetDirectionIMP(void *new_data, void *src_data, 
-					comparison_func comparison_func);
+					comparison_func_t comparison_func);
 /* balance tree after insert or remove */					
 static avl_node_t *BalanceTreeIMP(avl_node_t *node);
 
 /* recursively insert node to tree */
 static avl_node_t *RecInsertIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func);
+						 comparison_func_t comparison_func);
 						 
 /* recursively getting size */						 
 static size_t RecAvlSizeIMP(avl_node_t *node);
 
 /* recursively issiung function for each node in tree */
-static int RecForEachIMP(avl_node_t *node, action_func func, void *param);
+static int RecForEachIMP(avl_node_t *node, action_func_t func, void *param);
 
 /* return 1 if leaf and 0 if not */
 static int IsLeafIMP(avl_node_t *node);
@@ -67,7 +67,7 @@ static int IsLeafIMP(avl_node_t *node);
 /* recursively 1 finds element in tree */
 static void *RecFindIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func);
+						 comparison_func_t comparison_func);
 						 
 /* return max between two numbers */						 
 static size_t MyMaxIMP(size_t x, size_t y);
@@ -75,7 +75,7 @@ static size_t MyMaxIMP(size_t x, size_t y);
 /* recursively remvove node from tree */
 static avl_node_t *RecRemoveIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func);
+						 comparison_func_t comparison_func);
 						 
 /* 0 means only left child, 1 meand only right child and 2 means both */
 static num_of_children_t WhichChildrenExistIMP(avl_node_t *node);
@@ -97,7 +97,7 @@ static avl_node_t *SimpleRotationIMP(avl_node_t *node, int direction);
 /* double rotation left and right ot right and left */
 static void DoubleRotationIMP(avl_node_t *node, int direction);
 
-avl_t *AVLCreate(comparison_func func)
+avl_t *AVLCreate(comparison_func_t func)
 {
 	avl_t *new_avl = (avl_t *)malloc(sizeof(avl_t));
 	if (NULL == new_avl)
@@ -150,7 +150,7 @@ void AVLRemove(avl_t *tree, const void *data)
 
 static avl_node_t *RecRemoveIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func)
+						 comparison_func_t comparison_func)
 {
 	int direction = GetDirectionIMP(data, node -> data, comparison_func);
 	int which_children = 0;
@@ -271,7 +271,7 @@ static size_t RecAvlSizeIMP(avl_node_t *node)
 	}
 }
 
-int AVLForEach(avl_t *tree, action_func func, void *param)
+int AVLForEach(avl_t *tree, action_func_t func, void *param)
 {
 	assert(tree);
 	
@@ -297,7 +297,7 @@ int AVLIsEmpty(const avl_t *tree)
 	return (NULL == (tree -> root));
 }
 
-static int RecForEachIMP(avl_node_t *node, action_func func, void *param)
+static int RecForEachIMP(avl_node_t *node, action_func_t func, void *param)
 {
 	int status = 0;
 
@@ -338,7 +338,7 @@ static int IsLeafIMP(avl_node_t *node)
 
 static void *RecFindIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func)
+						 comparison_func_t comparison_func)
 {
 	int direction = 0;
 	
@@ -395,7 +395,7 @@ static void RecDestroyIMP(avl_node_t *node)
 
 static avl_node_t *RecInsertIMP(avl_node_t *node, 
 						 void *data, 
-						 comparison_func comparison_func)
+						 comparison_func_t comparison_func)
 {
 	int direction = 0;
 	
@@ -531,7 +531,7 @@ static void DoubleRotationIMP(avl_node_t *node, int direction)
 }
 
 static int GetDirectionIMP(void *new_data, void *src_data, 
-					comparison_func comparison_func)
+					comparison_func_t comparison_func)
 {
 	if (-1 == comparison_func(new_data, src_data))
 	{
