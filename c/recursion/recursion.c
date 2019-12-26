@@ -77,22 +77,7 @@ int RecStrcmp(const char *str1, const char *str2)
 	
 	return (RecStrcmp(str1 + 1, str2 + 1));
 }
-/*
-int RecStrcmp(const char *str1, const char *str2)
-{
-	assert(str1);
-	assert(str2);
-	
-	if ('\0' == *str1 || '\0' == *str2)
-	{
-		return (*str1 - *str2);
-	}
-	else
-	{
-		return (RecStrcmp(str1 + 1, str2 + 1) | (*str1 - *str2));
-	}
-}
-*/
+
 char *RecStrcpy(char *dest, const char *src)
 {
 	assert(dest);

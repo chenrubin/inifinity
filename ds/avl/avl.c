@@ -189,15 +189,13 @@ static void TraverseUntilLeftmostLeafAndConnectIMP(avl_node_t *node,
 	{
 		node -> children[LEFT] = node_to_connect_to;
 		UpdateHeightIMP(node);
-		
-		return;
 	}
-	
-	TraverseUntilLeftmostLeafAndConnectIMP(node -> children[LEFT], 
-										   node_to_connect_to);
-	UpdateHeightIMP(node);
-	
-	return;
+	else
+	{
+		TraverseUntilLeftmostLeafAndConnectIMP(node -> children[LEFT], 
+										   	   node_to_connect_to);
+		UpdateHeightIMP(node);
+	}	
 }
 
 static avl_node_t *RecRemoveIMP(avl_node_t *node, 
