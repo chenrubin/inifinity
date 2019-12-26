@@ -34,32 +34,67 @@ struct avl
 	avl_node_t *root;
 };
 
+/* recursively destroys tree */
 static void RecDestroyIMP(avl_node_t *node);
+
+/* Creates node */
 static avl_node_t *CreateNodeIMP(void *data);
+
+/* Updates node height */
 static void UpdateHeightIMP(avl_node_t *node);
+
+/* gets direction if where to go when serching for a number or looking where 
+   to insert it */
 int GetDirectionIMP(void *new_data, void *src_data, 
 					comparison_func comparison_func);
+/* balance tree after insert or remove */					
 static avl_node_t *BalanceTreeIMP(avl_node_t *node);
+
+/* recursively insert node to tree */
 avl_node_t *RecInsertIMP(avl_node_t *node, 
 						 void *data, 
 						 comparison_func comparison_func);
+						 
+/* recursively getting size */						 
 static size_t RecAvlSizeIMP(avl_node_t *node);
+
+/* recursively issiung function for each node in tree */
 static int RecForEachIMP(avl_node_t *node, action_func func, void *param);
+
+/* return 1 if leaf and 0 if not */
 static int IsLeafIMP(avl_node_t *node);
-void *AVLFind(const avl_t *tree, const void *data);
+
+/* recursively 1 finds element in tree */
 static void *RecFindIMP(avl_node_t *node, 
 						 void *data, 
 						 comparison_func comparison_func);
-size_t MyMax(size_t x, size_t y);
+						 
+/* return max between two numbers */						 
+size_t MyMaxIMP(size_t x, size_t y);
+
+/* recursively remvove node from tree */
 static avl_node_t *RecRemoveIMP(avl_node_t *node, 
 						 void *data, 
 						 comparison_func comparison_func);
-static num_of_children_t WhichChildrenExistIMP(avl_node_t *node);	
+						 
+/* 0 means only left child, 1 meand only right child and 2 means both */
+static num_of_children_t WhichChildrenExistIMP(avl_node_t *node);
+
+/* finding the left most child of a node and connecting it to node's
+   right child  */
 static void TraverseUntilLeftmostLeafAndConnectIMP(avl_node_t *node, 
-												   avl_node_t *node_to_connect_to);
+												avl_node_t *node_to_connect_to);
+
+/* Get's tree'd root height */												
 static int GetHeightIMP(avl_node_t *node);
+
+/* returns right child's hight minus left child's height */
 static int GetDiffFactorIMP(avl_node_t *node);
+
+/* one rotation to left or to right  */
 static avl_node_t *SimpleRotation(avl_node_t *node, int direction);
+
+/* double rotation left and right ot right and left */
 static void DoubleRotation(avl_node_t *node, int direction);
 
 avl_t *AVLCreate(comparison_func func)
@@ -144,7 +179,6 @@ void AVLRemove(avl_t *tree, const void *data)
 	tree -> root = RecRemoveIMP(tree -> root, (void *)data, 
 								tree -> comparison_func);
 	tree -> root = BalanceTreeIMP(tree -> root);							
-/*	UpdateHeightIMP(tree -> root);*/
 }
 
 
@@ -159,7 +193,8 @@ static void TraverseUntilLeftmostLeafAndConnectIMP(avl_node_t *node,
 		return;
 	}
 	
-	TraverseUntilLeftmostLeafAndConnectIMP(node -> children[LEFT], node_to_connect_to);
+	TraverseUntilLeftmostLeafAndConnectIMP(node -> children[LEFT], 
+										   node_to_connect_to);
 	UpdateHeightIMP(node);
 	
 	return;
@@ -255,19 +290,17 @@ static void UpdateHeightIMP(avl_node_t *node)
 		}
 		else
 		{
-			node -> height = MyMax(node -> children[0] -> height, 
-								  node -> children[1] -> height) + 1;
+			node -> height = MyMaxIMP(node -> children[0] -> height, 
+								  	  node -> children[1] -> height) + 1;
 		}	
 	}	  
 }
 
 static avl_node_t *BalanceTreeIMP(avl_node_t *node)
 {
-	/* chicking difference of heights in order to know if balanced or not */
-	/* Then doing the  */
 	int direction = 0;
 	avl_node_t *pivot = NULL;
-	int diff = GetDiffFactorIMP(node); /* right minus left */
+	int diff = GetDiffFactorIMP(node);
 	
 	if (diff > 1)
 	{
@@ -335,7 +368,6 @@ static avl_node_t *SimpleRotation(avl_node_t *node, int direction)
 	pivot -> children[!direction] = node;
 	
 	UpdateHeightIMP(node);
-/*	--(node -> height);*/
 	
 	return pivot;									  
 }
@@ -352,8 +384,6 @@ static void DoubleRotation(avl_node_t *node, int direction)
 	
 	UpdateHeightIMP(node_to_connect);
 	UpdateHeightIMP(pivot);
-/*	--(pivot -> height);
-	++(node_to_connect -> height);*/
 }
 
 int GetDirectionIMP(void *new_data, void *src_data, 
@@ -461,7 +491,7 @@ static void *RecFindIMP(avl_node_t *node,
 	}
 }
 
-size_t MyMax(size_t x, size_t y)
+size_t MyMaxIMP(size_t x, size_t y)
 {
 	if (x > y)
 	{
@@ -494,18 +524,3 @@ static int GetHeightIMP(avl_node_t *node)
 	
 	return node -> height;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
