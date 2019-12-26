@@ -10,6 +10,8 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
+#define UNUSED(x) ((void)(x))
+
 #define MIN2(a,b) (a) <= (b) ? (a) : (b)
 #define MAX2(a,b) (a) >= (b) ? (a) : (b)
 #define MIN3(a,b,c) MIN2(a,b) <= MIN2(b,c) ? (MIN2(a,b)) : MIN2(b,c)
