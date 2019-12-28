@@ -1,6 +1,8 @@
 #include <stdio.h> /* printf */
 #include <string.h> /* strcmp */
-#include <ctype.h> /* tolower */
+#include <strings.h> /* strcasecmp */
+#include <ctype.h> /* toupper */
+
 #include "hashtable.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
@@ -211,6 +213,7 @@ void TestStd()
 	HashDestroy(new_htbl);
 	printf("\n\n");									
 }
+
 size_t MyHashFunction(const void *key)
 {
 	size_t index = (size_t)toupper(*(char *)key) - 'A';
@@ -220,7 +223,7 @@ size_t MyHashFunction(const void *key)
 
 int MyIsMatchFunction(const void *current_data, const void *data_to_compare)
 {
-	return (0 == strcmp((char *)current_data, (char *)data_to_compare));
+	return (0 == strcasecmp((char *)current_data, (char *)data_to_compare));
 }
 
 int MyActionFunction(void *data, void *action_param)

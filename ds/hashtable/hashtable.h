@@ -23,6 +23,7 @@ typedef int (*is_match_t)(const void *current_data,
  * The hash_func and match_func can't be NULL.
  * num_of_buckets should be greater than 0.
  * hash_func should return index of the table.
+ .
  * match_func should return 1 if data was found, 0 otherwise.
  * Return Values:
  *                - returns pointer to the Hash Table.

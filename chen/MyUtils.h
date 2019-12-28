@@ -11,11 +11,14 @@
 #define KWHT  "\x1B[37m"
 
 #define UNUSED(x) ((void)(x))
-
-#define MIN2(a,b) (a) <= (b) ? (a) : (b)
-#define MAX2(a,b) (a) >= (b) ? (a) : (b)
-#define MIN3(a,b,c) MIN2(a,b) <= MIN2(b,c) ? (MIN2(a,b)) : MIN2(b,c)
-#define MAX3(a,b,c) MAX2(a,b) >= MAX2(b,c) ? (MAX2(a,b)) : MAX2(b,c)
+#define MIN2(a,b) ((a) <= (b) ? (a) : (b))
+#define MAX2(a,b) ((a) >= (b) ? (a) : (b))
+#define MIN3(a,b,c) (MIN2((a),(b)) <= MIN2((b),(c)) ? 	\
+							  		  MIN2((a),(b)) : 	\
+							   		  MIN2((b),(c)))
+#define MAX3(a,b,c) (MAX((a),(b)) >= MAX2((b),(c)) ? 	\
+							  		  MAX2((a),(b)) : 	\
+							   		  MAX2((b),(c)))
 
 #define PRINTTESTRESULTS(func,num, res) \
 (printf("%-55s: Test %d %s\n" KNRM,func, num, (res) == 1 ?\

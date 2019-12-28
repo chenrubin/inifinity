@@ -7,7 +7,6 @@
 ************************************/
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
-#include <stdio.h> /* assert */
 
 #include "avl.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
@@ -97,6 +96,16 @@ static avl_node_t *SimpleRotationIMP(avl_node_t *node, int direction);
 /* double rotation left and right ot right and left */
 static void DoubleRotationIMP(avl_node_t *node, int direction);
 
+/* If node is a parent it will be removed using this function */
+static avl_node_t *RemoveIsParentIMP(avl_node_t *node, int which_children);
+
+/* removes a leaf */
+static avl_node_t *RemoveLeafIMP(avl_node_t *node);
+
+/* checks whether or not parent have same diffFactor sign or not */
+static int IsUnbalancedToSameDirectionIMP(avl_node_t *parent, 
+										  avl_node_t *child);
+
 avl_t *AVLCreate(comparison_func_t func)
 {
 	avl_t *new_avl = (avl_t *)malloc(sizeof(avl_t));
@@ -127,13 +136,20 @@ void AVLDestroy(avl_t *tree)
 
 int AVLInsert(avl_t *tree, void *data)
 {
-	assert(tree);
+	avl_node_t *temp_node = NULL;
 	
-	tree -> root = RecInsertIMP(tree -> root, data, tree -> comparison_func);
-	if (NULL == tree -> root)
+	assert(tree);
+	assert(data);
+	
+	temp_node = tree -> root;
+	
+	temp_node = RecInsertIMP(tree -> root, data, tree -> comparison_func);
+	if (NULL == temp_node)
 	{
 		return 1;
 	}
+	
+	tree -> root = temp_node;
 	
 	return 0;	
 }
@@ -154,7 +170,6 @@ static avl_node_t *RecRemoveIMP(avl_node_t *node,
 {
 	int direction = GetDirectionIMP(data, node -> data, comparison_func);
 	int which_children = 0;
-	avl_node_t *temp_node = NULL;
 
 	if (NULL == node)
 	{
@@ -176,31 +191,45 @@ static avl_node_t *RecRemoveIMP(avl_node_t *node,
 		
 		if (IsLeafIMP(node))
 		{
-			temp_node = node;
-			free(node);
-			node = NULL;
-			
-			return node;	
-		}
-		else if (BOTH != which_children)
-		{
-			temp_node = node -> children[which_children];
-			free(node);
-			node = NULL;
-			UpdateHeightIMP(temp_node);
-			
-			return temp_node;
+			return (RemoveLeafIMP(node));
 		}
 		else
 		{
-			temp_node = node -> children[RIGHT];
-			TraverseUntilLeftmostLeafAndConnectIMP
-							(node -> children[RIGHT], node -> children[LEFT]);
-			free(node);
-			node = NULL;
-			
-			return temp_node;
+			return (RemoveIsParentIMP(node, which_children));
 		}
+	}
+}
+
+static avl_node_t *RemoveLeafIMP(avl_node_t *node)
+{
+	free(node);
+	node = NULL;
+	
+	return node;
+}
+
+static avl_node_t *RemoveIsParentIMP(avl_node_t *node, int which_children)
+{
+	avl_node_t *temp_node = NULL;
+	
+	if (BOTH != which_children)
+	{
+		temp_node = node -> children[which_children];
+		free(node);
+		node = NULL;
+		UpdateHeightIMP(temp_node);
+		
+		return temp_node;
+	}
+	else
+	{
+		temp_node = node -> children[RIGHT];
+		TraverseUntilLeftmostLeafAndConnectIMP
+							(node -> children[RIGHT], node -> children[LEFT]);
+		free(node);
+		node = NULL;
+			
+		return temp_node;
 	}
 }
 
@@ -223,32 +252,29 @@ static avl_node_t *BalanceTreeIMP(avl_node_t *node)
 		return node;
 	}
 	
-	if (direction == RIGHT)
+	if (IsUnbalancedToSameDirectionIMP(node, node -> children[direction]))
 	{
-		if (GetDiffFactorIMP(node -> children[direction]) > 0)
-		{
-			pivot = SimpleRotationIMP(node, direction);
-		}
-		else
-		{
-			DoubleRotationIMP(node, direction);
-			pivot = SimpleRotationIMP(node, direction);
-		}
+		pivot = SimpleRotationIMP(node, direction);
 	}
 	else
 	{
-		if (GetDiffFactorIMP(node -> children[direction]) < 0)
-		{
-			pivot = SimpleRotationIMP(node, direction);
-		}
-		else
-		{
-			DoubleRotationIMP(node, direction);
-			pivot = SimpleRotationIMP(node, direction);
-		}
+		DoubleRotationIMP(node, direction);
+		pivot = SimpleRotationIMP(node, direction);
+	}
+
+	return pivot;
+}
+
+static int IsUnbalancedToSameDirectionIMP(avl_node_t *parent, 
+										  avl_node_t *child)
+{
+	if (((GetDiffFactorIMP(parent) < 0) && (GetDiffFactorIMP(child) < 0)) ||
+		((GetDiffFactorIMP(parent) > 0) && (GetDiffFactorIMP(child) > 0)))
+	{	
+		return 1;
 	}
 	
-	return pivot;
+	return 0;
 }
 
 size_t AVLSize(const avl_t *tree)
@@ -266,19 +292,14 @@ static size_t RecAvlSizeIMP(avl_node_t *node)
 	}
 	else
 	{
-		return (RecAvlSizeIMP(node -> children[0]) + 
-				RecAvlSizeIMP(node -> children[1]) + 1);
+		return (RecAvlSizeIMP(node -> children[LEFT]) + 
+				RecAvlSizeIMP(node -> children[RIGHT]) + 1);
 	}
 }
 
 int AVLForEach(avl_t *tree, action_func_t func, void *param)
 {
 	assert(tree);
-	
-	if (NULL == tree -> root)
-	{
-		return 0;
-	}
 	
 	return RecForEachIMP(tree -> root, func, param);
 }
@@ -308,14 +329,14 @@ static int RecForEachIMP(avl_node_t *node, action_func_t func, void *param)
 		return 0;
 	}
 	
-	status |= RecForEachIMP(node -> children[0], func, param);
+	status |= RecForEachIMP(node -> children[LEFT], func, param);
 	
 	if (func(node -> data, param) == 1)
 	{
 		return 1;
 	}
 	
-	status |= RecForEachIMP(node -> children[1], func, param);
+	status |= RecForEachIMP(node -> children[RIGHT], func, param);
 	
 	return status;
 }
@@ -332,8 +353,8 @@ static int IsLeafIMP(avl_node_t *node)
 {
 	assert(node);
 	
-	return (NULL == node -> children[0] &&
-			NULL == node -> children[1]);
+	return (NULL == node -> children[LEFT] &&
+			NULL == node -> children[RIGHT]);
 }
 
 static void *RecFindIMP(avl_node_t *node, 
@@ -370,11 +391,11 @@ static size_t MyMaxIMP(size_t x, size_t y)
 
 static num_of_children_t WhichChildrenExistIMP(avl_node_t *node)
 {
-	if ((NULL != node -> children[0]) && (NULL != node -> children[1]))
+	if ((NULL != node -> children[LEFT]) && (NULL != node -> children[RIGHT]))
 	{
 		return BOTH;
 	}
-	else if (NULL != node -> children[0])
+	else if (NULL != node -> children[LEFT])
 	{
 		return LEFT;
 	}
@@ -386,8 +407,8 @@ static void RecDestroyIMP(avl_node_t *node)
 {
 	if (NULL != node)
 	{
-		RecDestroyIMP(node -> children[0]);
-		RecDestroyIMP(node -> children[1]);
+		RecDestroyIMP(node -> children[LEFT]);
+		RecDestroyIMP(node -> children[RIGHT]);
 		free(node);
 		node = NULL;
 	}
@@ -455,8 +476,8 @@ static avl_node_t *CreateNodeIMP(void *data)
 		return NULL;
 	}
 	
-	new_node -> children[0] = NULL;
-	new_node -> children[1] = NULL;
+	new_node -> children[LEFT] = NULL;
+	new_node -> children[RIGHT] = NULL;
 	new_node -> data = data;
 	new_node -> height = 0;
 	
@@ -481,8 +502,8 @@ static void UpdateHeightIMP(avl_node_t *node)
 		}
 		else
 		{
-			node -> height = MyMaxIMP(node -> children[0] -> height, 
-								  	  node -> children[1] -> height) + 1;
+			node -> height = MyMaxIMP(node -> children[LEFT] -> height, 
+								  	  node -> children[RIGHT] -> height) + 1;
 		}	
 	}	  
 }

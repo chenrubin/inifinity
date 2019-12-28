@@ -8,24 +8,21 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 #include <math.h> /* pow , sqrt */
+#include <stdio.h> /* malloc */
 
 #include "hashtable.h"
 #include "../dllist/dllist.h"
-#include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define BUCKET(index) (*((hash_table -> table) + index))
+
+static size_t GetHashIndexIMP(const hash_table_t *hash_table, const void *data);
+
 struct hash
 {
 	hash_func_t hash_func;
 	is_match_t match_func;
 	size_t num_of_buckets;
 	dl_list_t **table;
-};
-
-struct dl_list
-{
-	dll_node_t *begin;
-	dll_node_t *end;
 };
 
 /* free num of Dllist pointers starting from table */
@@ -48,7 +45,7 @@ hash_table_t *HashCreate(size_t num_of_buckets,
 		return NULL;
 	}
 	new_htbl -> table = (dl_list_t **)malloc(num_of_buckets * 
-											 sizeof(dl_list_t));
+											 sizeof(dl_list_t**));
 	if (NULL == new_htbl -> table)
 	{
 		free(new_htbl);
@@ -84,8 +81,7 @@ void HashDestroy(hash_table_t *hash_table)
 
 int HashInsert(hash_table_t *hash_table, void *data)
 {
-	size_t index = hash_table -> hash_func(data);
-	
+	size_t index = GetHashIndexIMP(hash_table, data);
 	return (!(DLListEnd(BUCKET(index)) != 
 			  DLListPushBack(BUCKET(index), data)));
 }
@@ -99,7 +95,7 @@ int HashForEach(hash_table_t *hash_table,
 	for (i = 0; i < hash_table -> num_of_buckets; ++i)
 	{
 		if (1 == DLListForEach(DLListBegin(BUCKET(i)), 
-							   DLListEnd(*((hash_table -> table) + i)),
+							   DLListEnd(BUCKET(i)),
 				 			   action_param, action_func))
 		{
 			return 1;
@@ -111,7 +107,7 @@ int HashForEach(hash_table_t *hash_table,
 
 void HashRemove(hash_table_t *hash_table, const void *data)
 {
-	size_t index = hash_table -> hash_func(data);
+	size_t index = GetHashIndexIMP(hash_table, data);
 	
 	dll_iter_t iter = DLListFind(DLListBegin(BUCKET(index)), 
 						 DLListEnd(BUCKET(index)), 
@@ -140,7 +136,7 @@ int HashIsEmpty(const hash_table_t *hash_table)
 {
 	size_t i = 0;
 	int is_empty = 1;
-	
+
 	for (i = 0; i < hash_table -> num_of_buckets; ++i)
 	{
 		is_empty &= DLListIsEmpty(BUCKET(i));
@@ -151,20 +147,19 @@ int HashIsEmpty(const hash_table_t *hash_table)
 
 void *HashFind(const hash_table_t *hash_table, const void *data)
 {
-	size_t i = 0;
+	size_t index = GetHashIndexIMP(hash_table, data);
 	
-	for (i = 0; i < hash_table -> num_of_buckets; ++i)
+	dll_iter_t iter = DLListFind(DLListBegin(BUCKET(index)), 
+					  DLListEnd(BUCKET(index)), 
+				  	  data, hash_table -> match_func);
+	printf("iter data = %s\n", (char *)DLListGetData(iter));			  	  			  	  			  	  ;
+	
+	if (DLListEnd(BUCKET(index)) != iter)
 	{
-		dll_iter_t iter = DLListFind(DLListBegin(BUCKET(i)), 
-						 DLListEnd(BUCKET(i)), 
-					  	 data, hash_table -> match_func);
-		
-		if (DLListEnd(BUCKET(i)) != iter)
-		{
-			return(DLListGetData(iter));
-		}
+		return(DLListGetData(iter));
 	}
 	
+	printf("return NULL\n");
 	return NULL;
 }
 
@@ -203,3 +198,7 @@ static void FreeDllistsIMP(dl_list_t **table, size_t num)
 	}
 }
 
+static size_t GetHashIndexIMP(const hash_table_t *hash_table, const void *data)
+{
+	return (hash_table -> hash_func(data));
+}
