@@ -33,12 +33,10 @@ int MergeSort(int *arr, size_t size)
 		}
 		half_size = size / 2;
 
-		{
-			status |= MergeSort(arr, half_size);
-			status |= MergeSort(arr + half_size, size - half_size);
-			MergeIMP(arr, half_size, arr + half_size, size - half_size, 
+		status |= MergeSort(arr, half_size);
+		status |= MergeSort(arr + half_size, size - half_size);
+		MergeIMP(arr, half_size, arr + half_size, size - half_size, 
 															  temp_arr);	
-		}
 	
 		memcpy (arr, temp_arr, size * sizeof(int));
 		free(temp_arr);		
