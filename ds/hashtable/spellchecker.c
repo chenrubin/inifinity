@@ -5,12 +5,11 @@
 *		29/12/2019					  *
 *									  *
 ************************************/
-#include <stdio.h>
+#include <stdio.h> /* printf */
 #include <string.h> /* strtok */
-#include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */ 	
 #include <sys/mman.h> /* mmap, munmap */
-#include <unistd.h>
+#include <unistd.h> /* lseek */
 #include<sys/stat.h> /* open */
 #include <fcntl.h> /* O_RDONLY */
 #include <ctype.h> /* toupper */
@@ -22,6 +21,9 @@
 
 #define BUCKET(index) (*((hash_table -> table) + index))
 #define CHAR_SIZE (sizeof(char))
+#define MAX_STRING_SIZE 256
+#define NUM_OF_ENGLISH_LETTERS 26
+#define BUCKET_OF_X 23
 
 /* insert to hash table */
 hash_table_t *InsertToHashTable(hash_table_t *hash_table);
@@ -43,8 +45,8 @@ static size_t GetFileSizeIMP(int file_descriptor);
 
 int main()
 {	
-	size_t num_of_buckets = 26;
-	char str[256] = {0};
+	size_t num_of_buckets = NUM_OF_ENGLISH_LETTERS;
+	char str[MAX_STRING_SIZE] = {0};
 	int status = 0;
 	hash_table_t *new_htbl = HashCreate(num_of_buckets,
                          				MyHashFunctionIMP,
@@ -68,11 +70,13 @@ hash_table_t *InsertToHashTable(hash_table_t *hash_table)
 	char *str_temp = NULL;
 	int fd = open("/usr/share/dict/american-english", O_RDONLY);
 	size_t fsize = GetFileSizeIMP(fd);
-		
+	
+	assert(hash_table);
+	
     str_temp = mmap(NULL, fsize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	
 	token = strtok(str_temp, ",. !\n");
-	while (token != NULL)
+	while (NULL != token)
 	{
 		status |= HashInsert(hash_table, token);
 		token = strtok(NULL, ",. !\n");
@@ -81,23 +85,15 @@ hash_table_t *InsertToHashTable(hash_table_t *hash_table)
 	return hash_table;
 }
 
-static size_t GetFileSizeIMP(int file_descriptor)
-{
-	size_t size = lseek(file_descriptor, 0, SEEK_END);
-	lseek(file_descriptor, 0, SEEK_SET);
-	
-	return size;
-}
-
 int SpellChecker(const hash_table_t *hash_table, char *str)
 {
-	char *token;
+	char *token = 0;
 	int status = 0;
 	
 	assert(hash_table);
 	
 	token = strtok(str, ",. !");
-	while (token != NULL)
+	while (NULL != token)
 	{
 		if (NULL == HashFind(hash_table, token))
 		{
@@ -114,9 +110,10 @@ int SpellChecker(const hash_table_t *hash_table, char *str)
 size_t MyHashFunctionIMP(const void *key)
 {
 	size_t index = (size_t)toupper(*(char *)key) - 'A';
-	if (index > 26)
+	
+	if (index > NUM_OF_ENGLISH_LETTERS)
 	{
-		index = 23;
+		index = BUCKET_OF_X;	
 	}
 	
 	return index;
@@ -134,4 +131,13 @@ int MyActionFunction(void *data, void *action_param)
 	printf("%s\n", (char *)data);
 	
 	return 0;
-} 
+}
+
+static size_t GetFileSizeIMP(int file_descriptor)
+{
+	size_t size = lseek(file_descriptor, 0, SEEK_END);
+	
+	lseek(file_descriptor, 0, SEEK_SET);
+	
+	return size;
+}

@@ -25,7 +25,12 @@ struct hash
 	dl_list_t **table;
 };
 
-/* free num of Dllist pointers starting from table */
+enum STATUS
+{
+	SUCCESS = 0,
+	FAIL = 1
+};
+
 static void FreeDllistsIMP(dl_list_t **table, size_t num);
 
 hash_table_t *HashCreate(size_t num_of_buckets,
@@ -62,6 +67,8 @@ hash_table_t *HashCreate(size_t num_of_buckets,
 			FreeDllistsIMP(new_htbl -> table, i);
 			free(new_htbl -> table);
 			free(new_htbl);
+			
+			return NULL;
 		}
 	}
 	
@@ -74,6 +81,8 @@ hash_table_t *HashCreate(size_t num_of_buckets,
 
 void HashDestroy(hash_table_t *hash_table)
 {
+	assert(hash_table);
+	
 	FreeDllistsIMP(hash_table -> table, hash_table -> num_of_buckets);
 	free(hash_table -> table);
 	free(hash_table);
@@ -81,7 +90,13 @@ void HashDestroy(hash_table_t *hash_table)
 
 int HashInsert(hash_table_t *hash_table, void *data)
 {
-	size_t index = GetHashIndexIMP(hash_table, data);
+	size_t index = 0;
+	
+	assert(hash_table);
+	assert(data);
+	 
+	index = GetHashIndexIMP(hash_table, data);
+	
 	return (!(DLListEnd(BUCKET(index)) != 
 			  DLListPushBack(BUCKET(index), data)));
 }
@@ -92,26 +107,35 @@ int HashForEach(hash_table_t *hash_table,
 {                
 	size_t i = 0;
 	
+	assert(hash_table);
+	assert(action_func);
+	
 	for (i = 0; i < hash_table -> num_of_buckets; ++i)
 	{
-		if (1 == DLListForEach(DLListBegin(BUCKET(i)), 
+		if (FAIL == DLListForEach(DLListBegin(BUCKET(i)), 
 							   DLListEnd(BUCKET(i)),
 				 			   action_param, action_func))
 		{
-			return 1;
+			return FAIL;
 		}		 			   
 	}
 	
-	return 0;
+	return SUCCESS;
 }
 
 void HashRemove(hash_table_t *hash_table, const void *data)
 {
-	size_t index = GetHashIndexIMP(hash_table, data);
+	size_t index = 0;
+	dll_iter_t iter = NULL;
 	
-	dll_iter_t iter = DLListFind(DLListBegin(BUCKET(index)), 
-						 DLListEnd(BUCKET(index)), 
-					  	 data, hash_table -> match_func);
+	assert(hash_table);
+	assert(data);
+	
+	index = GetHashIndexIMP(hash_table, data);
+	
+	iter = DLListFind(DLListBegin(BUCKET(index)), 
+					  DLListEnd(BUCKET(index)), 
+					  data, hash_table -> match_func);
 	
 	if (DLListEnd(BUCKET(index)) != iter)
 	{
@@ -123,6 +147,8 @@ size_t HashSize(const hash_table_t *hash_table)
 {
 	size_t i = 0;
 	size_t size = 0;
+	
+	assert(hash_table);
 	
 	for (i = 0; i < hash_table -> num_of_buckets; ++i)
 	{
@@ -136,6 +162,8 @@ int HashIsEmpty(const hash_table_t *hash_table)
 {
 	size_t i = 0;
 	int is_empty = 1;
+	
+	assert(hash_table);
 
 	for (i = 0; i < hash_table -> num_of_buckets; ++i)
 	{
@@ -147,9 +175,15 @@ int HashIsEmpty(const hash_table_t *hash_table)
 
 void *HashFind(const hash_table_t *hash_table, const void *data)
 {
-	size_t index = GetHashIndexIMP(hash_table, data);
+	size_t index = 0;
+	dll_iter_t iter = NULL;
 	
-	dll_iter_t iter = DLListFind(DLListBegin(BUCKET(index)), 
+	assert(hash_table);
+	assert(data);
+	
+	index = GetHashIndexIMP(hash_table, data);
+	
+	iter = DLListFind(DLListBegin(BUCKET(index)), 
 					  DLListEnd(BUCKET(index)), 
 				  	  data, hash_table -> match_func);
 	
@@ -163,8 +197,13 @@ void *HashFind(const hash_table_t *hash_table, const void *data)
 
 double HashGetLoadFactor(const hash_table_t *hash_table)
 {
-	double size = ((double)HashSize(hash_table));
-	double num_of_buckets = (double)(hash_table -> num_of_buckets);
+	double size = 0;
+	double num_of_buckets = 0;
+	
+	assert(hash_table);
+	
+	size = ((double)HashSize(hash_table));
+	num_of_buckets = (double)(hash_table -> num_of_buckets);
 	
 	return size / num_of_buckets;
 }
@@ -174,8 +213,13 @@ double HashGetStandardDeviation(const hash_table_t *hash_table)
 	size_t i = 0;
 	double sum = 0;
 	double diff = 0;
-	double mean = HashGetLoadFactor(hash_table);
-	size_t num_of_buckets = hash_table -> num_of_buckets;
+	double mean = 0;
+	size_t num_of_buckets = 0;
+	
+	assert(hash_table);
+	
+	mean = HashGetLoadFactor(hash_table);
+	num_of_buckets = hash_table -> num_of_buckets;
 	
 	for (i = 0; i < (hash_table -> num_of_buckets); ++i)
 	{

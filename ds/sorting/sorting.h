@@ -1,3 +1,4 @@
+#include <stddef.h>
 
 
 void BubbleSort(int *arr, size_t size);
@@ -13,3 +14,5 @@ int CountingSort(const int *arr,
 				 int *result);
 				 
 int RadixSort(int *arr, size_t arr_size);
+
+int MergeSort(int *arr, size_t size);
