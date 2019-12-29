@@ -152,14 +152,12 @@ void *HashFind(const hash_table_t *hash_table, const void *data)
 	dll_iter_t iter = DLListFind(DLListBegin(BUCKET(index)), 
 					  DLListEnd(BUCKET(index)), 
 				  	  data, hash_table -> match_func);
-	printf("iter data = %s\n", (char *)DLListGetData(iter));			  	  			  	  			  	  ;
 	
 	if (DLListEnd(BUCKET(index)) != iter)
 	{
 		return(DLListGetData(iter));
 	}
-	
-	printf("return NULL\n");
+
 	return NULL;
 }
 
