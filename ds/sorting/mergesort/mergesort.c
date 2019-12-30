@@ -11,25 +11,31 @@
 #include "../sorting.h"
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
 
+typedef enum status
+{
+	SUCCESS = 0,
+	FAIL = 1
+}status_t ;
+
 static void MergeIMP(int *arr1, size_t size1, int *arr2, size_t size2, 
-														 int *arr3);
+														 int *sorted_arr);
 
 int MergeSort(int *arr, size_t size)
 {
 	size_t half_size = 0;
 	int *temp_arr = NULL;
-	static int status = 0;
+	static status_t status = 0;
 	
 	if (1 == size)
 	{
-		return 0;
+		status = FAIL;
 	}
 	else
 	{
 		temp_arr = (int *)malloc(size*sizeof(int));
 		if (NULL == temp_arr)
 		{
-			return 1;
+			return FAIL;
 		}
 		half_size = size / 2;
 
@@ -38,52 +44,46 @@ int MergeSort(int *arr, size_t size)
 		MergeIMP(arr, half_size, arr + half_size, size - half_size, 
 															  temp_arr);	
 	
-		memcpy (arr, temp_arr, size * sizeof(int));
-		free(temp_arr);		
+		memcpy(arr, temp_arr, size * sizeof(int));
+		free(temp_arr);
+		status = SUCCESS;
 	}
 	
-	return 0;
+	return status;
 }
 
 static void MergeIMP(int *arr1, size_t size1, int *arr2, size_t size2, 
-														 int *arr3)
+														 int *sorted_arr)
 {
-	int *runner1 = arr1;
-	int *runner2 = arr2;
-	int i = 0;
-	
-	while (((size_t)(runner1 - arr1) < size1) && ((size_t)(runner2 - arr2) < size2))
+	size_t arr1_index = 0;
+	size_t arr2_index = 0;
+	size_t sorted_arr_index = 0;
+
+	while ((arr1_index < size1) && (arr2_index < size2))
 	{
-		if (*runner1 < *runner2)
+		if (arr1[arr1_index] < arr2[arr2_index])
 		{
-			arr3[i] = *runner1;
-			++runner1;
+			sorted_arr[sorted_arr_index] = arr1[arr1_index];
+			++arr1_index;
 		}
 		else
 		{
-			arr3[i] = *runner2;
-			++runner2;
-		}
-		
-		++i;
+			sorted_arr[sorted_arr_index] = arr2[arr2_index];
+			++arr2_index;
+		}	
+		++sorted_arr_index;
 	}
 	
-	if ((size_t)(runner1 - arr1) == size1)
+	while (arr2_index < size2)
 	{
-		while ((size_t)(runner2 - arr2) != size2)
-		{
-			arr3[i] = *runner2;
-			++i;
-			++runner2;
-		}
+		sorted_arr[sorted_arr_index] = arr2[arr2_index];
+		++sorted_arr_index;
+		++arr2_index;
 	}
-	else
+	while (arr1_index < size1)
 	{
-		while ((size_t)(runner1 - arr1) != size1)
-		{
-			arr3[i] = *runner1;
-			++i;
-			++runner1;
-		}
+		sorted_arr[sorted_arr_index] = arr1[arr1_index];
+		++sorted_arr_index;
+		++arr1_index;
 	}
 }

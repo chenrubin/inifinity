@@ -11,24 +11,8 @@
 
 typedef struct p_queue p_queue_t;
 
-/* ** move to your .c file	** 
-
-typedef struct sort_params_wrapper
-{
-	int(*compare_func)(const void *new_data, const void *src_data, void *param);
-	void *priority_param;
-}sort_params_t;
-
-struct p_queue
-{
-	srt_list_t *srt_list;
-	sort_params_t sort_params;
-};
-*/
-
-
-
 /*	This Function creates a Priority Queue. 
+
 
 *	The function receives a compare function, supplied by the user,
 *	which should return 1 if has a bigger priority, 0 if has equal priority 
