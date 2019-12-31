@@ -32,11 +32,11 @@ void HeapifyDown(void *arr,
 	char *array = (char *)arr;
 	size_t left_child_index = GetLeftChildIndexIMP(index_of_heapify, arr_size);
 	size_t right_child_index = GetRightChildIndexIMP(index_of_heapify, arr_size);
-	int compare_to_left_child = func(&array[index_of_heapify * elem_size],
-								  	 &array[left_child_index * elem_size], 
+	int compare_to_left_child = func(array + index_of_heapify * elem_size,
+								  	 array + left_child_index * elem_size, 
 								  	 compare_param);
-	int compare_to_right_child = func(&array[index_of_heapify * elem_size],
-								   	  &array[right_child_index * elem_size], 
+	int compare_to_right_child = func(array + index_of_heapify * elem_size,
+								   	  array + right_child_index * elem_size, 
 								   	  compare_param);
 	size_t higher_priority_index =  HigherPriorityIndexIMP(array,
 														   left_child_index, 
@@ -44,14 +44,15 @@ void HeapifyDown(void *arr,
 														   elem_size,
 														   func,
 														   compare_param);
+	void *current_data = array + index_of_heapify * elem_size;
+	void *child_data = array + higher_priority_index * elem_size;
 	
-	if ((1 == compare_to_left_child) &&  (1 == compare_to_right_child))
+	if ((1 != compare_to_left_child) &&  (1 != compare_to_right_child))
 	{
 		return;
 	}
 	
-	SwapIMP((void *)(array + index_of_heapify * elem_size), 
-			(void *)(array + higher_priority_index * elem_size));
+	SwapIMP(current_data, child_data);
 	
 	HeapifyDown(arr, 
 				arr_size, 
@@ -71,27 +72,26 @@ void HeapifyUp(void *arr,
 	char *array = (char *)arr;
 	size_t parent_index = GetParentIndexIMP(index_of_heapify);
 	int compare_to_parent = 0;
-/*	void *temp_index_to_heapify = &(array + index_of_heapify * elem_size);
-	void *temp_parent_index = &(array + parent_index * elem_size);
-*/	
-	if (0 == index_of_heapify)
+	void *current_data = NULL;
+	void *parent_data = NULL;
+	
+	compare_to_parent = func(array + index_of_heapify * elem_size,
+							 array + parent_index * elem_size, 
+							 compare_param);
+							 
+	if ((0 == index_of_heapify) || (1 == compare_to_parent))
 	{
 		return;
 	}
-
-	compare_to_parent = func((void *)(array + index_of_heapify * elem_size),
-							 (void *)(array + parent_index * elem_size), 
-							 compare_param);
-	if (1 == compare_to_parent)
-	{
-		SwapIMP((void *)(array + index_of_heapify * elem_size),
-				(void *)(array + parent_index * elem_size));
-	}
 	
+	current_data = array + index_of_heapify * elem_size;
+	parent_data = array + parent_index * elem_size;
+	
+	SwapIMP(current_data,parent_data);
 	HeapifyUp(arr,
 			  arr_size,
 			  elem_size,
-			  parent_index * elem_size,
+			  parent_index,
 			  func,
 			  compare_param);
 }			    
@@ -118,7 +118,7 @@ static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size)
 
 static size_t GetParentIndexIMP(size_t child_index)
 {
-	if (0 == PARENT_INDEX(child_index))
+	if (0 == child_index)
 	{
 		return 0;
 	}
@@ -134,7 +134,7 @@ static size_t HigherPriorityIndexIMP(void *arr,
 			     					 void *compare_param)
 {
 	char *array = (char *)arr;
-	if (1 == func(&array[index1 * elem_size],
+	if (1 != func(&array[index1 * elem_size],
 				  &array[index2 * elem_size], 
 				  compare_param))
 	{

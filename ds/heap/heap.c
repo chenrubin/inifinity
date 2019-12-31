@@ -6,7 +6,8 @@
 *									  *
 ************************************/
 
-#include <stdlib.h>
+#include <stdlib.h> /* malloc */
+#include <assert.h> /* assert */
 
 #include "heap.h"
 #include "heapify.h"
@@ -17,8 +18,26 @@
 #define CAPACITY 20
 #define FIRST_ELEMENT_INDEX 0
 #define LAST_ELEMENT_INDEX (HeapSize(heap) - 1)
+#define RIGHT_CHILD_INDEX(x) (((2) * (x)) + (2))
+#define LEFT_CHILD_INDEX(x) (((2) * (x)) + (1))
+#define PARENT_INDEX(x) ((x - 1) / (2))
 
-static void SwapIMP(void *ptr1, void *ptr2);
+enum status
+{
+	SUCCESS = 0,
+	FAIL = 1
+};
+
+static int GenericComparisonFuncIMP(const void *new_data, 
+							const void *src_data,
+							void *compare_param);
+static void SwapIMP(void **ptr1, void **ptr2);
+void PrintArrayIMP(heap_t *heap);
+static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size);
+static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size);
+static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func);
+static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove);
+static size_t GetParentIndexIMP(size_t child_index);
 
 struct heap
 {
@@ -62,8 +81,8 @@ int HeapPush(heap_t *heap, void *data)
 			  HeapSize(heap), 
 			  sizeof(void *), 
 			  LAST_ELEMENT_INDEX, 
-			  heap -> comparison_func, 
-			  heap -> param);
+			  GenericComparisonFuncIMP, 
+			  heap);
 	return 0;		    
 }
 
@@ -74,17 +93,24 @@ void HeapPop(heap_t *heap)
 	void *last_address = VectorGetItemAddress(heap -> vector,
 											  HeapSize(heap) - 1);										   
 	SwapIMP(first_address, last_address);
+	VectorPopBack(heap -> vector);
 	HeapifyDown(VectorGetItemAddress(heap -> vector, 0), 
 				HeapSize(heap), 
 				sizeof(void *), 
 			    FIRST_ELEMENT_INDEX, 
-			    heap -> comparison_func, 
-			    heap -> param);
+			    GenericComparisonFuncIMP, 
+			    heap);
 }
 
 void *HeapPeek(const heap_t *heap)
 {
-	return (VectorGetItemAddress(heap -> vector, HeapSize(heap) - 1));
+	void **ptr = NULL;
+	
+	assert(heap);
+	
+	ptr = (VectorGetItemAddress(heap -> vector, 0));
+	
+	return *ptr;
 }
 
 size_t HeapSize(const heap_t *heap)
@@ -97,9 +123,134 @@ int HeapIsEmpty(const heap_t *heap)
 	return (0 == HeapSize(heap));
 }
 
-static void SwapIMP(void *ptr1, void *ptr2)
+int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 {
-	void *temp_address = ptr1;
-	ptr1 = ptr2;
-	ptr2 = temp_address;
+	int index_to_remove = GetIndexToRemoveIMP(heap, param, is_match_func);
+	
+	if (-1 == index_to_remove)
+	{
+		return FAIL;
+	}
+	
+	if (index_to_remove == LAST_ELEMENT_INDEX)
+	{
+		VectorPopBack(heap -> vector);
+	}
+	else
+	{	
+		SwapIMP(VectorGetItemAddress(heap -> vector, index_to_remove), 
+				VectorGetItemAddress(heap -> vector, LAST_ELEMENT_INDEX));
+		VectorPopBack(heap -> vector);
+		
+		if (IsHeapifyUpIMP(heap, index_to_remove))
+		{
+			HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
+				  	  HeapSize(heap), 
+				  	  sizeof(void *), 
+				  	  LAST_ELEMENT_INDEX - 1, 
+				  	  GenericComparisonFuncIMP, 
+				  	  heap);
+		}
+		
+		HeapifyDown(VectorGetItemAddress(heap -> vector, 0), 
+					HeapSize(heap), 
+					POINTER_SIZE, 
+					index_to_remove, 
+					GenericComparisonFuncIMP, 
+					heap);
+	}
+	
+	return SUCCESS;		
+}
+
+static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
+{
+	size_t parent_index = GetParentIndexIMP(index_to_remove);
+	if (parent_index != index_to_remove)
+	{
+		if (1 == GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
+															   index_to_remove), 
+									   	  VectorGetItemAddress(heap -> vector, 
+									   						   parent_index),
+									   						   heap))
+		{
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func)
+{
+	size_t i = 0;
+	
+	for (i = 0; i < HeapSize(heap); ++i)
+	{
+		if (func(data, *(char **)VectorGetItemAddress(heap -> vector, i)))
+		{
+			return i;
+		}
+	}
+	
+	return -1;
+}
+
+static void SwapIMP(void **ptr1, void **ptr2)
+{
+	void *temp_address = *ptr1;
+	*ptr1 = *ptr2;
+	*ptr2 = temp_address;
+}
+
+void PrintArrayIMP(heap_t *heap)
+{
+	void *start = VectorGetItemAddress(heap -> vector, 0);
+	size_t i = 0;
+
+	for (i = 0; i < HeapSize(heap); ++i)
+	{
+		printf("%d, ", **((int **)start + i));
+	}
+	printf("\n");
+}
+
+static int GenericComparisonFuncIMP(const void *new_data, 
+									const void *src_data,
+									void *compare_param)	
+{
+	heap_t *heap = compare_param;
+	
+	return heap -> comparison_func(*(void **)new_data, 
+								 *(void **)src_data, heap -> param);
+}
+
+static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size)
+{
+	if (LEFT_CHILD_INDEX(parent_index) >= arr_size)
+	{
+		return parent_index;
+	}
+	
+	return LEFT_CHILD_INDEX(parent_index);
+}
+
+static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size)
+{
+	if (RIGHT_CHILD_INDEX(parent_index) >= arr_size)
+	{
+		return parent_index;
+	}
+	
+	return RIGHT_CHILD_INDEX(parent_index);
+}
+
+static size_t GetParentIndexIMP(size_t child_index)
+{
+	if (0 == child_index)
+	{
+		return 0;
+	}
+	
+	return PARENT_INDEX(child_index);
 }
