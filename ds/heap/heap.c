@@ -57,7 +57,7 @@ void HeapDestroy(heap_t *heap)
 
 int HeapPush(heap_t *heap, void *data)
 {
-	VectorPushBack(heap -> vector, data);
+	VectorPushBack(heap -> vector, &data);
 	HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
 			  HeapSize(heap), 
 			  sizeof(void *), 

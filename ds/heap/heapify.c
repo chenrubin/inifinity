@@ -71,20 +71,21 @@ void HeapifyUp(void *arr,
 	char *array = (char *)arr;
 	size_t parent_index = GetParentIndexIMP(index_of_heapify);
 	int compare_to_parent = 0;
-	void *temp_index_to_heapify = (array + index_of_heapify * elem_size);
-	void *temp_parent_index = (array + parent_index * elem_size);
-	
+/*	void *temp_index_to_heapify = &(array + index_of_heapify * elem_size);
+	void *temp_parent_index = &(array + parent_index * elem_size);
+*/	
 	if (0 == index_of_heapify)
 	{
 		return;
 	}
 
-	compare_to_parent = func(&array[index_of_heapify * elem_size],
-							 &array[parent_index * elem_size], 
+	compare_to_parent = func((void *)(array + index_of_heapify * elem_size),
+							 (void *)(array + parent_index * elem_size), 
 							 compare_param);
 	if (1 == compare_to_parent)
 	{
-		SwapIMP(&temp_index_to_heapify,&temp_parent_index);
+		SwapIMP((void *)(array + index_of_heapify * elem_size),
+				(void *)(array + parent_index * elem_size));
 	}
 	
 	HeapifyUp(arr,
