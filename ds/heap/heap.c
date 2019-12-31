@@ -33,8 +33,6 @@ static int GenericComparisonFuncIMP(const void *new_data,
 							void *compare_param);
 static void SwapIMP(void **ptr1, void **ptr2);
 void PrintArrayIMP(heap_t *heap);
-static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size);
-static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size);
 static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func);
 static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove);
 static size_t GetParentIndexIMP(size_t child_index);
@@ -132,7 +130,7 @@ int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 		return FAIL;
 	}
 	
-	if (index_to_remove == LAST_ELEMENT_INDEX)
+	if ((size_t)index_to_remove == LAST_ELEMENT_INDEX)
 	{
 		VectorPopBack(heap -> vector);
 	}
@@ -147,7 +145,7 @@ int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 			HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
 				  	  HeapSize(heap), 
 				  	  sizeof(void *), 
-				  	  LAST_ELEMENT_INDEX - 1, 
+				  	  index_to_remove, 
 				  	  GenericComparisonFuncIMP, 
 				  	  heap);
 		}
@@ -168,7 +166,7 @@ static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
 	size_t parent_index = GetParentIndexIMP(index_to_remove);
 	if (parent_index != index_to_remove)
 	{
-		if (1 == GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
+		if (1 != GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
 															   index_to_remove), 
 									   	  VectorGetItemAddress(heap -> vector, 
 									   						   parent_index),
@@ -223,26 +221,6 @@ static int GenericComparisonFuncIMP(const void *new_data,
 	
 	return heap -> comparison_func(*(void **)new_data, 
 								 *(void **)src_data, heap -> param);
-}
-
-static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size)
-{
-	if (LEFT_CHILD_INDEX(parent_index) >= arr_size)
-	{
-		return parent_index;
-	}
-	
-	return LEFT_CHILD_INDEX(parent_index);
-}
-
-static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size)
-{
-	if (RIGHT_CHILD_INDEX(parent_index) >= arr_size)
-	{
-		return parent_index;
-	}
-	
-	return RIGHT_CHILD_INDEX(parent_index);
 }
 
 static size_t GetParentIndexIMP(size_t child_index)

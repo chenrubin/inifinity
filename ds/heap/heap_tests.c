@@ -134,6 +134,7 @@ void TestPushRemove()
 	int arr[] = {50,40,30,18,36,25,28,5,6,32,33};
 	size_t i = 0;
 	int param = 0;
+	int elem = 35;
 	heap_t *new_heap = HeapCreate(MyComparisonFunc, &param);
 	printf("Create heap\n");
 	
@@ -143,14 +144,41 @@ void TestPushRemove()
 		HeapPush(new_heap, &arr[i]);
 		PrintArrayIMP(new_heap);
 	}
-	
 
-	PRINTTESTRESULTS("TestRemove_size",1, (sizeof(arr)/sizeof(int)) == HeapSize(new_heap));
-	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
-	PRINTTESTRESULTS("TestRemove_Peek",2, 50 == *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int)) == HeapSize(new_heap));
 	printf("Remove\n");
-	PRINTTESTRESULTS("TestRemove_size",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[5]));
+	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[5]));
+	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",2, 50 == *(int *)HeapPeek(new_heap));
 	PrintArrayIMP(new_heap);
+	/*50, 40, 33, 18, 36, 30, 28, 5, 6, 32,*/
+	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 1) == HeapSize(new_heap));
+	
+	
+	printf("Remove\n");
+	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[1]));
+	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",2, 50 == *(int *)HeapPeek(new_heap));
+	PrintArrayIMP(new_heap);
+	/*50, 36, 33, 18, 32, 30, 28, 5, 6,*/
+	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
+	
+	
+	printf("Remove\n");
+	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[0]));
+	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",2, 36 == *(int *)HeapPeek(new_heap));
+	PrintArrayIMP(new_heap);
+	/*36, 32, 33, 18, 6, 30, 28, 5,*/
+	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 3) == HeapSize(new_heap));
+	
+	printf("Push\n");
+	PRINTTESTRESULTS("TestPush_push",3 * i + 2, 0 == HeapPush(new_heap, &elem));
+	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",2, 36 == *(int *)HeapPeek(new_heap));
+	PrintArrayIMP(new_heap);
+	/*36, 35, 33, 32, 6, 30, 28, 5, 18*/
+	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
 	
 	HeapDestroy(new_heap);
 	
