@@ -11,7 +11,7 @@ enum num_of_children
 	TWO = 2
 };
 
-static void SwapIMP(void **ptr1, void **ptr2);
+static void SwapIMP(void **ptr1, void **ptr2, size_t element_size);
 static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size);
 static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size);
 static size_t GetParentIndexIMP(size_t child_index);
@@ -52,7 +52,7 @@ void HeapifyDown(void *arr,
 		return;
 	}
 	
-	SwapIMP(current_data, child_data);
+	SwapIMP(current_data, child_data, elem_size);
 	
 	HeapifyDown(arr, 
 				arr_size, 
@@ -87,7 +87,7 @@ void HeapifyUp(void *arr,
 	current_data = array + index_of_heapify * elem_size;
 	parent_data = array + parent_index * elem_size;
 	
-	SwapIMP(current_data,parent_data);
+	SwapIMP(current_data,parent_data, elem_size);
 	HeapifyUp(arr,
 			  arr_size,
 			  elem_size,
@@ -146,9 +146,11 @@ static size_t HigherPriorityIndexIMP(void *arr,
 	}
 }
 
-static void SwapIMP(void **ptr1, void **ptr2)
+static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
 {
-	void *temp_address = *ptr1;
+	void *size = (void *)alloca(element_size);
+	
+	size = *ptr1;
 	*ptr1 = *ptr2;
-	*ptr2 = temp_address;
+	*ptr2 = size;
 }

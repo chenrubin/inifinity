@@ -8,6 +8,7 @@
 
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
+#include <alloca.h> /* alloca */
 
 #include "heap.h"
 #include "heapify.h"
@@ -31,11 +32,14 @@ enum status
 static int GenericComparisonFuncIMP(const void *new_data, 
 							const void *src_data,
 							void *compare_param);
-static void SwapIMP(void **ptr1, void **ptr2);
-void PrintArrayIMP(heap_t *heap);
+static void SwapIMP(void **ptr1, void **ptr2, size_t element_size);
 static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func);
 static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove);
 static size_t GetParentIndexIMP(size_t child_index);
+
+#ifndef NDEBUG
+void PrintArrayIMP(heap_t *heap);
+#endif
 
 struct heap
 {
@@ -90,7 +94,7 @@ void HeapPop(heap_t *heap)
 											   FIRST_ELEMENT_INDEX);
 	void *last_address = VectorGetItemAddress(heap -> vector,
 											  HeapSize(heap) - 1);										   
-	SwapIMP(first_address, last_address);
+	SwapIMP(first_address, last_address, POINTER_SIZE);
 	VectorPopBack(heap -> vector);
 	HeapifyDown(VectorGetItemAddress(heap -> vector, 0), 
 				HeapSize(heap), 
@@ -137,7 +141,8 @@ int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 	else
 	{	
 		SwapIMP(VectorGetItemAddress(heap -> vector, index_to_remove), 
-				VectorGetItemAddress(heap -> vector, LAST_ELEMENT_INDEX));
+				VectorGetItemAddress(heap -> vector, LAST_ELEMENT_INDEX), 
+				POINTER_SIZE);
 		VectorPopBack(heap -> vector);
 		
 		if (IsHeapifyUpIMP(heap, index_to_remove))
@@ -194,11 +199,13 @@ static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func)
 	return -1;
 }
 
-static void SwapIMP(void **ptr1, void **ptr2)
+static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
 {
-	void *temp_address = *ptr1;
+	void *size = (void *)alloca(element_size);
+	
+	size = *ptr1;
 	*ptr1 = *ptr2;
-	*ptr2 = temp_address;
+	*ptr2 = size;
 }
 
 void PrintArrayIMP(heap_t *heap)
@@ -223,6 +230,7 @@ static int GenericComparisonFuncIMP(const void *new_data,
 								 *(void **)src_data, heap -> param);
 }
 
+#ifndef NDEBUG
 static size_t GetParentIndexIMP(size_t child_index)
 {
 	if (0 == child_index)
@@ -232,3 +240,4 @@ static size_t GetParentIndexIMP(size_t child_index)
 	
 	return PARENT_INDEX(child_index);
 }
+#endif

@@ -10,6 +10,8 @@
 #define ILRD_HEAPIFY_H
 
 #include <stddef.h> /* size_t */
+#include <alloca.h> /* alloca */
+
 #include "heap.h"
 
 /* The function sift up the element found in index_of_heapify location

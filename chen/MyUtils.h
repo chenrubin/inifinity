@@ -21,7 +21,7 @@
 							   		  MAX2((b),(c)))
 
 #define PRINTTESTRESULTS(func,num, res) \
-(printf("%-55s: Test %d %s\n" KNRM,func, num, (res) == 1 ?\
+(printf("%-55s: Test %d %s\n" KNRM,func, num, (int)((res) == 1) ?\
 KGRN "\t\tpassed" : KRED "\t\tfailed"))
 
 #endif
