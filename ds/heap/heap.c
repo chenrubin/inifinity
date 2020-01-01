@@ -46,7 +46,6 @@ struct heap
 	d_vector_t *vector;
 	comparison_t comparison_func;
 	void *param;
-	
 };
 
 heap_t *HeapCreate(comparison_t comparison_func, void *comparison_param)
@@ -125,14 +124,18 @@ int HeapIsEmpty(const heap_t *heap)
 	return (0 == HeapSize(heap));
 }
 
-int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
+void *HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 {
 	int index_to_remove = GetIndexToRemoveIMP(heap, param, is_match_func);
+	void *data_to_return = NULL;
 	
 	if (-1 == index_to_remove)
 	{
-		return FAIL;
+		return NULL;
 	}
+	
+	data_to_return = *(void **)VectorGetItemAddress(heap -> vector, 
+													index_to_remove);
 	
 	if ((size_t)index_to_remove == LAST_ELEMENT_INDEX)
 	{
@@ -163,7 +166,7 @@ int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 					heap);
 	}
 	
-	return SUCCESS;		
+	return data_to_return;		
 }
 
 static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
@@ -171,7 +174,7 @@ static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
 	size_t parent_index = GetParentIndexIMP(index_to_remove);
 	if (parent_index != index_to_remove)
 	{
-		if (1 != GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
+		if (1 == GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
 															   index_to_remove), 
 									   	  VectorGetItemAddress(heap -> vector, 
 									   						   parent_index),
@@ -208,6 +211,7 @@ static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
 	*ptr2 = size;
 }
 
+#ifndef NDEBUG
 void PrintArrayIMP(heap_t *heap)
 {
 	void *start = VectorGetItemAddress(heap -> vector, 0);
@@ -219,6 +223,7 @@ void PrintArrayIMP(heap_t *heap)
 	}
 	printf("\n");
 }
+#endif
 
 static int GenericComparisonFuncIMP(const void *new_data, 
 									const void *src_data,
@@ -230,7 +235,6 @@ static int GenericComparisonFuncIMP(const void *new_data,
 								 *(void **)src_data, heap -> param);
 }
 
-#ifndef NDEBUG
 static size_t GetParentIndexIMP(size_t child_index)
 {
 	if (0 == child_index)
@@ -240,4 +244,3 @@ static size_t GetParentIndexIMP(size_t child_index)
 	
 	return PARENT_INDEX(child_index);
 }
-#endif

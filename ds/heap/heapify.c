@@ -1,4 +1,5 @@
 #include "heapify.h"
+#include <stdio.h>
 
 #define RIGHT_CHILD_INDEX(x) (((2) * (x)) + (2))
 #define LEFT_CHILD_INDEX(x) (((2) * (x)) + (1))
@@ -11,6 +12,7 @@ enum num_of_children
 	TWO = 2
 };
 
+static int IsParentIMP(size_t size, size_t index);
 static void SwapIMP(void **ptr1, void **ptr2, size_t element_size);
 static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size);
 static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size);
@@ -30,28 +32,47 @@ void HeapifyDown(void *arr,
 			     void *compare_param)
 {
 	char *array = (char *)arr;
+	int compare_to_left_child = 1;
+	int compare_to_right_child = 1;
 	size_t left_child_index = GetLeftChildIndexIMP(index_of_heapify, arr_size);
 	size_t right_child_index = GetRightChildIndexIMP(index_of_heapify, arr_size);
-	int compare_to_left_child = func(array + index_of_heapify * elem_size,
-								  	 array + left_child_index * elem_size, 
-								  	 compare_param);
-	int compare_to_right_child = func(array + index_of_heapify * elem_size,
-								   	  array + right_child_index * elem_size, 
-								   	  compare_param);
-	size_t higher_priority_index =  HigherPriorityIndexIMP(array,
-														   left_child_index, 
-														   right_child_index,
-														   elem_size,
-														   func,
-														   compare_param);
-	void *current_data = array + index_of_heapify * elem_size;
-	void *child_data = array + higher_priority_index * elem_size;
+	size_t higher_priority_index = 0;
+	void *current_data = NULL;
+	void *child_data = NULL;
 	
-	if ((1 != compare_to_left_child) &&  (1 != compare_to_right_child))
+
+	compare_to_left_child = func(array + index_of_heapify * elem_size,
+							array + left_child_index * elem_size, 
+							compare_param);
+
+	compare_to_right_child = func(array + index_of_heapify * elem_size,
+							 array + right_child_index * elem_size, 
+							 compare_param);
+	
+	higher_priority_index =  HigherPriorityIndexIMP(array,
+													left_child_index, 
+													right_child_index,
+													elem_size,
+													func,
+													compare_param);
+	if (left_child_index == index_of_heapify)
+	{
+		higher_priority_index = right_child_index;
+	}
+	if (right_child_index == index_of_heapify)
+	{
+		higher_priority_index = left_child_index;
+	}
+	
+	current_data = array + index_of_heapify * elem_size;
+	child_data = array + higher_priority_index * elem_size;
+	
+	if ((!IsParentIMP(arr_size, index_of_heapify) || 
+		((1 == compare_to_left_child) &&  (1 == compare_to_right_child))))
 	{
 		return;
 	}
-	
+
 	SwapIMP(current_data, child_data, elem_size);
 	
 	HeapifyDown(arr, 
@@ -79,7 +100,7 @@ void HeapifyUp(void *arr,
 							 array + parent_index * elem_size, 
 							 compare_param);
 							 
-	if ((0 == index_of_heapify) || (1 == compare_to_parent))
+	if ((0 == index_of_heapify) || (1 != compare_to_parent))
 	{
 		return;
 	}
@@ -134,7 +155,7 @@ static size_t HigherPriorityIndexIMP(void *arr,
 			     					 void *compare_param)
 {
 	char *array = (char *)arr;
-	if (1 != func(&array[index1 * elem_size],
+	if (1 == func(&array[index1 * elem_size],
 				  &array[index2 * elem_size], 
 				  compare_param))
 	{
@@ -145,6 +166,12 @@ static size_t HigherPriorityIndexIMP(void *arr,
 		return index2;
 	}
 }
+
+static int IsParentIMP(size_t size, size_t index)
+{
+	return ((RIGHT_CHILD_INDEX(index) < size) ||	
+			(LEFT_CHILD_INDEX(index) < size));
+}		
 
 static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
 {

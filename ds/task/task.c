@@ -92,5 +92,6 @@ int TaskIsMatchByID(task_id_t id_to_find, task_t *task)
 int TaskRun(task_t *task)
 {
 	assert(task);
+
 	return (task -> action_func(task -> action_func_param));
 }

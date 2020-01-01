@@ -11,7 +11,7 @@
 
 #include "../uid/uid.h"
 #include "../task/task.h"
-#include "../pq/pq.h"
+#include "../pqheap/pqheap.h"
 #include "scheduler.h"
 #include "../../chen/MyUtils.h"
 
@@ -181,11 +181,9 @@ size_t SchedSize(const scheduler_t *scheduler)
 
 enum result_status SchedRun(scheduler_t *scheduler)
 {
-/*	time_t time_to_run = 0;*/
 	int is_repeat = 0;
 	int is_failed = 0;
 	scheduler -> continue_running = 1;
-	
 	while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))
 	{
 		scheduler -> running_task = PQDequeue(scheduler -> pq);
@@ -234,8 +232,11 @@ static int MyIsMatchIMP(const void *new_data, const void *param)
 
 static int MyCompareFuncIMP(const void *new_data, const void *src_data, void *param)
 {
-	time_t src_data_time = TaskGetTimeToRun((task_t *)src_data);
-	time_t new_data_time = TaskGetTimeToRun((task_t *)new_data);
+	time_t src_data_time = 0;
+	time_t new_data_time = 0;
+	
+	src_data_time = TaskGetTimeToRun((task_t *)src_data);
+	new_data_time = TaskGetTimeToRun((task_t *)new_data);
 	
 	(void)param;
 	

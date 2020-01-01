@@ -116,7 +116,7 @@ void TestRemove()
 		printf("peek = %d\n", *(int *)HeapPeek(new_heap));
 		PRINTTESTRESULTS("TestRemove_Peek",1, highest[i] == *(int *)HeapPeek(new_heap));
 		printf("Remove\n");
-		PRINTTESTRESULTS("TestRemove_size",1, 0 == HeapRemove(new_heap, MyIsMatchFunction, &remove_arr[i]));
+		PRINTTESTRESULTS("TestRemove_size",1, remove_arr[i] == *(int *)HeapRemove(new_heap, MyIsMatchFunction, &remove_arr[i]));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
@@ -126,7 +126,7 @@ void TestRemove()
 	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
 	PRINTTESTRESULTS("TestRemove_Peek",1, highest[i - 1] == *(int *)HeapPeek(new_heap));
 	printf("Remove\n");
-	PRINTTESTRESULTS("TestRemove_size",1, 1 == HeapRemove(new_heap, MyIsMatchFunction, &remove_arr[i]));
+	PRINTTESTRESULTS("TestRemove_size",1, NULL == HeapRemove(new_heap, MyIsMatchFunction, &remove_arr[i]));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
@@ -154,46 +154,46 @@ void TestPushRemove()
 
 	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int)) == HeapSize(new_heap));
 	printf("Remove\n");
-	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[5]));
+	PRINTTESTRESULTS("TestPushRemove_remove",2, arr[5] == *(int *)HeapRemove(new_heap, MyIsMatchFunction, &arr[5]));
 	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
-	PRINTTESTRESULTS("TestPushRemove_Peek",2, 50 == *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",3, 50 == *(int *)HeapPeek(new_heap));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
 	/*50, 40, 33, 18, 36, 30, 28, 5, 6, 32,*/
-	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 1) == HeapSize(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_size",4, (sizeof(arr)/sizeof(int) - 1) == HeapSize(new_heap));
 	
 	
 	printf("Remove\n");
-	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[1]));
+	PRINTTESTRESULTS("TestPushRemove_remove",5, arr[1] == *(int *)HeapRemove(new_heap, MyIsMatchFunction, &arr[1]));
 	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
-	PRINTTESTRESULTS("TestPushRemove_Peek",2, 50 == *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",6, 50 == *(int *)HeapPeek(new_heap));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
 	/*50, 36, 33, 18, 32, 30, 28, 5, 6,*/
-	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_size",7, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
 	
 	
 	printf("Remove\n");
-	PRINTTESTRESULTS("TestPushRemove_remove",3, 0 == HeapRemove(new_heap, MyIsMatchFunction, &arr[0]));
+	PRINTTESTRESULTS("TestPushRemove_remove",8, arr[0] == *(int *)HeapRemove(new_heap, MyIsMatchFunction, &arr[0]));
 	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
-	PRINTTESTRESULTS("TestPushRemove_Peek",2, 36 == *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",9, 36 == *(int *)HeapPeek(new_heap));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
 	/*36, 32, 33, 18, 6, 30, 28, 5,*/
-	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 3) == HeapSize(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_size",10, (sizeof(arr)/sizeof(int) - 3) == HeapSize(new_heap));
 	
 	printf("Push\n");
-	PRINTTESTRESULTS("TestPush_push",(int)(3 * i + 2), 0 == HeapPush(new_heap, &elem));
+	PRINTTESTRESULTS("TestPush_push",11, (0 == HeapPush(new_heap, &elem)));
 	printf("peek = %d\n", *(int *)HeapPeek(new_heap));
-	PRINTTESTRESULTS("TestPushRemove_Peek",2, 36 == *(int *)HeapPeek(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_Peek",12, 36 == *(int *)HeapPeek(new_heap));
 #ifndef NDEBUG
 		PrintArrayIMP(new_heap);
 #endif
 	/*36, 35, 33, 32, 6, 30, 28, 5, 18*/
-	PRINTTESTRESULTS("TestPushRemove_size",1, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
+	PRINTTESTRESULTS("TestPushRemove_size",13, (sizeof(arr)/sizeof(int) - 2) == HeapSize(new_heap));
 	
 	HeapDestroy(new_heap);
 	
@@ -205,7 +205,8 @@ static int MyComparisonFunc(const void *new_data,
 							void *compare_param)	
 {
 	UNUSED(compare_param);
-	if (*(int *)new_data < *(int *)src_data)
+	
+	if (*(int *)new_data >= *(int *)src_data)
 	{
 		return 1;
 	}

@@ -54,7 +54,7 @@ void *HeapPeek(const heap_t *heap);
  * The heap pointer match function must be valid.  
  * Return Values of match function: 1 if match, 0 otherwise.
  * Return Values of HeapRemove: 0 if success, non-zero value otherwise. */ 
-int HeapRemove(heap_t *heap, is_match_t is_match_func, void *param);
+void *HeapRemove(heap_t *heap, is_match_t is_match_func, void *param);
 
 /* The function receives Heap pointer.
  * Return Values: 1 if the table contains no elements, 0 otherwise.
