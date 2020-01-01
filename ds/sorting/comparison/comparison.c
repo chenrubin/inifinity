@@ -10,7 +10,8 @@
 #include <assert.h> /* assert */
 
 #include "../sorting.h"
-#include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
+#include "../../heap/heapify.h"
+#include "../../../chen/MyUtils.h" /* MAX2,MIN2 */	
 
 /* swap twp integers */
 static void SwapIntIMP(int *num1, int *num2);
@@ -127,7 +128,7 @@ static void ShiftNumbersToRightIMP(int *arr, int index1, int index2)
 		arr[i] = arr[i - 1];
 	}
 	
-	arr[index1] = temp_num;
+	arr[index1] = temp_num;	
 }
 
 static int IsBiggerIMP(int num1, int num2)

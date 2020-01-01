@@ -1,22 +1,47 @@
+/************************************
+*		Author: ChenR				  *
+*		Reviewer: Dvir				  *
+*		heapify						  *
+*		1/1/2020					  *
+*									  *
+************************************/
+
+#include <string.h> /* memcpy */
+
 #include "heapify.h"
-#include <stdio.h>
 
 #define RIGHT_CHILD_INDEX(x) (((2) * (x)) + (2))
 #define LEFT_CHILD_INDEX(x) (((2) * (x)) + (1))
 #define PARENT_INDEX(x) ((x - 1) / (2))
 
-enum num_of_children
+enum should_swap_with_child
 {
-	NON = 0,
-	ONE = 1,
-	TWO = 2
+	SWAP_WITH_CHILD = 0,
+	NO_SWAP_WITH_CHILD = 1
 };
 
+enum should_swap_with_parent
+{
+	NO_SWAP_WITH_PARENT = 0,
+	SWAP_WITH_PARENT = 1
+};
+
+/* checks if index has a parent or not */
 static int IsParentIMP(size_t size, size_t index);
-static void SwapIMP(void **ptr1, void **ptr2, size_t element_size);
+
+/* generix swap */
+static void SwapIMP(void *ptr1, void *ptr2, size_t element_size);
+
+/* get right child index */
 static size_t GetRightChildIndexIMP(size_t parent_index, size_t arr_size);
+
+/* get left child index */
 static size_t GetLeftChildIndexIMP(size_t parent_index, size_t arr_size);
+
+/* get parent index */
 static size_t GetParentIndexIMP(size_t child_index);
+
+/* returns the higher priority child with which we need to swap or not */
 static size_t HigherPriorityIndexIMP(void *arr, 
 									 size_t index1,
 									 size_t index2,
@@ -32,10 +57,12 @@ void HeapifyDown(void *arr,
 			     void *compare_param)
 {
 	char *array = (char *)arr;
-	int compare_to_left_child = 1;
-	int compare_to_right_child = 1;
-	size_t left_child_index = GetLeftChildIndexIMP(index_of_heapify, arr_size);
-	size_t right_child_index = GetRightChildIndexIMP(index_of_heapify, arr_size);
+	int compare_to_left_child = NO_SWAP_WITH_CHILD;
+	int compare_to_right_child = NO_SWAP_WITH_CHILD;
+	size_t left_child_index = GetLeftChildIndexIMP(index_of_heapify, 
+												   arr_size);
+	size_t right_child_index = GetRightChildIndexIMP(index_of_heapify, 
+													 arr_size);
 	size_t higher_priority_index = 0;
 	void *current_data = NULL;
 	void *child_data = NULL;
@@ -58,17 +85,20 @@ void HeapifyDown(void *arr,
 	if (left_child_index == index_of_heapify)
 	{
 		higher_priority_index = right_child_index;
+		compare_to_left_child = NO_SWAP_WITH_CHILD;
 	}
 	if (right_child_index == index_of_heapify)
 	{
 		higher_priority_index = left_child_index;
+		compare_to_right_child = NO_SWAP_WITH_CHILD;
 	}
 	
 	current_data = array + index_of_heapify * elem_size;
 	child_data = array + higher_priority_index * elem_size;
 	
 	if ((!IsParentIMP(arr_size, index_of_heapify) || 
-		((1 == compare_to_left_child) &&  (1 == compare_to_right_child))))
+		((NO_SWAP_WITH_CHILD == compare_to_left_child) && 
+		 (NO_SWAP_WITH_CHILD == compare_to_right_child))))
 	{
 		return;
 	}
@@ -92,7 +122,7 @@ void HeapifyUp(void *arr,
 {
 	char *array = (char *)arr;
 	size_t parent_index = GetParentIndexIMP(index_of_heapify);
-	int compare_to_parent = 0;
+	int compare_to_parent = NO_SWAP_WITH_PARENT;
 	void *current_data = NULL;
 	void *parent_data = NULL;
 	
@@ -100,7 +130,7 @@ void HeapifyUp(void *arr,
 							 array + parent_index * elem_size, 
 							 compare_param);
 							 
-	if ((0 == index_of_heapify) || (1 != compare_to_parent))
+	if ((0 == index_of_heapify) || (SWAP_WITH_PARENT != compare_to_parent))
 	{
 		return;
 	}
@@ -173,11 +203,11 @@ static int IsParentIMP(size_t size, size_t index)
 			(LEFT_CHILD_INDEX(index) < size));
 }		
 
-static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
+static void SwapIMP(void *ptr1, void *ptr2, size_t element_size)
 {
 	void *size = (void *)alloca(element_size);
 	
-	size = *ptr1;
-	*ptr1 = *ptr2;
-	*ptr2 = size;
+	memcpy(size, ptr1, element_size);
+	memcpy(ptr1, ptr2, element_size);
+	memcpy(ptr2, size, element_size);
 }

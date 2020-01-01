@@ -2,7 +2,7 @@
 *                                                                           *
 *                               OL79 - 26/12/19                             *
 *                                                                           *
-*                                 Heap                  		            *
+*                                 Heap                                *
 *                                                                           *
 *****************************************************************************/
 
@@ -10,12 +10,21 @@
 #define ILRD_HEAP_H
 
 #include <stddef.h> /* size_t */
+#include "../vector/vector.h"
+#include "heapify.h"
 
 typedef struct heap heap_t;
-typedef int (*comparison_t)(const void *new_data, 
-							const void *src_data,
-							void *compare_param);
 typedef int (*is_match_t)(const void *new_data, const void *src_data);
+
+/* * * * * * MOVE TO SOURCE FILE !! * * * * 
+struct heap
+{
+	d_vector_t *vector;
+	comparison_t comparison_func;
+	void *param;
+	
+};
+* * * * * * * * * * * * * * * * * * * * */
 
 
 /* Function creates a Heap data structure.

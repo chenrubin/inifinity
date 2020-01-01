@@ -1,14 +1,15 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: Dvir				  *
 *		heap						  *
-*		7/11/2019					  *
+*		1/1/2020					  *
 *									  *
 ************************************/
 
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 #include <alloca.h> /* alloca */
+#include <string.h> /* memcpy */
 
 #include "heap.h"
 #include "heapify.h"
@@ -29,12 +30,22 @@ enum status
 	FAIL = 1
 };
 
+/* generic comparison for readabilty */
 static int GenericComparisonFuncIMP(const void *new_data, 
 							const void *src_data,
 							void *compare_param);
-static void SwapIMP(void **ptr1, void **ptr2, size_t element_size);
+							
+/* generic swap	*/
+static void SwapIMP(void *ptr1, void *ptr2, size_t element_size);
+
+/* returns index of data we wish to remove */
 static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func);
+
+/* check if child has highest priority compared to parent which requires
+   heapifyup */
 static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove);
+
+/* get parent index */
 static size_t GetParentIndexIMP(size_t child_index);
 
 #ifndef NDEBUG
@@ -202,13 +213,13 @@ static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func)
 	return -1;
 }
 
-static void SwapIMP(void **ptr1, void **ptr2, size_t element_size)
+static void SwapIMP(void *ptr1, void *ptr2, size_t element_size)
 {
 	void *size = (void *)alloca(element_size);
 	
-	size = *ptr1;
-	*ptr1 = *ptr2;
-	*ptr2 = size;
+	memcpy(size, ptr1, element_size);
+	memcpy(ptr1, ptr2, element_size);
+	memcpy(ptr2, size, element_size);
 }
 
 #ifndef NDEBUG

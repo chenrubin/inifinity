@@ -26,19 +26,14 @@ int QSortCompare(const void *num1, const void *num2);
 
 int main()
 {
-/*	TestBubbleSortVsQSort();
+	TestBubbleSortVsQSort();
 	TestBubbleSortManyTimes();
 	TestInsertionSortVsQSort();
 	TestInsertionSortManyTimes();
 	TestSelectionSortVsQSort();
 	TestSelectionSortManyTimes();
-*/
+	TestHeapSort();
 
-	int x = 8 % 10;
-	int y = (-8) % 10;
-	
-	printf("x = %d\n", x);
-	printf("y = %d\n", y);
 	return 0;
 }
 
@@ -139,7 +134,7 @@ void TestInsertionSortVsQSort()
 	{
 		for (i = 0; i < ARR_LENGTH; ++i)
 		{
-			temp = rand()%RAND_RANGE - RAND_RANGE/2;
+			temp = rand()%RAND_RANGE - RAND_RANGE / 2;
 			arr_res[i] = temp;
 			arr_exp[i] = temp;
 		}
@@ -180,7 +175,7 @@ void TestSelectionSortManyTimes()
 	{
 		for (i = 0; i < ARR_LENGTH; ++i)
 		{
-			temp = rand()%RAND_RANGE - RAND_RANGE/2;
+			temp = rand()%RAND_RANGE - RAND_RANGE / 2;
 			arr_res[i] = temp;
 		}
 		
@@ -205,7 +200,7 @@ void TestSelectionSortVsQSort()
 	{
 		for (i = 0; i < ARR_LENGTH; ++i)
 		{
-			temp = rand()%RAND_RANGE - RAND_RANGE/2;
+			temp = rand()%RAND_RANGE - RAND_RANGE / 2;
 			arr_res[i] = temp;
 			arr_exp[i] = temp;
 		}
@@ -243,7 +238,6 @@ void TestSelectionSortVsQSort()
 */	
 	PRINTTESTRESULTS("TestSelectionSortVsQSort",1, 0 == status);
 }
-
 
 int SortCompare(int *arr1, int *arr2, size_t size)
 {

@@ -12,7 +12,9 @@
 #include <stddef.h> /* size_t */
 #include <alloca.h> /* alloca */
 
-#include "heap.h"
+typedef int (*comparison_t)(const void *new_data, 
+							const void *src_data,
+							void *compare_param);
 
 /* The function sift up the element found in index_of_heapify location
  * in the array.
