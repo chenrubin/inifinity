@@ -16,7 +16,7 @@
 #include "../vector/vector.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-#define POINTER_SIZE sizeof(size_t)
+#define POINTER_SIZE sizeof(void *)
 #define CAPACITY 20
 #define FIRST_ELEMENT_INDEX 0
 #define LAST_ELEMENT_INDEX (HeapSize(heap) - 1)
@@ -61,7 +61,11 @@ struct heap
 
 heap_t *HeapCreate(comparison_t comparison_func, void *comparison_param)
 {
-	heap_t *new_heap = (heap_t *)malloc(sizeof(heap_t));
+	heap_t *new_heap = NULL;
+	
+	assert(comparison_func);
+	
+	new_heap = (heap_t *)malloc(sizeof(heap_t));	
 	if (NULL == new_heap)
 	{
 		return NULL;
@@ -82,28 +86,47 @@ heap_t *HeapCreate(comparison_t comparison_func, void *comparison_param)
 
 void HeapDestroy(heap_t *heap)
 {
+	assert(heap);	
+
 	VectorDestroy(heap -> vector);
 	free(heap);
 }
 
 int HeapPush(heap_t *heap, void *data)
 {
-	VectorPushBack(heap -> vector, &data);
-	HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
-			  HeapSize(heap), 
-			  sizeof(void *), 
-			  LAST_ELEMENT_INDEX, 
-			  GenericComparisonFuncIMP, 
-			  heap);
-	return 0;		    
+	int status = 0;
+	
+	assert(heap);
+	
+	if (1 == VectorPushBack(heap -> vector, &data))
+	{
+		status = 1;
+	}
+	else
+	{
+		HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
+				  HeapSize(heap), 
+				  sizeof(void *), 
+				  LAST_ELEMENT_INDEX, 
+				  GenericComparisonFuncIMP, 
+				  heap);
+	}			  
+			  
+	return status;		    
 }
 
 void HeapPop(heap_t *heap)
 {
-	void *first_address = VectorGetItemAddress(heap -> vector, 
-											   FIRST_ELEMENT_INDEX);
-	void *last_address = VectorGetItemAddress(heap -> vector,
-											  HeapSize(heap) - 1);										   
+	void *first_address = NULL;
+	void *last_address = NULL;
+	
+	assert(heap);
+	
+	first_address = VectorGetItemAddress(heap -> vector, 
+										 FIRST_ELEMENT_INDEX);
+	last_address = VectorGetItemAddress(heap -> vector,
+										HeapSize(heap) - 1);
+											  										   
 	SwapIMP(first_address, last_address, POINTER_SIZE);
 	VectorPopBack(heap -> vector);
 	HeapifyDown(VectorGetItemAddress(heap -> vector, 0), 
@@ -119,6 +142,10 @@ void *HeapPeek(const heap_t *heap)
 	void **ptr = NULL;
 	
 	assert(heap);
+	if (1 == HeapIsEmpty(heap))
+	{
+		return NULL;
+	}
 	
 	ptr = (VectorGetItemAddress(heap -> vector, 0));
 	
@@ -127,18 +154,27 @@ void *HeapPeek(const heap_t *heap)
 
 size_t HeapSize(const heap_t *heap)
 {
+	assert(heap);
+	
 	return (VectorSize(heap -> vector));
 }
 
 int HeapIsEmpty(const heap_t *heap)
 {
+	assert(heap);
+	
 	return (0 == HeapSize(heap));
 }
 
 void *HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 {
-	int index_to_remove = GetIndexToRemoveIMP(heap, param, is_match_func);
+	int index_to_remove = 0;
 	void *data_to_return = NULL;
+	
+	assert(heap);
+	assert(is_match_func);
+	
+	index_to_remove = GetIndexToRemoveIMP(heap, param, is_match_func);
 	
 	if (-1 == index_to_remove)
 	{
@@ -183,6 +219,9 @@ void *HeapRemove(heap_t *heap, is_match_t is_match_func, void *param)
 static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
 {
 	size_t parent_index = GetParentIndexIMP(index_to_remove);
+	
+	assert(heap);
+	
 	if (parent_index != index_to_remove)
 	{
 		if (1 == GenericComparisonFuncIMP(VectorGetItemAddress(heap -> vector, 
@@ -201,6 +240,8 @@ static int IsHeapifyUpIMP(heap_t *heap, size_t index_to_remove)
 static int GetIndexToRemoveIMP(heap_t *heap, void *data, is_match_t func)
 {
 	size_t i = 0;
+	
+	assert(heap);
 	
 	for (i = 0; i < HeapSize(heap); ++i)
 	{

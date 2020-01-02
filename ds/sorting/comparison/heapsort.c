@@ -38,10 +38,11 @@ void HeapSort(void *arr,
 	int index_to_heapify = 0;
 	char *first_element = arr;
 	char *last_element = NULL;
+	size_t size = 0;
 	
-	wrapper_t *my_wrapper = (wrapper_t *)alloca(sizeof(wrapper_t));
-	my_wrapper -> func = func;
-	my_wrapper -> is_before_param = param;
+	wrapper_t my_wrapper = {0};
+	my_wrapper.func = func;
+	my_wrapper.is_before_param = param;
 	
 	for (index_to_heapify = (arr_size / 2) - 1; 
 		 index_to_heapify >= 0; 
@@ -52,20 +53,19 @@ void HeapSort(void *arr,
 					element_size, 
 					index_to_heapify, 
 					IsBeforeWrapperIMP, 
-					my_wrapper);
+					&my_wrapper);
 	}
-		
-	while (arr_size > 0)
+	
+	for (size = arr_size; size > 0; --size)
 	{
-		last_element = (char *)arr + ((arr_size - 1 ) * element_size);
+		last_element = (char *)arr + ((size - 1) * element_size);
 		SwapIMP(first_element, last_element, element_size);
-		--arr_size;
 		HeapifyDown(arr, 
-					arr_size, 
+					size - 1, 
 					element_size, 
 					FIRST_INDEX, 
 					IsBeforeWrapperIMP, 
-					my_wrapper);
+					&my_wrapper);
 	}
 }
 
@@ -73,10 +73,9 @@ static int IsBeforeWrapperIMP(const void *new_data,
 			  	 			  const void *src_data, 
 			   				  void *param)
 {
-	int res = ((wrapper_t *)param) -> func(new_data, 
-										 src_data, 
-										 ((wrapper_t *)param) -> 
-										   is_before_param);
+	wrapper_t *wrapper = (wrapper_t *)param;
+	
+	int res = wrapper -> func(new_data, src_data, (wrapper -> is_before_param));
 	
 	return (!res);
 }			   
@@ -89,4 +88,3 @@ static void SwapIMP(void *ptr1, void *ptr2, size_t element_size)
 	memcpy(ptr1, ptr2, element_size);
 	memcpy(ptr2, size, element_size);
 }
-
