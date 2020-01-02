@@ -6,9 +6,9 @@
 #include "../sorting.h"
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-#define ARR_LENGTH 4
-#define NUM_OF_ITERATIONS 1
-#define RAND_RANGE 5000
+#define ARR_LENGTH 100
+#define NUM_OF_ITERATIONS 30
+#define RAND_RANGE 2000
 
 void TestQuickSort();
 
@@ -39,8 +39,8 @@ void TestQuickSort()
 {
 	int i = 0;
 	int j = 0;
-	int arr_res[ARR_LENGTH] = /*{0};*/{1,5,4,3};/*{0};*/
-	int arr_exp[ARR_LENGTH] = /*{0};*/{1,5,4,7};/*{0};*/
+	int arr_res[ARR_LENGTH] = {0};
+	int arr_exp[ARR_LENGTH] = {0};
 	int temp = 0;
 	int status = 0;
 	int param = 0;
@@ -48,14 +48,14 @@ void TestQuickSort()
 	
 	for (j = 0; j < NUM_OF_ITERATIONS; ++j)
 	{
-/*		for (i = 0; i < ARR_LENGTH; ++i)
+		for (i = 0; i < ARR_LENGTH; ++i)
 		{
 			temp = rand()%RAND_RANGE - RAND_RANGE / 2;
 			arr_res[i] = temp;
 			arr_exp[i] = temp;
 		}
 		
-*/		printf("\nbefore qsort\n");
+/*		printf("\nbefore qsort\n");
 		for (i = 0; i< ARR_LENGTH; ++i)
 		{
 			printf("%d ", arr_exp[i]);
@@ -66,25 +66,26 @@ void TestQuickSort()
 		{
 			printf("%d ", arr_res[i]);
 		}
-		
-		QuickSort(arr_res, ARR_LENGTH, sizeof(int), QSortCompare);
+		printf("\n");
+*/		QuickSort(arr_res, ARR_LENGTH, sizeof(int), QSortCompare);
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
 		
+/*		PRINTTESTRESULTS("TestQuickSortVsQSort",1, 0 == memcmp(arr_res, arr_exp, ARR_LENGTH));*/
 		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
-	}
-	
-	printf("\nAfter \nqsort\n");
-	for (i = 0; i< ARR_LENGTH; ++i)
-	{
-		printf("%d ", arr_exp[i]);
-	}
-	
-	printf("\nquick sort\n");
-	for (i = 0; i< ARR_LENGTH; ++i)
-	{
-		printf("%d ", arr_res[i]);
-	}
-	printf("\n");
+		
+/*		printf("\nAfter \nqsort\n");
+		for (i = 0; i< ARR_LENGTH; ++i)
+		{
+			printf("%d ", arr_exp[i]);
+		}
+		
+		printf("\nquick sort\n");
+		for (i = 0; i< ARR_LENGTH; ++i)
+		{
+			printf("%d ", arr_res[i]);
+		}
+		printf("\n");
+*/	}
 	
 	PRINTTESTRESULTS("TestQuickSortVsQSort",1, 0 == status);
 }
