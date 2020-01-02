@@ -25,3 +25,8 @@ void HeapSort(void *arr,
 			  size_t element_size, 
 			  is_before_t func, 
 			  void *param);
+
+void QuickSort(void *arr, 
+			   size_t arr_size, 
+			   size_t element_size, 
+			   int (*compar)(const void *, const void*));
