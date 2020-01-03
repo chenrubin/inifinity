@@ -5,11 +5,12 @@
 *		7/11/2019					  *
 *									  *
 ************************************/
-
 #include "dhcp.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */ 
 #define BYTE (sizeof(int) / 4)
 #define BITS_IN_IP (32)
+
+static BinaryIp ConvertMaskToBinaryIMP(size_t mask);
 
 BinaryIp IPtoBit(IPAddress address)
 {
@@ -48,9 +49,52 @@ void AddSubnet(IPAddress subnet,
 			   IPAddress result)
 {
 	BinaryIp bin_ip = IPtoBit(subnet);
-	BinaryIp mask_bin = (0xFFFFFFF >> (BITS_IN_IP - mask)) << 
-									  (BITS_IN_IP - mask);
+	BinaryIp mask_bin = ConvertMaskToBinaryIMP(mask);
 	
-	bin_ip = (added_part ^ mask_bin) & bin_ip;
+	bin_ip = ((added_part & (~mask_bin)) | (bin_ip & mask_bin));
 	BitToIp(bin_ip, result);
 }
+
+int IsValid(IPAddress subnet, IPAddress address, size_t mask)
+{
+	BinaryIp subnet_bin = IPtoBit(subnet);
+	BinaryIp address_bin = IPtoBit(address);
+	BinaryIp mask_bin = ConvertMaskToBinaryIMP(mask);
+	
+	subnet_bin = subnet_bin & mask_bin;
+	address_bin = address_bin & mask_bin;
+	
+	return (subnet_bin == address_bin);
+}
+
+static BinaryIp ConvertMaskToBinaryIMP(size_t mask)
+{
+	BinaryIp mask_bin = (0xFFFFFFFF >> (BITS_IN_IP - mask)) << 
+									  (BITS_IN_IP - mask);
+									  
+	return mask_bin;								  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

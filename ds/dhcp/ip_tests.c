@@ -9,13 +9,15 @@ void TestIPtoBit();
 void TestBitToIp();
 void TestCutSubnet();
 void TestAddSubnet();
+void TestIsValid();
 
 int main()
 {
 	TestIPtoBit();
 	TestBitToIp();
 	TestCutSubnet();	
-	TestAddSubnet();	
+	TestAddSubnet();
+	TestIsValid();		
 	
 	return 0;
 }
@@ -72,13 +74,30 @@ void TestAddSubnet()
 	size_t mask1 = 11;
 	size_t mask2 = 24;
 	unsigned int added_part1 = 37545152;
-	unsigned int added_part2 = 1492;
+	unsigned int added_part2 = 5362;
 	IPAddress expres1 = {192,188,228,192};
-	IPAddress expres2 = {10,11,10,212};
+	IPAddress expres2 = {10,11,12,242};
 	
 	AddSubnet(ip_arr1, mask1, added_part1, ip_arr1);
 	AddSubnet(ip_arr2, mask2, added_part2, ip_arr2);
 	
 	PRINTTESTRESULTS("TestAddSubnet",1, 0 == memcmp(ip_arr1, expres1, IP_SIZE * sizeof(unsigned char)));
 	PRINTTESTRESULTS("TestAddSubnet",2, 0 == memcmp(ip_arr2, expres2, IP_SIZE * sizeof(unsigned char)));
+}
+
+void TestIsValid()
+{
+	IPAddress ip_arr1 = {192,168,0,1};
+	IPAddress valid_ip1 = {192,168,156,201};
+	IPAddress non_valid_ip1 = {192,169,156,201};
+	IPAddress ip_arr2 = {10,11,12,13};
+	IPAddress valid_ip2 = {10,11,14,71};
+	IPAddress non_valid_ip2 = {10,11,140,71};
+	size_t mask1 = 16;
+	size_t mask2 = 21;	
+	
+	PRINTTESTRESULTS("TestIsValid",1, 1 == IsValid(ip_arr1, valid_ip1, mask1));
+	PRINTTESTRESULTS("TestIsValid",1, 0 == IsValid(ip_arr1, non_valid_ip1, mask1));
+	PRINTTESTRESULTS("TestIsValid",1, 1 == IsValid(ip_arr2, valid_ip2, mask2));
+	PRINTTESTRESULTS("TestIsValid",1, 0 == IsValid(ip_arr2, non_valid_ip2, mask2));
 }
