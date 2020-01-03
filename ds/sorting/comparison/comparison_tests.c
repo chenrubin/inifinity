@@ -8,7 +8,7 @@
 
 #define ARR_LENGTH (500)
 #define RAND_RANGE (100)
-#define NUM_OF_ITERATIONS (15000)
+#define NUM_OF_ITERATIONS (200)
 
 void TestBubbleSortManyTimes();
 void TestBubbleSortVsQSort();
@@ -32,7 +32,6 @@ int main()
 	TestInsertionSortManyTimes();
 	TestSelectionSortVsQSort();
 	TestSelectionSortManyTimes();
-	TestHeapSort();
 
 	return 0;
 }
@@ -88,7 +87,7 @@ void TestBubbleSortVsQSort()
 		
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
 		
-		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
+		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
 	}
 	
 	PRINTTESTRESULTS("TestBubbleSortVsQSort",1, 0 == status);
@@ -154,7 +153,7 @@ void TestInsertionSortVsQSort()
 			printf("%d ", arr_exp[i]);
 		}
 		printf("qsort\n");
-*/		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
+*/		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
 	}
 	
 	PRINTTESTRESULTS("TestInsertionSortVsQSort",1, 0 == status);
@@ -220,7 +219,7 @@ void TestSelectionSortVsQSort()
 		SelectionSort(arr_res, ARR_LENGTH);
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
 		
-		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
+		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
 	}
 /*	
 	printf("\nAfter \nqsort\n");

@@ -66,7 +66,7 @@ void TestHeapSort()
 				&param);
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
 		
-		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
+		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
 	}
 	
 	printf("\nAfter \nqsort\n");

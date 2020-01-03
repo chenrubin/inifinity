@@ -71,7 +71,7 @@ void TestQuickSort()
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
 		
 /*		PRINTTESTRESULTS("TestQuickSortVsQSort",1, 0 == memcmp(arr_res, arr_exp, ARR_LENGTH));*/
-		status |= memcmp(arr_res, arr_exp, ARR_LENGTH);
+		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
 		
 /*		printf("\nAfter \nqsort\n");
 		for (i = 0; i< ARR_LENGTH; ++i)
