@@ -74,27 +74,3 @@ static BinaryIp ConvertMaskToBinaryIMP(size_t mask)
 									  
 	return mask_bin;								  
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

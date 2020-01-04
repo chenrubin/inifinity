@@ -15,19 +15,6 @@
 typedef struct trie trie_t; 
 typedef struct node node_t; 
 
-/* * * * * * MOVE TO SOURCE FILE !! * * * * 
-struct trie 
-{
-	node_t *node;
-	size_t level;
-};
-
-struct node 
-{
-	node_t children[2];
-	int is_subtree_full;
-};
-* * * * * * * * * * * * * * * * * * * * */
 typedef enum alloc_status
 {
 	SUCCESS_ALLOCATED_REQUSTED = 0,

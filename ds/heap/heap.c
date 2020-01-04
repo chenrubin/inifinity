@@ -75,7 +75,8 @@ heap_t *HeapCreate(comparison_t comparison_func, void *comparison_param)
 	if (NULL == new_heap -> vector)
 	{
 		free(new_heap);
-		new_heap = NULL;
+		
+		return = NULL;
 	}
 	
 	new_heap -> comparison_func = comparison_func;
@@ -97,6 +98,7 @@ int HeapPush(heap_t *heap, void *data)
 	int status = 0;
 	
 	assert(heap);
+	assert(data);
 	
 	if (1 == VectorPushBack(heap -> vector, &data))
 	{
@@ -106,7 +108,7 @@ int HeapPush(heap_t *heap, void *data)
 	{
 		HeapifyUp(VectorGetItemAddress(heap -> vector, 0), 
 				  HeapSize(heap), 
-				  sizeof(void *), 
+				  POINTER_SIZE, 
 				  LAST_ELEMENT_INDEX, 
 				  GenericComparisonFuncIMP, 
 				  heap);
@@ -131,7 +133,7 @@ void HeapPop(heap_t *heap)
 	VectorPopBack(heap -> vector);
 	HeapifyDown(VectorGetItemAddress(heap -> vector, 0), 
 				HeapSize(heap), 
-				sizeof(void *), 
+				POINTER_SIZE, 
 			    FIRST_ELEMENT_INDEX, 
 			    GenericComparisonFuncIMP, 
 			    heap);
@@ -142,6 +144,7 @@ void *HeapPeek(const heap_t *heap)
 	void **ptr = NULL;
 	
 	assert(heap);
+	
 	if (1 == HeapIsEmpty(heap))
 	{
 		return NULL;

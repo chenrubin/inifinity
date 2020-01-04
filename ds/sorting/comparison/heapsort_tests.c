@@ -7,7 +7,7 @@
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define ARR_LENGTH 50
-#define NUM_OF_ITERATIONS 10
+#define NUM_OF_ITERATIONS 30
 #define RAND_RANGE 5000
 
 void TestHeapSort();
