@@ -3,13 +3,25 @@
 #include "dhcp.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
+void TestCreateDestroy();
 void TestInsertTrie();
 
 int main()
 {
+	TestCreateDestroy();
 	TestInsertTrie();
 
 	return 0;
+}
+
+void TestCreateDestroy()
+{
+	size_t level = 20;
+	trie_t *new_trie = TrieCreate(level);
+	
+	TrieDestroy(new_trie);
+	printf("create trie\n");
+	printf("Destroy trie\n\n");
 }
 
 void TestInsertTrie()
@@ -25,6 +37,8 @@ void TestInsertTrie()
 	PRINTTESTRESULTS("TestInsert_trie",5, 1 == TrieInsert(new_trie, 3232235524/*192.168.0.1*/, &result_ip));
 	PRINTTESTRESULTS("TestInsert_trie",6, 3 == TrieInsert(new_trie, 3232235526/*192.168.0.1*/, &result_ip));
 	PRINTTESTRESULTS("TestInsert_trie",7, 3 == TrieInsert(new_trie, 3232235527/*192.168.0.1*/, &result_ip));
+	
+	TrieDestroy(new_trie);
 }
 /*SUCCESS_ALLOCATED_REQUSTED = 0,
 	SUCCESS_ALLOCATED_AVAILABLE = 1,

@@ -6,6 +6,8 @@
 *									  *
 ************************************/
 #include <stdlib.h> /* malloc */
+#include <assert.h> /* assert */
+
 #include "trie.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */
 
@@ -14,8 +16,16 @@
 #define LSB 1
 #define BITS_IN_IP 32
 
+typedef enum children_number
+{
+	LEFT = 0,
+	RIGHT = 1,
+	BOTH = 2,
+	NON = 3
+} child_num_t;
+
 static unsigned int GetBitIMP(unsigned int ip, size_t index_of_bit);
-static size_t NumOfChildrenIMP(node_t *node);
+static child_num_t NumOfChildrenIMP(node_t *node);
 static alloc_status_t RecTrieInsertIMP(node_t *node, 
 									   size_t level, 
 									   unsigned int requested_ip);
@@ -25,6 +35,7 @@ static unsigned int ConvertLevelToBinaryIMP(size_t level);
 static alloc_status_t CreateChildIfNecessaryIMP(node_t *node, 
 												unsigned int child_num);
 static alloc_status_t RecInsertAnyAddressIMP(node_t *node, size_t level);												
+static node_t *RecTrieDestroyIMP(node_t *node);
 
 struct trie 
 {
@@ -79,6 +90,8 @@ alloc_status_t TrieInsert(trie_t *trie,
 {
 	int status = SUCCESS_ALLOCATED_REQUSTED;
 	
+	assert(trie);
+	
 	if (1 == FLAG(trie -> node))
 	{
 		return TRIE_FULL;
@@ -99,6 +112,37 @@ alloc_status_t TrieInsert(trie_t *trie,
 	}
 
 	return status;
+}
+
+void TrieDestroy(trie_t *trie)
+{
+	assert(trie);
+	
+	trie -> node = RecTrieDestroyIMP(trie -> node);
+	free(trie);
+	trie = NULL;
+}
+
+static node_t *RecTrieDestroyIMP(node_t *node)
+{
+	if (NULL == node)
+	{
+		return NULL;
+	}
+	if (NON == NumOfChildrenIMP(node))
+	{
+		free(node);
+		node = NULL;
+	}
+	else
+	{
+		node -> children[0] = RecTrieDestroyIMP(node -> children[0]);
+		node -> children[1] = RecTrieDestroyIMP(node -> children[1]);
+		free(node);
+		node = NULL;
+	}
+	
+	return node;
 }
 
 static alloc_status_t RecInsertAnyAddressIMP(node_t *node, size_t level)
@@ -180,7 +224,7 @@ static alloc_status_t RecTrieInsertIMP(node_t *node,
 
 static void UpdateFlagIMP(node_t *node)
 {
-	if ((2 == NumOfChildrenIMP(node)) && 
+	if ((BOTH == NumOfChildrenIMP(node)) && 
 		(1 == FLAG(CHILD(0))) && 
 		(1 == FLAG(CHILD(1))))
 	{
@@ -203,17 +247,25 @@ static node_t *CreateNodeIMP()
 	return new_node;
 }
 
-static size_t NumOfChildrenIMP(node_t *node)
+static child_num_t NumOfChildrenIMP(node_t *node)
 {
-	size_t counter = 0;
-	int i = 0;
-	
-	for (i = 0; i < 2; ++i)
+	if ((NULL != node -> children[0]) && 
+		(NULL == node -> children[1]))
 	{
-		counter += (NULL != node -> children[i]);
+		return LEFT;
+	}
+	if ((NULL == node -> children[0]) && 
+		(NULL != node -> children[1]))
+	{
+		return RIGHT;
+	}
+	if ((NULL != node -> children[0]) && 
+		(NULL != node -> children[1]))
+	{
+		return BOTH;
 	}
 	
-	return counter;
+	return NON;
 }
 
 static unsigned int GetBitIMP(unsigned int ip, size_t index_of_bit)
