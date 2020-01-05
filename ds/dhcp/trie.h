@@ -15,14 +15,19 @@
 typedef struct trie trie_t; 
 typedef struct node node_t; 
 
-typedef enum alloc_status
+typedef enum alloc_status3
 {
-	SUCCESS_ALLOCATED_REQUSTED = 0,
-	SUCCESS_ALLOCATED_AVAILABLE = 1,
-	MALLOC_FAIL = 2,
-	TRIE_FULL = 3
-}alloc_status_t;
+	TRIE_SUCCESS_ALLOCATED_REQUESTED = 0,
+	TRIE_MALLOC_FAIL = 1,
+	TRIE_REQUESTED_IP_OCCUPIED = 2
+}trie_alloc_status_t;
 
+typedef enum status4
+{
+	TRIE_SUCCESS = 0,
+	TRIE_DOUBLE_FREE = 1,
+	TRIE_IP_NOT_FOUND = 2
+}trie_free_status_t;
 
 /* Function creates a trie.
  * Receives a level.
@@ -46,13 +51,20 @@ void TrieDestroy(trie_t *trie);
 *	another one.
 *	If trie is full returns TRIE_FULL
 */
-alloc_status_t TrieInsert(trie_t *trie, unsigned int requested_ip, unsigned int *result);
+trie_alloc_status_t TrieInsert(trie_t *trie, 
+						  unsigned int requested_ip, 
+						  unsigned int *result);
 
 /* reset all flags of nodes in the path of the ip edge */
-alloc_status_t TrieDeallocate(trie_t *trie, unsigned int ip);
+trie_free_status_t TrieDeallocate(trie_t *trie, unsigned int ip);
 
+/* */
+size_t TrieCountAlloc(trie_t *trie);
 
+/* */
+size_t TrieCountFree(trie_t *trie, size_t height);
 
-
+/* */ 
+int TrieIsFull(trie_t *trie);
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>     	/* time */
 #include <string.h>     /* memcmp */
+#include <unistd.h>		/* sleep */
 
 #include "../sorting.h"
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
@@ -48,6 +49,7 @@ void TestQuickSort()
 	
 	for (j = 0; j < NUM_OF_ITERATIONS; ++j)
 	{
+		sleep(1);
 		for (i = 0; i < ARR_LENGTH; ++i)
 		{
 			temp = rand()%RAND_RANGE - RAND_RANGE / 2;
@@ -67,13 +69,13 @@ void TestQuickSort()
 			printf("%d ", arr_res[i]);
 		}
 		printf("\n");
-*/		QuickSort(arr_res, ARR_LENGTH, sizeof(int), QSortCompare);
+		QuickSort(arr_res, ARR_LENGTH, sizeof(int), QSortCompare);
 		qsort(arr_exp, ARR_LENGTH, sizeof(int), QSortCompare);
-		
+*/		
 /*		PRINTTESTRESULTS("TestQuickSortVsQSort",1, 0 == memcmp(arr_res, arr_exp, ARR_LENGTH));*/
 		status |= memcmp(arr_res, arr_exp, ARR_LENGTH * sizeof(int));
-		
-/*		printf("\nAfter \nqsort\n");
+/*		
+		printf("\nAfter \nqsort\n");
 		for (i = 0; i< ARR_LENGTH; ++i)
 		{
 			printf("%d ", arr_exp[i]);

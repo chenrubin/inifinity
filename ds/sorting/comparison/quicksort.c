@@ -9,7 +9,7 @@
 #include <alloca.h> /* malloc */
 
 #include "../sorting.h"
-#include "../../heap/heapify.h"
+/*#include "../../heap/heapify.h"*/
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
 
 #define FIRST_INDEX 0
@@ -23,18 +23,15 @@ void QuickSort(void *arr,
 			   size_t element_size, 
 			   int (*compar)(const void *, const void *))
 {
-	size_t pivot_index = 0;
+	size_t pivot_index = arr_size - 1;
 	size_t big_runner_index = 0;
-	size_t small_runner_index = 0;
+	size_t small_runner_index = pivot_index;
 	
 	if (arr_size <= 1)
 	{
 		return;
 	}
-	
-	pivot_index = arr_size - 1;
-	small_runner_index = pivot_index;
-	
+		
 	while (big_runner_index != small_runner_index)
 	{
 		while ((0 > compar(ARR_ELEMENT(big_runner_index), 
@@ -54,8 +51,8 @@ void QuickSort(void *arr,
 				element_size);
 	}
 	SwapIMP(ARR_ELEMENT(big_runner_index), 
-					ARR_ELEMENT(pivot_index), 
-					element_size);
+			ARR_ELEMENT(pivot_index), 
+			element_size);
 	
 	QuickSort(arr, 
 			  big_runner_index, 

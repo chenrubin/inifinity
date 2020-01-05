@@ -17,7 +17,7 @@ typedef unsigned char IPAddress[IP_SIZE];
 typedef unsigned int BinaryIp;
 
 /* Convert unsigned char address to binary */
-BinaryIp IPtoBit(IPAddress address);
+BinaryIp IPtoBit(const IPAddress address);
 
 /* Convert binary address to unsigned char address. Then places it in result_ip */
 void BitToIp(BinaryIp ip, IPAddress result_ip);
@@ -28,10 +28,10 @@ void CutSubnet(IPAddress address, size_t mask);
 
 /* add added_part to subnet using the mask. 
    Update result in subnet */
-void AddSubnet(IPAddress subnet, size_t mask, unsigned int added_part, IPAddress result);
+void AddSubnet(const IPAddress subnet, size_t mask, unsigned int added_part, IPAddress result);
 
 /* determines if address is valid compared to subnet */
-int IsValid(IPAddress subnet, IPAddress address, size_t mask);
+int IsValid(IPAddress subnet, const IPAddress address, size_t mask);
 
 
 

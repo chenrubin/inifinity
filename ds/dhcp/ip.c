@@ -1,10 +1,11 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
-*		dhcp							  *
+*		Reviewer: Maoz				  *
+*		dhcp						  *
 *		7/11/2019					  *
 *									  *
 ************************************/
+
 #include "dhcp.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */ 
 #define BYTE (sizeof(int) / 4)
@@ -12,7 +13,7 @@
 
 static BinaryIp ConvertMaskToBinaryIMP(size_t mask);
 
-BinaryIp IPtoBit(IPAddress address)
+BinaryIp IPtoBit(const IPAddress address)
 {
 	return ((address[0] << 24) +
 			(address[1] << 16) + 
@@ -43,7 +44,7 @@ void CutSubnet(IPAddress address, size_t mask)
 	BitToIp(bin_ip, address);
 }
 
-void AddSubnet(IPAddress subnet, 
+void AddSubnet(const IPAddress subnet, 
 			   size_t mask, 
 			   unsigned int added_part, 
 			   IPAddress result)
@@ -55,7 +56,7 @@ void AddSubnet(IPAddress subnet,
 	BitToIp(bin_ip, result);
 }
 
-int IsValid(IPAddress subnet, IPAddress address, size_t mask)
+int IsValid(IPAddress subnet, const IPAddress address, size_t mask)
 {
 	BinaryIp subnet_bin = IPtoBit(subnet);
 	BinaryIp address_bin = IPtoBit(address);

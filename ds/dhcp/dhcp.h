@@ -16,21 +16,21 @@
 
 typedef struct dhcp dhcp_t;
 
-typedef enum status
+typedef enum status1
 {
-	SUCCESS = 0,
-	DOUBLE_FREE = 1,
-	IP_NOT_FOUND = 2
-}free_status_t;
+	DHCP_SUCCESS = 0,
+	DHCP_DOUBLE_FREE = 1,
+	DHCP_IP_NOT_FOUND = 2
+}dhcp_free_status_t;
 
-/* * * * * * MOVE TO SOURCE FILE !! * * * * 
-struct dhcp
+typedef enum status2
 {
-	trie_t *trie;
-	IPAddress subnet;
-	size_t mask;	
-};
-* * * * * * * * * * * * * * * * * * * * */
+	DHCP_SUCCESS_ALLOCATED_REQUESTED = 0,
+	DHCP_SUCCESS_OTHE_IP = 1,
+	DHCP_INVALID_IP = 2,
+	DHCP_DHCP_FULL = 3,
+	DHCP_MALLOC_FAIL = 4
+}dhcp_alloc_status_t;
 
 
 /* Function creates a dhcp.
@@ -49,11 +49,11 @@ void DHCPDestroy(dhcp_t *dhcp);
 *	The allocated address will be saved in the result address  
 *	If requested address equal 0, the result address will not be affected by it.
 *	If allocation fails result address will be NULL */
-alloc_status_t DHCPAllocIP(dhcp_t *dhcp, const IPAddress requested, IPAddress result_address);
+dhcp_alloc_status_t DHCPAllocIP(dhcp_t *dhcp, const IPAddress requested, IPAddress result_address);
 
 /*	Frees address to free.
 *	If address does not exist return value will be IP_NOT_FOUND */
-free_status_t DHCPFreeIP(dhcp_t *dhcp, const IPAddress address_to_free);
+dhcp_free_status_t DHCPFreeIP(dhcp_t *dhcp, const IPAddress address_to_free);
 
 /* Counts number of available addresses in the subnet */
 size_t DHCPCountFree(const dhcp_t *dhcp);
