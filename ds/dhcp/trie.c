@@ -60,12 +60,7 @@ struct node
 trie_t *TrieCreate(size_t level)
 {
 	trie_t *new_trie = NULL;
-/*	unsigned int result_ip = 0;
-	unsigned int binary_level = ConvertLevelToBinaryIMP(level);
-	unsigned int bc_binary_ip = binary_level;
-	unsigned int subnet_binary_ip = 0;
-	unsigned int gateway_binary_ip = binary_level - 1;
-*/	
+	
 	new_trie = (trie_t *)malloc(sizeof(trie_t));
 	if (NULL == new_trie)
 	{
@@ -81,17 +76,10 @@ trie_t *TrieCreate(size_t level)
 	}
 	
 	new_trie -> level = level;
- 
-/*	TrieInsert(new_trie, bc_binary_ip, &result_ip);
-	TrieInsert(new_trie, subnet_binary_ip, &result_ip);
-	TrieInsert(new_trie, gateway_binary_ip, &result_ip);
-*/	
+	
 	return new_trie;
 }
-/*SUCCESS_ALLOCATED_REQUSTED = 0,
-	SUCCESS_ALLOCATED_AVAILABLE = 1,
-	MALLOC_FAIL = 2,
-	TRIE_FULL = 3*/
+
 trie_alloc_status_t TrieInsert(trie_t *trie, 
 						  	   unsigned int requested_ip, 
 						  	   unsigned int *result)
@@ -107,17 +95,10 @@ trie_alloc_status_t TrieInsert(trie_t *trie,
 
 	if ((TRIE_SUCCESS_ALLOCATED_REQUESTED == status) || 
 		(TRIE_MALLOC_FAIL == status))
-	{
-		/**result = requested_ip;*/
-		
+	{		
 		return status;
 	}
 
-/*	if (REQUESTED_IP_OCCUPIED == status)
-	{
-		return (RecInsertAnyAddressIMP(trie -> node, trie -> level, result));
-	}
-*/
 	return status;
 }
 
@@ -157,11 +138,17 @@ int TrieIsFull(trie_t *trie)
 
 size_t TrieCountAlloc(trie_t *trie)
 {
+	assert(trie);
+	
 	return RecTrieCountAllocIMP(trie -> node, trie -> level);
 }
 
 static size_t RecTrieCountAllocIMP(node_t *node, size_t level)
 {	
+	if (NULL == node)
+	{
+		return 0;
+	}
 	if (NON == NumOfChildrenIMP(node))
 	{
 		return FLAG(node);
@@ -174,30 +161,7 @@ static size_t RecTrieCountAllocIMP(node_t *node, size_t level)
 	return (RecTrieCountAllocIMP(node -> children[LEFT], level - 1) +
 		   (RecTrieCountAllocIMP(node -> children[RIGHT], level - 1)));
 }
-/*
-static size_t RecTrieCountAllocIMP(node_t *node, size_t height)
-{
-	switch (NumOfChildrenIMP(node))
-	{
-		case NON:
-		return (1 == (node -> is_subtree_full));
-		break;
-		
-		case LEFT:
-		return (RecTrieCountAlloc(node -> children[LEFT], height - 1));
-		break;
-		
-		case RIGHT:
-		return (RecTrieCountAlloc(node -> children[RIGHT], height - 1));
-		break;
-		
-		default:
-		return ((RecTrieCountAlloc(node -> children[LEFT], height - 1)) + 
-				(RecTrieCountAlloc(node -> children[RIGHT], height - 1)));
-		break;
-	}
-}
-*/
+
 static node_t *RecTrieDeallocateIMP(node_t *node, 
 						  	 unsigned int ip, 
 						  	 size_t level, 
@@ -207,7 +171,7 @@ static node_t *RecTrieDeallocateIMP(node_t *node,
 
 	if (NULL == node)
 	{
-		*status = 1;/*double free*/
+		*status = TRIE_IP_NOT_FOUND;
 	}
 	else if (0 == level)
 	{
@@ -215,11 +179,11 @@ static node_t *RecTrieDeallocateIMP(node_t *node,
 		{
 			case 1:
 			FLAG(node) = 0;
-			*status = 0; /*SUCCESS*/
+			*status = TRIE_SUCCESS;
 			break;
 			
 			default:
-			*status = 1; /*double free*/
+			*status = TRIE_DOUBLE_FREE;
 			break;
 		}
 	}
@@ -321,6 +285,7 @@ static trie_alloc_status_t RecTrieInsertIMP(node_t *node,
 			else
 			{
 				node -> is_subtree_full = 1;
+				*result = requested_ip;
 				status = TRIE_SUCCESS_ALLOCATED_REQUESTED;
 			}
 		}

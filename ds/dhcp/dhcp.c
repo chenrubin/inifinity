@@ -15,10 +15,12 @@
 #define SUB_TREE_FULL(x) (1 == (node -> x -> is_subtree_full))
 #define BITS_IN_IP (32)
 #define ANY_AVAILABLE_ADDRESS 0
-#define MAX_ADDRESS_NUM(level) (pow(2,level))
+#define MAX_ADDRESS_NUM(level) (pow(2,(level)))
 
-/*static void CheckSubTreeFullFlagIMP(node_t *node);*/
+/* convert level to unsigned int (binary) representation */
 static unsigned int ConvertLevelToBinaryIMP(size_t level);
+
+/* copy src to dst */
 static void CopyArrIMP(IPAddress dst, const IPAddress src, size_t size);
 
 struct dhcp
@@ -137,8 +139,9 @@ dhcp_free_status_t DHCPFreeIP(dhcp_t *dhcp, const IPAddress address_to_free)
 
 size_t DHCPCountFree(const dhcp_t *dhcp)
 {
-	return (MAX_ADDRESS_NUM(IP_SIZE - (dhcp -> mask)) - 
-			TrieCountAlloc(dhcp -> trie));
+	size_t temp = (size_t)(MAX_ADDRESS_NUM(BITS_IN_IP - (dhcp -> mask)));
+	
+	return (temp - TrieCountAlloc(dhcp -> trie));
 }
 /*
 static void CheckSubTreeFullFlagIMP(node_t *node)
