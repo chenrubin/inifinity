@@ -33,7 +33,8 @@ void AddSubnet(const IPAddress subnet, size_t mask, unsigned int added_part, IPA
 /* determines if address is valid compared to subnet */
 int IsValid(IPAddress subnet, const IPAddress address, size_t mask);
 
-
+/* compares between to ips */
+/*int IsSameAddress(const IPAddress ip1, const IPAddress ip2);*/
 
 
 #endif

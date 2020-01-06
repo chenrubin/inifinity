@@ -1,8 +1,8 @@
 	/************************************
 *		Author: ChenR				  *
 *		Reviewer: 					  *
-*		dhcp						  *
-*		7/11/2019					  *
+*		trie						  *
+*		6/1/2020					  *
 *									  *
 ************************************/
 #include <stdlib.h> /* malloc */
@@ -84,7 +84,7 @@ trie_alloc_status_t TrieInsert(trie_t *trie,
 						  	   unsigned int requested_ip, 
 						  	   unsigned int *result)
 {
-	int status = TRIE_SUCCESS_ALLOCATED_REQUESTED;
+	int status = T_SUCCESS_ALLOCATED_REQUESTED;
 	
 	assert(trie);
 	
@@ -93,8 +93,8 @@ trie_alloc_status_t TrieInsert(trie_t *trie,
 							  requested_ip, 
 							  result);
 
-	if ((TRIE_SUCCESS_ALLOCATED_REQUESTED == status) || 
-		(TRIE_MALLOC_FAIL == status))
+	if ((T_SUCCESS_ALLOCATED_REQUESTED == status) || 
+		(T_MALLOC_FAIL == status))
 	{		
 		return status;
 	}
@@ -114,7 +114,7 @@ void TrieDestroy(trie_t *trie)
 trie_free_status_t TrieDeallocate(trie_t *trie, unsigned int ip)
 {
 	int status = 0;
-	
+
 	trie -> node = RecTrieDeallocateIMP(trie -> node, 
 									 	ip, 
 									 	trie -> level, 
@@ -149,7 +149,7 @@ static size_t RecTrieCountAllocIMP(node_t *node, size_t level)
 	{
 		return 0;
 	}
-	if (NON == NumOfChildrenIMP(node))
+	if (0 == level)
 	{
 		return FLAG(node);
 	}
@@ -163,15 +163,15 @@ static size_t RecTrieCountAllocIMP(node_t *node, size_t level)
 }
 
 static node_t *RecTrieDeallocateIMP(node_t *node, 
-						  	 unsigned int ip, 
-						  	 size_t level, 
-						  	 int *status)
+						  	 		unsigned int ip, 
+						  	 		size_t level, 
+						  	 		int *status)
 {
 	unsigned int child_bit = 0;
 
 	if (NULL == node)
 	{
-		*status = TRIE_IP_NOT_FOUND;
+		*status = T_IP_NOT_FOUND;
 	}
 	else if (0 == level)
 	{
@@ -179,11 +179,11 @@ static node_t *RecTrieDeallocateIMP(node_t *node,
 		{
 			case 1:
 			FLAG(node) = 0;
-			*status = TRIE_SUCCESS;
+			*status = T_SUCCESS;
 			break;
 			
 			default:
-			*status = TRIE_DOUBLE_FREE;
+			*status = T_DOUBLE_FREE;
 			break;
 		}
 	}
@@ -194,6 +194,7 @@ static node_t *RecTrieDeallocateIMP(node_t *node,
 												ip, 
 												level - 1, 
 												status);
+		UpdateFlagIMP(node);										
 	}
 	
 	return node;
@@ -222,25 +223,25 @@ static node_t *RecTrieDestroyIMP(node_t *node)
 }
 
 static trie_alloc_status_t CreateChildIfNecessaryIMP(node_t *node, 
-												unsigned int child_num)
+													 unsigned int child_num)
 {
 	if (NULL == CHILD(child_num))
 	{
 		CHILD(child_num) = CreateNodeIMP();
 		if (NULL == (CHILD(child_num)))
 		{
-			return TRIE_MALLOC_FAIL;
+			return T_MALLOC_FAIL;
 		}
 	}
 	
-	return TRIE_SUCCESS_ALLOCATED_REQUESTED/*may need to change*/;
+	return T_SUCCESS_ALLOCATED_REQUESTED;
 }
 
 static trie_alloc_status_t RecInsertAnyAddressIMP(node_t *node, 
 											 	  size_t level, 
 											 	  unsigned int *result)
 {
-	int status = TRIE_SUCCESS_ALLOCATED_REQUESTED;
+	int status = T_SUCCESS_ALLOCATED_REQUESTED;
 	
 	if (0 == level)
 	{
@@ -272,7 +273,7 @@ static trie_alloc_status_t RecTrieInsertIMP(node_t *node,
 									   unsigned int requested_ip,
 									   unsigned int *result)
 {
-	int status = TRIE_REQUESTED_IP_OCCUPIED;
+	int status = T_REQUESTED_IP_OCCUPIED;
 	unsigned int child_bit = 0;
 	if (0 != requested_ip)
 	{
@@ -280,20 +281,20 @@ static trie_alloc_status_t RecTrieInsertIMP(node_t *node,
 		{
 			if (1 == (node -> is_subtree_full))
 			{
-				status = TRIE_REQUESTED_IP_OCCUPIED;
+				status = T_REQUESTED_IP_OCCUPIED;
 			}
 			else
 			{
 				node -> is_subtree_full = 1;
 				*result = requested_ip;
-				status = TRIE_SUCCESS_ALLOCATED_REQUESTED;
+				status = T_SUCCESS_ALLOCATED_REQUESTED;
 			}
 		}
 		else
 		{
 			child_bit = GetBitIMP(requested_ip, level - 1);
 			status = CreateChildIfNecessaryIMP(node, child_bit);
-			if (TRIE_MALLOC_FAIL == status)
+			if (T_MALLOC_FAIL == status)
 			{
 				return status;
 			}
@@ -319,6 +320,10 @@ static void UpdateFlagIMP(node_t *node)
 		(1 == FLAG(CHILD(RIGHT))))
 	{
 		FLAG(node) = 1;
+	}
+	else
+	{
+		FLAG(node) = 0;
 	}
 }
 

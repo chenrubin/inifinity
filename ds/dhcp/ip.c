@@ -1,11 +1,11 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: Maoz				  *
-*		dhcp						  *
-*		7/11/2019					  *
+*		Reviewer: EyalF				  *
+*		ip						  	  *
+*		1/6/2020					  *
 *									  *
 ************************************/
-
+#include <string.h> /* memcmp */
 #include "dhcp.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */ 
 #define BYTE (sizeof(int) / 4)
@@ -67,7 +67,12 @@ int IsValid(IPAddress subnet, const IPAddress address, size_t mask)
 	
 	return (subnet_bin == address_bin);
 }
-
+/*
+int IsSameAddress(const IPAddress ip1, const IPAddress ip2)
+{
+	return (0 == memcmp(ip1, ip2, IP_SIZE * sizeof(unsigned char)));
+}
+*/
 static BinaryIp ConvertMaskToBinaryIMP(size_t mask)
 {
 	BinaryIp mask_bin = (0xFFFFFFFF >> (BITS_IN_IP - mask)) << 

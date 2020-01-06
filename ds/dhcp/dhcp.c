@@ -1,8 +1,8 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
-*		dhcp							  *
-*		7/11/2019					  *
+*		Reviewer: EyalF				  *
+*		dhcp						  *
+*		6/1/2020					  *
 *									  *
 ************************************/
 #include <stdlib.h> /* free */
@@ -23,6 +23,9 @@ static unsigned int ConvertLevelToBinaryIMP(size_t level);
 /* copy src to dst */
 static void CopyArrIMP(IPAddress dst, const IPAddress src, size_t size);
 
+/* insert 3 default addresses -> subnet, bc and gateway */
+static int InsertDefaultAddressesIMP(dhcp_t *dhcp);
+
 struct dhcp
 {
 	trie_t *trie;
@@ -33,12 +36,6 @@ struct dhcp
 dhcp_t *DHCPCreate(const IPAddress subnet, size_t mask)
 {
 	int status = 0;
-	unsigned int binary_level = ConvertLevelToBinaryIMP(BITS_IN_IP - mask);
-	unsigned int bc_binary_ip = binary_level;
-	unsigned int subnet_binary_ip = 0;
-	unsigned int gateway_binary_ip = binary_level - 1;
-	IPAddress add_subnet_result = {0};
-	IPAddress final_result = {0};
 	
 	dhcp_t *new_dhcp = (dhcp_t *)malloc(sizeof(dhcp_t));
 	if (NULL == new_dhcp)
@@ -55,24 +52,9 @@ dhcp_t *DHCPCreate(const IPAddress subnet, size_t mask)
 	
 	CopyArrIMP(new_dhcp -> subnet, subnet, IP_SIZE);
 	new_dhcp -> mask = mask;
-
-	AddSubnet(subnet, mask, subnet_binary_ip, add_subnet_result);
-	status = DHCPAllocIP(new_dhcp, add_subnet_result, final_result);
-	if (status == DHCP_MALLOC_FAIL)
-	{
-		return NULL;
-	}
 	
-	AddSubnet(subnet, mask, gateway_binary_ip, add_subnet_result);
-	status = DHCPAllocIP(new_dhcp, add_subnet_result, final_result);
-	if (status == DHCP_MALLOC_FAIL)
-	{
-		return NULL;
-	}
-	
-	AddSubnet(subnet, mask, bc_binary_ip, add_subnet_result);
-	status = DHCPAllocIP(new_dhcp, add_subnet_result, final_result);
-	if (status == DHCP_MALLOC_FAIL)
+	status = InsertDefaultAddressesIMP(new_dhcp);
+	if (MALLOC_FAIL == status)
 	{
 		return NULL;
 	}
@@ -87,54 +69,67 @@ void DHCPDestroy(dhcp_t *dhcp)
 	dhcp = NULL;
 }
 
-dhcp_alloc_status_t DHCPAllocIP(dhcp_t *dhcp, 
+alloc_status_t DHCPAllocIP(dhcp_t *dhcp, 
 						   const IPAddress requested, 
 						   IPAddress result_address)
 {
 	BinaryIp req_ip = IPtoBit(requested);
 	BinaryIp res_ip = 0;
-	int status = DHCP_SUCCESS_ALLOCATED_REQUESTED;
+	int status = SUCCESS_ALLOCATED_REQUESTED;
 	
 	assert(dhcp);
 	
 	if(TrieIsFull(dhcp -> trie))
 	{
-		return DHCP_DHCP_FULL;
+		return DHCP_FULL;
 	}
 	if(!IsValid(dhcp -> subnet, requested, dhcp -> mask))
 	{
-		return DHCP_INVALID_IP;
+		return INVALID_IP;
 	}
 	
 	status = TrieInsert(dhcp -> trie, req_ip, &res_ip);
 	
 	switch (status)
 	{
-		case TRIE_SUCCESS_ALLOCATED_REQUESTED:
+		case T_SUCCESS_ALLOCATED_REQUESTED:
 			BitToIp(res_ip, result_address);
-			return DHCP_SUCCESS_ALLOCATED_REQUESTED;
+			return SUCCESS_ALLOCATED_REQUESTED;
 			break;
 		
-		case TRIE_REQUESTED_IP_OCCUPIED:
+		case T_REQUESTED_IP_OCCUPIED:
 			status = TrieInsert(dhcp -> trie, ANY_AVAILABLE_ADDRESS, &res_ip);
 			break;
 			
 		default:
-			status = DHCP_MALLOC_FAIL;	
+			status = MALLOC_FAIL;	
 	}
 	
 	return status;
 }
 
-dhcp_free_status_t DHCPFreeIP(dhcp_t *dhcp, const IPAddress address_to_free)
+free_status_t DHCPFreeIP(dhcp_t *dhcp, const IPAddress address_to_free)
 {
 	unsigned int bin_ip = 0;
-	
-	assert(dhcp);
-	
+	int status = SUCCESS;
+
 	bin_ip = IPtoBit(address_to_free);
 
-	return (TrieDeallocate(dhcp -> trie, bin_ip));
+	status = TrieDeallocate(dhcp -> trie, bin_ip);
+	switch (status)
+	{
+		case T_SUCCESS:
+		return SUCCESS;
+		break;
+		
+		case T_DOUBLE_FREE:
+		return DOUBLE_FREE;
+		break;
+		
+		default:
+		return IP_NOT_FOUND;
+		break;
+	}
 }
 
 size_t DHCPCountFree(const dhcp_t *dhcp)
@@ -143,16 +138,52 @@ size_t DHCPCountFree(const dhcp_t *dhcp)
 	
 	return (temp - TrieCountAlloc(dhcp -> trie));
 }
-/*
-static void CheckSubTreeFullFlagIMP(node_t *node)
+
+static int InsertDefaultAddressesIMP(dhcp_t *dhcp)
 {
-	if ((1 == SUB_TREE_FULL(children[current_bit])) &&
-		(1 == SUB_TREE_FULL(children[!current_bit])))
+	unsigned int binary_level = ConvertLevelToBinaryIMP(BITS_IN_IP - 
+														dhcp -> mask);
+	unsigned int bc_binary_ip = binary_level;
+	unsigned int subnet_binary_ip = 0;
+	unsigned int gateway_binary_ip = binary_level - 1;
+	IPAddress add_subnet_result = {0};
+	IPAddress final_result = {0};
+	int alloc_status = SUCCESS_ALLOCATED_REQUESTED;
+	int return_status = 0;
+	
+	AddSubnet(dhcp -> subnet, 
+			  dhcp -> mask, 
+			  subnet_binary_ip, 
+			  add_subnet_result);
+	alloc_status = DHCPAllocIP(dhcp, add_subnet_result, final_result);
+	if (alloc_status == MALLOC_FAIL)
 	{
-		node -> is_subtree_full = 1;
+		return_status |= MALLOC_FAIL;
 	}
+	
+	AddSubnet(dhcp -> subnet, 
+			  dhcp -> mask, 
+			  gateway_binary_ip, 
+			  add_subnet_result);
+	alloc_status = DHCPAllocIP(dhcp, add_subnet_result, final_result);
+	if (alloc_status == MALLOC_FAIL)
+	{
+		return_status |= MALLOC_FAIL;
+	}
+	
+	AddSubnet(dhcp -> subnet, 
+			  dhcp -> mask, 
+			  bc_binary_ip, 
+			  add_subnet_result);
+	alloc_status = DHCPAllocIP(dhcp, add_subnet_result, final_result);
+	if (alloc_status == MALLOC_FAIL)
+	{
+		return_status |= MALLOC_FAIL;
+	}
+
+	return return_status;
 }
-*/
+
 static unsigned int ConvertLevelToBinaryIMP(size_t level)
 {
 	unsigned int level_bin = (0xFFFFFFFF << (BITS_IN_IP - level)) >> 
