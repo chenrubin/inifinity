@@ -46,6 +46,7 @@ void TestAlloc()
 	unsigned char valid_addr2[] = {192,168,0,12};
 	unsigned char valid_addr3[] = {192,168,0,3};
 	unsigned char valid_addr4[] = {192,168,0,10};
+	unsigned char valid_addr5[] = {192,168,0,1};
 	unsigned char invalid_addr1[] = {192,168,255,13};
 	
 	PRINTTESTRESULTS("TestAlloc_CountFree",1, res == DHCPCountFree(new_dhcp));
@@ -65,8 +66,12 @@ void TestAlloc()
 	PRINTTESTRESULTS("TestAlloc_check_result_ip",12, 0 == memcmp(result_ip, valid_addr4, IP_SIZE * sizeof(unsigned char)));
 	
 	PRINTTESTRESULTS("TestAlloc_CountFree",13, res - 4 == DHCPCountFree(new_dhcp));
-	PRINTTESTRESULTS("TestAlloc_Alloc",14, 2 == DHCPAllocIP(new_dhcp, invalid_addr1, result_ip));
-	PRINTTESTRESULTS("TestAlloc_CountFree",15, res - 4 == DHCPCountFree(new_dhcp));
+	PRINTTESTRESULTS("TestAlloc_Alloc",14, 1 == DHCPAllocIP(new_dhcp, valid_addr4, result_ip));
+	PRINTTESTRESULTS("TestAlloc_check_result_ip",15, 0 == memcmp(result_ip, valid_addr5, IP_SIZE * sizeof(unsigned char)));
+	
+	PRINTTESTRESULTS("TestAlloc_CountFree",16, res - 5 == DHCPCountFree(new_dhcp));
+	PRINTTESTRESULTS("TestAlloc_Alloc",17, 2 == DHCPAllocIP(new_dhcp, invalid_addr1, result_ip));
+	PRINTTESTRESULTS("TestAlloc_CountFree",18, res - 5 == DHCPCountFree(new_dhcp));
 	
 	DHCPDestroy(new_dhcp);
 	
@@ -89,7 +94,6 @@ void TestFreeIP()
 	unsigned char default_addr1[] = {192,168,0,255};
 	unsigned char default_addr2[] = {192,168,0,254};
 	unsigned char default_addr3[] = {192,168,0,0};
-	
 	
 	PRINTTESTRESULTS("TestFreeIP_CountFree",1, res == DHCPCountFree(new_dhcp));
 	PRINTTESTRESULTS("TestFreeIP_Alloc",2, 0 == DHCPAllocIP(new_dhcp, valid_addr1, result_ip));

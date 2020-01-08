@@ -18,7 +18,7 @@ typedef struct dhcp dhcp_t;
 
 typedef enum dhcp_status_free
 {
-	SUCCESS = 0,
+	SUCCESS_FREE = 0, /*SUCCESS*/
 	DOUBLE_FREE = 1,
 	IP_NOT_FOUND = 2,
 	INVALID_SUBNET = 3

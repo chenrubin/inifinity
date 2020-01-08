@@ -6,7 +6,7 @@
 *									  *
 ************************************/
 #include <string.h> /* memcmp */
-#include "dhcp.h"
+#include "ip.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 */ 
 #define BYTE (sizeof(int) / 4)
 #define BITS_IN_IP (32)
@@ -24,12 +24,12 @@ BinaryIp IPtoBit(const IPAddress address)
 void BitToIp(BinaryIp ip, IPAddress result_ip)
 {
 	int i = 0;
-	unsigned int temp = 0;
+	unsigned int LSB_in_ip = 0;
 	
 	for (i = 0; i < IP_SIZE; ++i)
 	{
-		temp = ip & 0xFF;
-		*(result_ip + IP_SIZE - i - 1) = temp;
+		LSB_in_ip = ip & 0xFF;
+		result_ip[IP_SIZE - i - 1] = LSB_in_ip;
 		ip >>= 8; 
 	}
 }
@@ -37,8 +37,7 @@ void BitToIp(BinaryIp ip, IPAddress result_ip)
 void CutSubnet(IPAddress address, size_t mask)
 {
 	BinaryIp bin_ip = IPtoBit(address);
-	BinaryIp mask_bin = (0xFFFFFFFF >> (BITS_IN_IP - mask)) << 
-									   (BITS_IN_IP - mask);
+	BinaryIp mask_bin = ConvertMaskToBinaryIMP(mask);
 	
 	bin_ip = bin_ip & (~mask_bin);
 	BitToIp(bin_ip, address);
@@ -67,12 +66,7 @@ int IsValid(IPAddress subnet, const IPAddress address, size_t mask)
 	
 	return (subnet_bin == address_bin);
 }
-/*
-int IsSameAddress(const IPAddress ip1, const IPAddress ip2)
-{
-	return (0 == memcmp(ip1, ip2, IP_SIZE * sizeof(unsigned char)));
-}
-*/
+
 static BinaryIp ConvertMaskToBinaryIMP(size_t mask)
 {
 	BinaryIp mask_bin = (0xFFFFFFFF >> (BITS_IN_IP - mask)) << 

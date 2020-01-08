@@ -1,8 +1,8 @@
 /************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: EyalF				  *
 *		searching					  *
-*		7/11/2019					  *
+*		7/12/2020					  *
 *									  *
 ************************************/
 
@@ -11,14 +11,14 @@
 #include "searching.h"
 #include "../../../chen/MyUtils.h" /* MAX2,MIN2 */
 
-int *SearchEachElementIMP(const int *arr, size_t size, int val);
+static int *SearchEachElementIMP(const int *arr, size_t size, int val);
 
 int *BSearch(const int *arr, size_t size, int val)
 {
 	int *arr1 = (int *)arr;
-	int temp = arr1[size/2];
+	int middle = arr1[size/2];
 	
-	if (val == temp)
+	if (val == middle)
 	{
 		return (arr1 + size / 2);
 	}
@@ -26,7 +26,7 @@ int *BSearch(const int *arr, size_t size, int val)
 	{
 		return NULL;
 	}
-	if (val < temp)
+	if (val < middle)
 	{
 		return (BSearch(arr1, size/2, val));
 	}
@@ -36,28 +36,33 @@ int *BSearch(const int *arr, size_t size, int val)
 
 int *JSearch(const int *arr, size_t size, int val)
 {
-	size_t size_sqrt = (size_t)sqrt(size);
-	size_t i = size_sqrt;
+	size_t block_size = (size_t)sqrt(size);
+	size_t i = block_size;
 	int *res = NULL;
+	int *start = NULL;
 	
-	for (i = size_sqrt; i < size; i = i + size_sqrt)
+	for (i = block_size; i < size; i = i + block_size)
 	{
 		if (arr[i] >= val)
 		{
-			res = SearchEachElementIMP(arr + i - size_sqrt, size_sqrt, val);
+			start = (int *)arr + i - block_size;
+			res = SearchEachElementIMP(start, block_size, val);
 			if (NULL != res)
 			{
 				return res;
 			}
 		}	
 	}
-	i = i - size_sqrt;
-	res = SearchEachElementIMP(arr + i, size - i, val);
+	i = i - block_size;
+	if (arr[i] <= val)
+	{
+		res = SearchEachElementIMP(arr + i, size - i, val);
+	}
 	
 	return res;
 }
 
-int *SearchEachElementIMP(const int *arr, size_t size, int val)
+static int *SearchEachElementIMP(const int *arr, size_t size, int val)
 {
 	size_t i = 0;
 	int *arr1 = (int *)arr;

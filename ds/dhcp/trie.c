@@ -1,6 +1,6 @@
 	/************************************
 *		Author: ChenR				  *
-*		Reviewer: 					  *
+*		Reviewer: EyalF				  *
 *		trie						  *
 *		6/1/2020					  *
 *									  *
@@ -16,6 +16,8 @@
 #define FLAG(node) (node -> is_subtree_full)
 #define LSB 1
 #define BITS_IN_IP 32
+#define FULL 1
+#define EMPTY 0
 
 typedef enum children_number
 {
@@ -83,23 +85,13 @@ trie_t *TrieCreate(size_t level)
 trie_alloc_status_t TrieInsert(trie_t *trie, 
 						  	   unsigned int requested_ip, 
 						  	   unsigned int *result)
-{
-	int status = T_SUCCESS_ALLOCATED_REQUESTED;
-	
+{	
 	assert(trie);
 	
-	status = RecTrieInsertIMP(trie -> node, 
-							  trie -> level, 
-							  requested_ip, 
-							  result);
-
-	if ((T_SUCCESS_ALLOCATED_REQUESTED == status) || 
-		(T_MALLOC_FAIL == status))
-	{		
-		return status;
-	}
-
-	return status;
+	return (RecTrieInsertIMP(trie -> node, 
+							trie -> level, 
+							requested_ip, 
+							result));
 }
 
 void TrieDestroy(trie_t *trie)
@@ -245,47 +237,47 @@ static trie_alloc_status_t RecInsertAnyAddressIMP(node_t *node,
 	
 	if (0 == level)
 	{
-		FLAG(node) = 1;
+		FLAG(node) = FULL;
 		
 		return status;
 	}
 	
 	CreateChildIfNecessaryIMP(node, 0);
-	if (0 == FLAG(CHILD(0)))
+	if (EMPTY == FLAG(CHILD(0)))
 	{
 		*result &= ~(LSB << (level - 1));
 		status = RecInsertAnyAddressIMP(CHILD(0), level - 1, result);
-		UpdateFlagIMP(node);
 	}
 	else
 	{
 		*result |= LSB << (level - 1);
 		CreateChildIfNecessaryIMP(node, 1);	
 		status = RecInsertAnyAddressIMP(CHILD(1), level - 1, result);
-		UpdateFlagIMP(node);
 	}
+	UpdateFlagIMP(node);
 	
 	return status;
 }
-
+	
 static trie_alloc_status_t RecTrieInsertIMP(node_t *node, 
 									   size_t level, 
 									   unsigned int requested_ip,
 									   unsigned int *result)
 {
-	int status = T_REQUESTED_IP_OCCUPIED;
+	trie_alloc_status_t status = T_REQUESTED_IP_OCCUPIED;
 	unsigned int child_bit = 0;
+	
 	if (0 != requested_ip)
 	{
 		if (0 == level)
 		{
-			if (1 == (node -> is_subtree_full))
+			if (FULL == (node -> is_subtree_full))
 			{
 				status = T_REQUESTED_IP_OCCUPIED;
 			}
 			else
 			{
-				node -> is_subtree_full = 1;
+				node -> is_subtree_full = FULL;
 				*result = requested_ip;
 				status = T_SUCCESS_ALLOCATED_REQUESTED;
 			}
@@ -308,6 +300,10 @@ static trie_alloc_status_t RecTrieInsertIMP(node_t *node,
 	else
 	{
 		status = RecInsertAnyAddressIMP(node, level, result);
+		if (status == T_SUCCESS_ALLOCATED_REQUESTED)
+		{
+			status = T_REQUESTED_IP_OCCUPIED;
+		}
 	}
 	
 	return status;
@@ -316,14 +312,14 @@ static trie_alloc_status_t RecTrieInsertIMP(node_t *node,
 static void UpdateFlagIMP(node_t *node)
 {
 	if ((BOTH == NumOfChildrenIMP(node)) && 
-		(1 == FLAG(CHILD(LEFT))) && 
-		(1 == FLAG(CHILD(RIGHT))))
+		(FULL == FLAG(CHILD(LEFT))) && 
+		(FULL == FLAG(CHILD(RIGHT))))
 	{
-		FLAG(node) = 1;
+		FLAG(node) = FULL;
 	}
 	else
 	{
-		FLAG(node) = 0;
+		FLAG(node) = EMPTY;
 	}
 }
 
@@ -335,27 +331,27 @@ static node_t *CreateNodeIMP()
 		return NULL;
 	}
 
-	new_node -> children[0] = NULL;
-	new_node -> children[1] = NULL;
-	new_node -> is_subtree_full = 0;
+	new_node -> children[LEFT] = NULL;	
+	new_node -> children[RIGHT] = NULL;
+	new_node -> is_subtree_full = EMPTY;
 	
 	return new_node;
 }
 
 static child_num_t NumOfChildrenIMP(node_t *node)
 {
-	if ((NULL != node -> children[0]) && 
-		(NULL == node -> children[1]))
+	if ((NULL != node -> children[LEFT]) && 
+		(NULL == node -> children[RIGHT]))
 	{
 		return LEFT;
 	}
-	if ((NULL == node -> children[0]) && 
-		(NULL != node -> children[1]))
+	if ((NULL == node -> children[LEFT]) && 
+		(NULL != node -> children[RIGHT]))
 	{
 		return RIGHT;
 	}
-	if ((NULL != node -> children[0]) && 
-		(NULL != node -> children[1]))
+	if ((NULL != node -> children[LEFT]) && 
+		(NULL != node -> children[RIGHT]))
 	{
 		return BOTH;
 	}
