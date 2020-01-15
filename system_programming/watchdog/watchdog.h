@@ -1,1 +1,1 @@
-int WatchDog(char *program, char **arg_list);
+int MMI(char *argv[], int dead_time, int interval);
