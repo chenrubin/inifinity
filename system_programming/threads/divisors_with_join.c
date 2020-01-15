@@ -10,7 +10,7 @@
 /*#include <sys/types.h> /* pid_t */
 /*#include <pthread.h> /*pthread*/
 
-#define NUM_OF_THREADS 8
+#define NUM_OF_THREADS 64
 typedef struct nums
 {
 	size_t start;

@@ -4,7 +4,7 @@
 /*#include <pthread.h> /*pthread*/
 #include <omp.h>
 
-#define NUM_OF_THREADS 4
+#define NUM_OF_THREADS 64
 typedef struct nums
 {
 	size_t start;
