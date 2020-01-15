@@ -76,7 +76,7 @@ heap_t *HeapCreate(comparison_t comparison_func, void *comparison_param)
 	{
 		free(new_heap);
 		
-		return = NULL;
+		return NULL;
 	}
 	
 	new_heap -> comparison_func = comparison_func;
