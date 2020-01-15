@@ -13,12 +13,12 @@
 
 
 #define CHILD_PID 0
-#define SNAME "/mysem"
+#define SNAME "kolp"
 
 static void MyParentSignalHandler(int sig, siginfo_t *siginfo, void *context);
 
 pid_t g_pid = 0;
-int flag = 1;
+sig_atomic_t flag = 1;
 
 int main()
 {
@@ -26,21 +26,27 @@ int main()
 	struct sigaction act;
 	siginfo_t *siginfo = NULL;
 	sem_t *sem = sem_open(SNAME, O_CREAT, 0777, 0);
+	int i = 0;
 	act.sa_sigaction = MyParentSignalHandler;
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &act, NULL);
 	printf("ping's pid = %d\n", getpid());
+	sem_wait(sem);	
 
-	while (1)
+	while (i < 1000)
 	{
+		sem_wait(sem);
 		if (1 == flag)
 		{
 			write(0, "handler inside ping\n", 21);
 			flag = 0;
+			kill(g_pid, SIGUSR2);
 		}
-		sem_wait(sem);	
-		kill(g_pid, SIGUSR2);
+		++i;
 	}
+	
+	sem_close(sem);
+	sem_unlink(SNAME);
 	
 	return 0;
 }
