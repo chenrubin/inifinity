@@ -1,12 +1,14 @@
 #define _POSIX_C_SOURCE
 
+#include <stdio.h>
 #include <pthread.h>
 #include <fcntl.h>         
 #include <sys/stat.h>     
 #include <semaphore.h>
 #include <signal.h>
 #include <string.h>
-#include <stdlib.h>
+#include <stdlib.h> 
+#include <unistd.h> 
 
 #include "watcher.h"
 #include "scheduler.h"
@@ -26,10 +28,26 @@ typedef struct
 	status_t *status;
 }thread_vars;
 
+typedef struct task_struct
+{
+	scheduler_t *scheduler;
+	int dead_time;
+}is_alive_param_t;
+
 static void *ThreadFunctionRoutineIMP(void *vars);
+int IsAliveRoutine(void *action_func_param);
+int SignalSenderRoutine(void *action_func_param);
+int SchedulerStop(void *action_func_param);
 
 int main()
 {
+	int interval = 1;
+	int dead_time = 5;
+	char *argv[] = {"moshe", NULL};
+	int status = MMI(argv, interval, dead_time);
+	
+	printf("status = %d\n", status);
+	
 	return 0;
 }
 
@@ -68,7 +86,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	sem_t *thread_status = NULL;
 	sem_t *thread_ready = NULL;
 	sem_t *wtchdg_ready = NULL;
-	pid_t pid_to_signal = {0};
+	pid_t wd_pid = {0};
 	struct sigaction counter_handle = {0};
 	int interval = 0;
 	int dead_time = 0;
@@ -78,10 +96,14 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	thread_vars *variables = vars;
 	scheduler_t *new_sched = NULL;
 	ilrd_uid_t task_uid = {0};
+	is_alive_param_t live_param = {0};
 	
 	interval = variables -> interval;
 	dead_time = variables -> dead_time;
 	status = variables -> status;
+	
+	live_param.scheduler = new_sched;
+	live_param.dead_time = dead_time;
 	
 	argv_len = strlen(*(variables -> argv));
 	argv = (char *)malloc(argv_len);
@@ -103,11 +125,63 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	sigaction(SIGUSR1, &counter_handle, NULL);
 	
 	/* scheduler creation */
+	new_sched = SchedCreate();
+	/* check fail */
+	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, SignalSenderRoutine,&wd_pid)))
+	{
+		printf("SignalSenderRoutine faild to be added\n");
+	}
+	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, IsAliveRoutine,&live_param)))
+	{
+		printf("IsAliveRoutine faild to be added\n");
+	}
+	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
+	{
+		printf("IsAliveRoutine faild to be added\n");
+	}
 	
-	ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
- void *action_func_param);
+	wd_pid = fork();
+	if (0 == wd_pid)
+	{
+		printf("inside child before exec\n");
+		if (-1 == execvp("./wd.out", variables -> argv))
+		{
+			printf("exec failed\n");
+		}
+		printf("inside child after exec\n");
+	}
+	else
+	{
+		printf("I am thread\n");
+	}
+	
+	SchedRun(new_sched);
+	
+	sem_post(thread_status);
 	
 	free(argv);
 	
 	return NULL;
+}
+
+int IsAliveRoutine(void *action_func_param)
+{
+	printf("This is IsAlive routine\n");
+	
+	return 1;
+}
+
+int SignalSenderRoutine(void *action_func_param)
+{
+	printf("This is SignalSender routine\n");
+	
+	return 1;
+}
+
+int SchedulerStop(void *action_func_param)
+{
+	SchedStop((scheduler_t *)action_func_param);
+	printf("Sched stop\n");
+	
+	return 0;
 }
