@@ -8,9 +8,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "wd_utils.h"
+#include "watcher.h"
 #include "scheduler.h"
-
+#include "uid.h"
 
 typedef enum 
 {
@@ -26,9 +26,14 @@ typedef struct
 	status_t *status;
 }thread_vars;
 
-static void *ThreadRoutineIMP(void *vars);
+static void *ThreadFunctionRoutineIMP(void *vars);
 
-int Mmi(char *argv[], int interval, int dead_time)
+int main()
+{
+	return 0;
+}
+
+int MMI(char *argv[], int interval, int dead_time)
 {
 	pthread_t thread = {0};
 	status_t status = 0;
@@ -46,7 +51,7 @@ int Mmi(char *argv[], int interval, int dead_time)
 		return FAIL;
 	}
 	
-	status = pthread_create(&thread, NULL, ThreadRoutineIMP, (void *)&variables);
+	status = pthread_create(&thread, NULL, ThreadFunctionRoutineIMP, (void *)&variables);
 	if (FAIL == status)
 	{
 		return status;
@@ -58,8 +63,7 @@ int Mmi(char *argv[], int interval, int dead_time)
 	return status;
 }
 
-
-static void *ThreadRoutineIMP(void *vars)
+static void *ThreadFunctionRoutineIMP(void *vars)
 {
 	sem_t *thread_status = NULL;
 	sem_t *thread_ready = NULL;
@@ -72,13 +76,15 @@ static void *ThreadRoutineIMP(void *vars)
 	int argv_len = 0;
 	status_t *status = NULL;
 	thread_vars *variables = vars;
+	scheduler_t *new_sched = NULL;
+	ilrd_uid_t task_uid = {0};
 	
 	interval = variables -> interval;
 	dead_time = variables -> dead_time;
 	status = variables -> status;
 	
 	argv_len = strlen(*(variables -> argv));
-	argv = malloc(argv_len);
+	argv = (char *)malloc(argv_len);
 	if (NULL == argv)
 	{
 		*status = FAIL;
@@ -92,11 +98,14 @@ static void *ThreadRoutineIMP(void *vars)
 	wtchdg_ready = sem_open("wtchdg_ready", O_CREAT, 0777, 0);
 	
 	counter_handle.sa_flags = 0;
-	counter_handle.sa_handler = SetOffCounter;
+/*	counter_handle.sa_handler = SetOffCounter;*/
 	
 	sigaction(SIGUSR1, &counter_handle, NULL);
 	
+	/* scheduler creation */
 	
+	ilrd_uid_t SchedAdd(scheduler_t *scheduler, time_t interval, action_func action,
+ void *action_func_param);
 	
 	free(argv);
 	
