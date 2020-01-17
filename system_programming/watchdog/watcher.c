@@ -56,10 +56,10 @@ int main()
 {
 	int interval = 1;
 	int dead_time = 5;
-	char *argv[] = {"moshe", NULL};
+	char *argv[] = {"./a.out", NULL};
 	int status = MMI(argv, interval, dead_time);
 	
-	printf("status = %d\n", status);
+	printf("MMI status = %d\n", status);
 	
 	return 0;
 }
@@ -116,21 +116,20 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	int IsDNR = 0;
 	int counter = 0;
 	struct timespec ts = {0};
-	
+	printf("app end of variable declaration\n");
 	/*convert pid_t to string*/
 	sprintf(own_pid_str, "%d\n", (int)own_pid);
 	setenv("APP_ENV", own_pid_str, 0);
 	/* may fail*/
-	
+	printf("app end of declaration\n");
 	interval = variables -> interval;
 	dead_time = variables -> dead_time;
 	status = variables -> status;
 	ts.tv_sec = 2 * dead_time;
 	ts.tv_nsec = 0;    
 
-	live_param.scheduler = new_sched;
 	live_param.dead_time = dead_time;
-	
+/*	
 	argv_len = strlen(*(variables -> argv));
 	argv = (char *)malloc(argv_len);
 	if (NULL == argv)
@@ -140,10 +139,10 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	}
 	
 	memcpy(argv, *(variables -> argv), argv_len);
-	
+*/	
 	thread_status = sem_open("thread_status", O_CREAT, 0777, 0);
 	thread_ready = sem_open("thread_ready", O_CREAT, 0777, 0);
-	wtchdg_ready = sem_open("moshe", O_CREAT, 0777, 0);
+	wtchdg_ready = sem_open("wtchdg_ready", O_CREAT, 0777, 0);
 	
 	counter_handle.sa_flags = 0;
 	counter_handle.sa_handler = ResetCounterHandlerIMP;
@@ -151,6 +150,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	sigaction(SIGUSR1, &counter_handle, NULL);
 	
 	/* scheduler creation */
+	printf("app start of creation\n");
 	new_sched = SchedCreate();
 	if (NULL == new_sched)
 	{
@@ -168,63 +168,71 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 		
 		ReturnFail(thread_status);
 	}
-	if (UIDIsBad(SchedAdd(new_sched, 30, SchedulerStop,new_sched)))
+	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
 	{
 		printf("IsAliveRoutine faild to be added\n");
 		
 		ReturnFail(thread_status);
 	}
+	live_param.scheduler = new_sched;
 	/* end of creation*/
-	
-	if (NULL == getenv("WD_ENV"))
+	printf("app end of creation\n");
+/*	if (NULL == getenv("WD_ENV"))
 	{
+		printf("app right before fork\n");
 		wd_pid = fork();
 		if (0 == wd_pid)
 		{
-			printf("inside child before exec\n");
+			printf("app inside child before exec\n");
 			if (-1 == execvp("./wd.out", variables -> argv))
 			{
 				printf("exec failed\n");
 			}
-			printf("inside child after exec\n");
+			printf("app inside child after exec\n");
 		}
 	}	
-	
+*/	
 	while (!IsDNR)
 	{
 		if (dead_time == counter)
 		{
+			printf("app right before fork\n");
 			wd_pid = fork();
 			if (0 == wd_pid)
 			{
-				printf("inside child before exec\n");
+				printf("app inside child before exec\n");
 				if (-1 == execvp("./wd.out", variables -> argv))
 				{
 					printf("exec failed\n");
 				}
-				printf("inside child after exec\n");
+				printf("app inside child after exec\n");
 			}
 			
 			counter = 0;
 		}
-		
+/*		printf("app before sem_post\n");
 		sem_post(thread_ready);
-	/*	sem_wait(wtchdg_ready);*/
-		if (-1 == sem_timedwait(wtchdg_ready, &ts))
+		printf("app before sem_wait\n");
+		sem_wait(wtchdg_ready);
+		printf("app after sem_wait\n");
+/*		if (-1 == sem_timedwait(wtchdg_ready, &ts))
 		{
 			printf("Oh dear, something went wrong with read()! %s\n", strerror(errno));
 			printf ("fail to timed wait\n");
 			
 			ReturnFail(thread_status);
 		}
-		/*convert string to pid*/
+*/		/*convert string to pid*/
+/*		printf("app before wd_env = getenv(WD_ENV);\n");
 		wd_env = getenv("WD_ENV");
+		printf("app before wd_pid = atoi(wd_env);\n");
 		wd_pid = atoi(wd_env);
+*/		
 		/* may fail*/ 
+/*		sem_post(thread_status);*/
+		
 		SchedRun(new_sched);
 	}
-
-	sem_post(thread_status);
 	
 	free(argv);
 	
@@ -233,7 +241,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 
 int IsAliveRoutine(void *action_func_param)
 {
-	printf("This is IsAlive routine\n");
+	printf("app This is IsAlive routine\n");
 	++counter;
 	
 	if (((is_alive_param_t *)action_func_param) -> dead_time == counter)
@@ -248,7 +256,7 @@ int IsAliveRoutine(void *action_func_param)
 
 int SignalSenderRoutine(void *action_func_param)
 {
-	printf("This is SignalSender routine\n");
+	printf("app This is SignalSender routine\n");
 	
 	kill(*(pid_t *)action_func_param, SIGUSR1);
 	
@@ -258,7 +266,7 @@ int SignalSenderRoutine(void *action_func_param)
 int SchedulerStop(void *action_func_param)
 {
 	SchedStop((scheduler_t *)action_func_param);
-	printf("Sched stop\n");
+	printf("app Sched stop\n");
 	
 	return 0;
 }
