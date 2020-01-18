@@ -49,12 +49,12 @@ typedef struct time_spec
 	long tv_nsec;
 }sem_time_t;
 
-size_t counter = 0;
+int counter = 0;
 
 int main()
 {
 	printf("I am watchdog\n");
-	WD();
+/*	WD();*/
 	
 	return 0;
 }
@@ -71,28 +71,27 @@ void WD()
 	struct sigaction counter_handle = {0};
 	int interval = 1;
 	int dead_time = 5;
-	char *argv = NULL;
-	int argv_len = 0;
-	status_t *status = NULL;
+/*	char *argv = NULL;*/
+/*	int argv_len = 0;*/
+/*	status_t *status = NULL;*/
 /*	thread_vars *variables = vars;*/
 	scheduler_t *new_sched = NULL;
-	ilrd_uid_t task_uid = {0};
+/*	ilrd_uid_t task_uid = {0};*/
 	is_alive_param_t live_param = {0};
 	int IsDNR = 0;
-	int counter = 0;
-	struct timespec ts = {0};
-	printf("start doing stuff\n");
+/*	struct timespec ts = {0};*/
+	printf("wd start doing stuff\n");
 	/*convert pid_t to string*/
 	sprintf(own_pid_str, "%d\n", (int)own_pid);
+	printf("setenv WD_ENV to %s\n", own_pid_str);
 	setenv("WD_ENV", own_pid_str, 0);
 	/* may fail*/
 /*	interval = variables -> interval;
 	dead_time = variables -> dead_time;
 	status = variables -> status;
-*/	ts.tv_sec = 2 * dead_time;
+*//*	ts.tv_sec = 2 * dead_time;
 	ts.tv_nsec = 0;    
-
-	live_param.scheduler = new_sched;
+*/
 	live_param.dead_time = dead_time;
 	
 /*	argv_len = strlen(*(variables -> argv));
@@ -116,6 +115,7 @@ void WD()
 	
 	/* scheduler creation */
 	new_sched = SchedCreate();
+	live_param.scheduler = new_sched;
 	if (NULL == new_sched)
 	{
 		ReturnFail(thread_status);
@@ -128,21 +128,21 @@ void WD()
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, IsAliveRoutine, &live_param)))
 	{
-		printf("IsAliveRoutine faild to be added\n");
+		printf("wd IsAliveRoutine faild to be added\n");
 		
 		ReturnFail(thread_status);
 	}
 	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
 	{
-		printf("IsAliveRoutine faild to be added\n");
+		printf("wd IsAliveRoutine faild to be added\n");
 		
 		ReturnFail(thread_status);
 	}
 	/* end of creation*/
-	printf("end of creation, WD_ENV = %s\n", getenv("WD_ENV"));
+	printf("wd end of creation, WD_ENV = %s\n", getenv("WD_ENV"));
 	if (NULL == getenv("WD_ENV"))
 	{
-		printf("inside WD_ENV = NULL, right before fork\n");
+		printf("wd inside WD_ENV = NULL, right before fork\n");
 		app_pid = fork();
 /*		if (0 == app_pid)
 		{
@@ -157,12 +157,12 @@ void WD()
 	
 	while (!IsDNR)
 	{
-		printf("inside while !isdnr\n");
+		printf("wd inside while !isdnr\n");
 		if (dead_time == counter)
 		{
-			printf("inside dead_time == counter right before fork\n");
+			printf("wd inside dead_time == counter right before fork\n");
 			app_pid = fork();
-/*			if (0 == ap_pid)
+/*			if (0 == app_pid)
 			{
 				printf("inside child before exec\n");
 				if (-1 == execvp("./wd.out", variables -> argv))
@@ -186,11 +186,15 @@ void WD()
 			ReturnFail(thread_status);
 		}
 	*/	/*convert string to pid*/
-	printf("wd before app_env = getenv(APP_ENV); \n");
-		app_env = getenv("APP_ENV");
-		printf("wd before app_pid = atoi(app_env) \n");
-		app_pid = atoi(app_env);
-		/* may fail*/ 
+		if (NULL != getenv("APP_ENV"))
+		{
+			printf("wd before app_env = getenv(APP_ENV); \n");
+			app_env = getenv("APP_ENV");
+			printf("wd before app_pid = atoi(app_env) \n");
+			app_pid = atoi(app_env);
+			/* may fail*/ 
+		} 
+		
 		printf("wd before schedrun and after app_pid = atoi(app_env); which is %d \n", (int)app_pid);
 		SchedRun(new_sched);
 		printf("wd after schedrun \n");
