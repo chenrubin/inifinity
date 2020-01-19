@@ -170,12 +170,12 @@ void WD(void **vars)
 			printf("args_images = %s\n", args_images[0]);
 			*status = CreateProcess(&app_pid, args_images, APP_IMAGE);
 			printf("wd after create process\n");
-			if (FAIL == *status)
+/*			if (FAIL == *status)
 			{
 				printf("FAIL omg\n");
 				ReturnFail(thread_status);
 			}			
-			counter = 0;
+*/			counter = 0;
 		}
 		printf("wd before sem_post\n");
 		sem_post(wtchdg_ready);

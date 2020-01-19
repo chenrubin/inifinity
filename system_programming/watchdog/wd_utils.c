@@ -12,7 +12,7 @@ int CreateProcess(pid_t *pid, char **argv, int is_app)
 	char *gh[] = {"./a.out", NULL};
 	*pid = fork();
 	
-	if (is_app)
+/*	if (is_app)
 	{
 		image_name = argv[0];
 		printf("argv[0] = %s\n", argv[0]);
@@ -21,8 +21,23 @@ int CreateProcess(pid_t *pid, char **argv, int is_app)
 	{
 		image_name = "./wd.out";
 	}
-	
-	if (0 == *pid)
+*/	
+	if (0 < *pid)
+	{
+		/* Put the parent to sleep for 2 seconds--let the child finished executing */
+		sleep(2);
+		printf("inside parent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+/*		if (is_app)
+		{
+			printf("inside parent WD");
+		}
+		else
+		{
+			printf("inside parent app");
+		}
+*/		
+	}
+	else/*if (0 == *pid)*/
 	{
 		if (is_app)
 		{
@@ -34,8 +49,9 @@ int CreateProcess(pid_t *pid, char **argv, int is_app)
 		{
 			printf("app inside child before exec\n");	
 			execvp("./wd.out", argv);
-		}		
-printf("wd inside childghlik before exec3\n");
+		}
+				
+		printf("wd inside childghlik before exec3\n");
 /*		if (-1 == execvp(image_name, argv))
 		{
 			printf("exec failed\n");
@@ -45,6 +61,7 @@ printf("wd inside childghlik before exec3\n");
 		printf("wd inside childghlik before exec4\n");
 		printf("app inside child after exec\n");
 	}
+	
 	
 	return 0;
 }
