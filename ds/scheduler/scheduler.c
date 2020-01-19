@@ -187,17 +187,12 @@ enum result_status SchedRun(scheduler_t *scheduler)
 	scheduler -> continue_running = 1;
 	while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))
 	{
-		printf("inside while ((!SchedIsEmpty(scheduler)) && (scheduler -> continue_running))\n");
-		printf("inside while before dq of running task\n");
 		scheduler -> running_task = PQDequeue(scheduler -> pq);
-		printf("inside while before GetTimeToSleepUntilNextTaskIMP which is = %f\n", GetTimeToSleepUntilNextTaskIMP(scheduler -> running_task));
 		sleep(GetTimeToSleepUntilNextTaskIMP(scheduler -> running_task));
-		printf("inside while before is_repeat = TaskRun(scheduler -> running_task);\n");
 		is_repeat = TaskRun(scheduler -> running_task);
 
 		if (!(scheduler -> is_removing_itself) && is_repeat)
 		{
-			printf("inside if (!(scheduler -> is_removing_itself) && is_repeat)\n");
 			TaskUpdateTimeToRun(scheduler -> running_task);
 			is_failed = PQEnqueue(scheduler -> pq, scheduler -> running_task);
 			
@@ -210,7 +205,6 @@ enum result_status SchedRun(scheduler_t *scheduler)
 		}
 		else
 		{
-			printf("inside else of if (!(scheduler -> is_removing_itself) && is_repeat)\n");
 			RemoveRunningTaskIMP(scheduler);
 		}
 	}

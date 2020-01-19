@@ -1,1 +1,1 @@
-void WD();
+void WD(void **vars);

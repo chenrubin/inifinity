@@ -16,18 +16,15 @@
 #include "uid.h"
 #include "MyUtils.h"
 #include "wd.h"
+#include "wd_utils.h"
+#define WD_IMAGE 0 
+#define APP_IMAGE 1
 
 int IsAliveRoutine(void *action_func_param);
 int SignalSenderRoutine(void *action_func_param);
 int SchedulerStop(void *action_func_param);
 static void ResetCounterHandlerIMP(int sig);
-int ReturnFail(sem_t *thread_status);
 
-typedef enum 
-{
-	SUCCESS = 0,
-	FAIL = 1
-}status_t;
 
 typedef struct
 {
@@ -51,15 +48,18 @@ typedef struct time_spec
 
 int counter = 0;
 
-int main()
+int main(int argc, char* argv[])
 {
 	printf("I am watchdog\n");
-/*	WD();*/
+	/*
+	
+	*/
+	WD((void **)argv);
 	
 	return 0;
 }
 
-void WD()
+void WD(void **vars)
 {
 	sem_t *thread_status = NULL;
 	sem_t *thread_ready = NULL;
@@ -67,19 +67,29 @@ void WD()
 	pid_t app_pid = {0};
 	pid_t own_pid = getpid();
 	char own_pid_str[10] = {0};
+	char *interval_str = NULL;
+	char *dead_time_str = NULL;
 	char *app_env = {0};
 	struct sigaction counter_handle = {0};
-	int interval = 1;
-	int dead_time = 5;
+	int interval = 0;
+	int dead_time = 0;
+
 /*	char *argv = NULL;*/
 /*	int argv_len = 0;*/
-/*	status_t *status = NULL;*/
-/*	thread_vars *variables = vars;*/
+	status_t *status = NULL;
+	char **args_images = (char **)vars;
+	/*thread_vars **variables = vars;*/
 	scheduler_t *new_sched = NULL;
-/*	ilrd_uid_t task_uid = {0};*/
 	is_alive_param_t live_param = {0};
 	int IsDNR = 0;
-/*	struct timespec ts = {0};*/
+	printf("wd end of declaration\n");
+	
+	interval_str = getenv("ENV_INTERVAL");
+	dead_time_str = getenv("ENV_DEAD_TIME");
+	interval = atoi(interval_str);
+	dead_time = atoi(dead_time_str);
+	
+	printf("wd after convert of env variables\n");
 	printf("wd start doing stuff\n");
 	/*convert pid_t to string*/
 	sprintf(own_pid_str, "%d\n", (int)own_pid);
@@ -89,9 +99,10 @@ void WD()
 /*	interval = variables -> interval;
 	dead_time = variables -> dead_time;
 	status = variables -> status;
-*//*	ts.tv_sec = 2 * dead_time;
+/*	ts.tv_sec = 2 * dead_time;
 	ts.tv_nsec = 0;    
 */
+	
 	live_param.dead_time = dead_time;
 	
 /*	argv_len = strlen(*(variables -> argv));
@@ -132,46 +143,38 @@ void WD()
 		
 		ReturnFail(thread_status);
 	}
-	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
+/*	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
 	{
 		printf("wd IsAliveRoutine faild to be added\n");
 		
 		ReturnFail(thread_status);
 	}
-	/* end of creation*/
-	printf("wd end of creation, WD_ENV = %s\n", getenv("WD_ENV"));
+*/	/* end of creation*/
+/*	printf("wd end of creation, WD_ENV = %s\n", getenv("WD_ENV"));
 	if (NULL == getenv("WD_ENV"))
 	{
 		printf("wd inside WD_ENV = NULL, right before fork\n");
-		app_pid = fork();
-/*		if (0 == app_pid)
+		*status = CreateProcess(&app_pid, variables -> argv, APP_IMAGE);
+		if (FAIL == *status)
 		{
-			printf("inside wd child before exec\n");
-			if (-1 == execvp("./a.out", variables -> argv))
-			{
-				printf("exec failed\n");
-			}
-			printf("inside wd child after exec\n");
+			ReturnFail(thread_status);
 		}
-*/	}	
-	
+	}	
+*/	
 	while (!IsDNR)
 	{
 		printf("wd inside while !isdnr\n");
 		if (dead_time == counter)
 		{
 			printf("wd inside dead_time == counter right before fork\n");
-			app_pid = fork();
-/*			if (0 == app_pid)
+			printf("args_images = %s\n", args_images[0]);
+			*status = CreateProcess(&app_pid, args_images, APP_IMAGE);
+			printf("wd after create process\n");
+			if (FAIL == *status)
 			{
-				printf("inside child before exec\n");
-				if (-1 == execvp("./wd.out", variables -> argv))
-				{
-					printf("exec failed\n");
-				}
-				printf("inside child after exec\n");
-			}
-*/			
+				printf("FAIL omg\n");
+				ReturnFail(thread_status);
+			}			
 			counter = 0;
 		}
 		printf("wd before sem_post\n");
@@ -199,8 +202,6 @@ void WD()
 		SchedRun(new_sched);
 		printf("wd after schedrun \n");
 	}
-
-/*	sem_post(thread_status);*/
 	
 /*	free(argv);*/
 	
@@ -210,13 +211,12 @@ void WD()
 int IsAliveRoutine(void *action_func_param)
 {
 	printf("wd This is IsAlive routine\n");
+	printf("counter = %d\n", counter);
 	++counter;
 	
 	if (((is_alive_param_t *)action_func_param) -> dead_time == counter)
 	{
 		SchedStop(((is_alive_param_t *)action_func_param) -> scheduler);
-		
-		return 0;
 	}
 	
 	return 1;
@@ -233,9 +233,11 @@ int SignalSenderRoutine(void *action_func_param)
 
 int SchedulerStop(void *action_func_param)
 {
-	SchedStop((scheduler_t *)action_func_param);
+	/*SchedStop((scheduler_t *)action_func_param);*/
+	int x = 0;
 	printf("wd Sched stop\n");
 	
+	x = 2/0;
 	return 0;
 }
 
@@ -245,7 +247,7 @@ static void ResetCounterHandlerIMP(int sig)
 	
 	counter = 0; 
 }
-
+/*
 int ReturnFail(sem_t *thread_status)
 {
 	int retval = 0;
@@ -254,4 +256,4 @@ int ReturnFail(sem_t *thread_status)
 	pthread_exit(&retval);
 	
 	return FAIL;
-}
+}*/
