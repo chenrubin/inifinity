@@ -8,7 +8,7 @@ typedef enum
 }status_t;
 
 void ReturnFail(sem_t *thread_status);
-int CreateProcess(pid_t *pid, char **argv, int isApp);
+pid_t CreateProcess(char *image, char *argv[]);
 /*int IsAliveRoutine(void *action_func_param);
 int SignalSenderRoutine(void *action_func_param);
 int SchedulerStop(void *action_func_param);*/

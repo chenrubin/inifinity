@@ -6,64 +6,39 @@
 
 #include "wd_utils.h"
 
-int CreateProcess(pid_t *pid, char **argv, int is_app)
+pid_t CreateProcess(char *image, char *argv[])
 {
-	char *image_name = NULL;
-	char *gh[] = {"./a.out", NULL};
-	*pid = fork();
-	
-/*	if (is_app)
+	pid_t pid = fork();
+	if (0 > pid)
 	{
-		image_name = argv[0];
-		printf("argv[0] = %s\n", argv[0]);
-	}
-	else
+		return 0;
+	}	
+/*	if (0 < pid)
 	{
-		image_name = "./wd.out";
-	}
-*/	
-	if (0 < *pid)
-	{
-		/* Put the parent to sleep for 2 seconds--let the child finished executing */
-		sleep(2);
-		printf("inside parent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-/*		if (is_app)
-		{
-			printf("inside parent WD");
-		}
-		else
-		{
-			printf("inside parent app");
-		}
-*/		
-	}
-	else/*if (0 == *pid)*/
-	{
+		printf("inside parent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 		if (is_app)
 		{
-			printf("wd inside childghlik before exec\n");
-			printf("wd inside childghlik before exec2\n");
-			execvp("./a.out", gh);
-		}	
+			puts("inside parent WD");
+		}
 		else
 		{
-			printf("app inside child before exec\n");	
-			execvp("./wd.out", argv);
+			puts("inside parent app");
 		}
-				
-		printf("wd inside childghlik before exec3\n");
-/*		if (-1 == execvp(image_name, argv))
+		
+	}*/
+	if (0 == pid)/*if (0 == *pid)*/
+	{
+		printf("before calling execvp on image %s\n", image);
+		printf("argv = %s and %s\n", argv[0], argv[1]);
+		if (-1 == execvp(image, argv))
 		{
-			printf("exec failed\n");
-			return 1;
+			puts("exec failed\n");
+			return 0;
 		}
-*/
-		printf("wd inside childghlik before exec4\n");
-		printf("app inside child after exec\n");
+		puts("jwieofw");
 	}
 	
-	
-	return 0;
+	return pid;
 }
 
 void ReturnFail(sem_t *thread_status)
