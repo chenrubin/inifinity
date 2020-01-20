@@ -32,7 +32,6 @@ typedef struct task_struct
 {
 	scheduler_t *scheduler;
 	int dead_time;
-/*	int counter;*/
 }is_alive_param_t;
 
 typedef struct time_spec 
@@ -42,29 +41,38 @@ typedef struct time_spec
 }sem_time_t;
 
 int counter = 0;
+int IsDNR = 0;
 
 static void *ThreadFunctionRoutineIMP(void *vars);
 int IsAliveRoutine(void *action_func_param);
 int SignalSenderRoutine(void *action_func_param);
 int SchedulerStop(void *action_func_param);
 static void ResetCounterHandlerIMP(int sig);
+int CheckDNRFlagRoutine(void *action_func_param);
 
 int main(int argc, char* argv[])
 {
 	int interval = 1;
 	int dead_time = 5;
 	int i = 0;
-/*	char *argv[] = {"./a.out", NULL};*/
 	
 	int status = MMI(argv, interval, dead_time);
 	
 	printf("MMI status = %d\n", status);
 	
-	for (i = 0; i < 50; ++i)
+	for (i = 0; i < 20; ++i)
+	{
+		printf("!!!!!! i = %d !!!!!\n", i);
+		sleep(1);
+	}
+	printf("!!!!!!!!!!!!!!!!!! DNR !!!!!!!!!!!!!!!!\n");
+	DNR();
+	
+	for (i = 0; i < 20; ++i)
 	{
 		sleep(1);
 	}
-	
+
 	return 0;
 }
 
@@ -95,8 +103,6 @@ int MMI(char *argv[], int interval, int dead_time)
 	pthread_detach(thread);
 
 	sem_wait(thread_status);
-/*	sem_unlink("/thread_status");*/
-/*	sem_close(thread_status);*/
 	
 	return status;
 }
@@ -116,13 +122,12 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	int interval = 0;
 	int dead_time = 0;
 	char *argv = NULL;
-/*	int argv_len = 0;*/
+	int retval = 0;
 	status_t *status = NULL;
 	thread_vars *variables = vars;
 	scheduler_t *new_sched = NULL;
 	char *watcher_argv[] = {"./wd.out", NULL};
 	is_alive_param_t live_param = {0};
-	int IsDNR = 0;
 	printf("app end of variable declaration\n");
 
 	printf("app end of declaration\n");
@@ -139,17 +144,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	setenv("ENV_DEAD_TIME", dead_time_str, 0);
 
 	live_param.dead_time = dead_time;
-/*	
-	argv_len = strlen(*(variables -> argv));
-	argv = (char *)malloc(argv_len);
-	if (NULL == argv)
-	{
-		*status = FAIL;
-		return NULL;
-	}
 	
-	memcpy(argv, *(variables -> argv), argv_len);
-*/	
 	thread_status = sem_open("/thread_status", O_CREAT, 0777, 0);
 	thread_ready = sem_open("/thread_ready", O_CREAT, 0777, 0);
 	wtchdg_ready = sem_open("/wtchdg_ready", O_CREAT, 0777, 0);
@@ -169,13 +164,19 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, SignalSenderRoutine, &wd_pid)))
 	{
-		printf("app SignalSenderRoutine faild to be added\n");
+		printf("app SignalSenderRoutine failed to be added\n");
 		
 		ReturnFail(thread_status);
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, IsAliveRoutine, &live_param)))
 	{
-		printf("app IsAliveRoutine faild to be added\n");
+		printf("app IsAliveRoutine failed to be added\n");
+		
+		ReturnFail(thread_status);
+	}
+	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, CheckDNRFlagRoutine, new_sched)))
+	{
+		printf("app CheckDNRFlagRoutine failed to be added\n");
 		
 		ReturnFail(thread_status);
 	}
@@ -221,22 +222,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 		printf("app before sem_wait\n");
 		sem_wait(wtchdg_ready);
 		printf("app after sem_wait\n");
-/*		if (-1 == sem_timedwait(wtchdg_ready, &ts))
-		{
-			printf("Oh dear, something went wrong with read()! %s\n", strerror(errno));
-			printf ("fail to timed wait\n");
-			
-			ReturnFail(thread_status);
-		}
-*/		/*convert string to pid*/
-/*		if (NULL != getenv("WD_ENV"))
-		{
-			printf("app before wd_env = getenv(WD_ENV);\n");
-			wd_env = getenv("WD_ENV");
-			printf("app before wd_pid = atoi(wd_env);, currently wd_env = %s\n",wd_env);
-			wd_pid = atoi(wd_env);
-		} 
-*/		
+	
 		printf("app before sem_post(thread_status);\n");
 		printf("sempost return %d\n", sem_post(thread_status));
 		printf("app right before schedrun\n");
@@ -244,9 +230,25 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 		printf("app after schedrun\n");
 	}
 	
-	free(argv);
+	printf("app exited loop due to dnr\n");
+	/* app sends signal to wd to start rtermiante gracefully */
+	printf("sending SIGUSR2 to pid %d\n", wd_pid);
+	kill(wd_pid, SIGUSR2);
+	
+	sem_close(thread_status);
+	sem_close(thread_ready);
+	sem_close(wtchdg_ready);
+	SchedDestroy(new_sched);
+	pthread_exit(&retval);
 	
 	return NULL;
+}
+
+void DNR()
+{
+	printf("invoked DNR\n");
+	
+	IsDNR = 1;
 }
 
 int IsAliveRoutine(void *action_func_param)
@@ -275,23 +277,20 @@ int SignalSenderRoutine(void *action_func_param)
 
 int SchedulerStop(void *action_func_param)
 {
-	/*SchedStop((scheduler_t *)action_func_param);*/
 	int x = 0;
 	printf("app Sched stop\n");
-	
 	x= 2/0;
-	
 	
 	return 0;
 }
 
 int CheckDNRFlagRoutine(void *action_func_param)
 {
-	printf("CheckDNRFlagRoutine\n");
-	
+	printf("app CheckDNRFlagRoutine\n");
+	printf("IsDNR = %d\n", IsDNR);
 	if (IsDNR)
 	{
-		kill(*(pid_t *)action_func_param, SIGUSR1);
+		SchedStop((scheduler_t *)action_func_param);
 	}	
 	
 	return 1;
