@@ -50,32 +50,6 @@ int SchedulerStop(void *action_func_param);
 static void ResetCounterHandlerIMP(int sig);
 int CheckDNRFlagRoutine(void *action_func_param);
 
-int main(int argc, char* argv[])
-{
-	int interval = 1;
-	int dead_time = 5;
-	int i = 0;
-	
-	int status = MMI(argv, interval, dead_time);
-	
-	printf("MMI status = %d\n", status);
-	
-	for (i = 0; i < 20; ++i)
-	{
-		printf("!!!!!! i = %d !!!!!\n", i);
-		sleep(1);
-	}
-	printf("!!!!!!!!!!!!!!!!!! DNR !!!!!!!!!!!!!!!!\n");
-	DNR();
-	
-	for (i = 0; i < 20; ++i)
-	{
-		sleep(1);
-	}
-
-	return 0;
-}
-
 int MMI(char *argv[], int interval, int dead_time)
 {
 	pthread_t thread = {0};
@@ -180,13 +154,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 		
 		ReturnFail(thread_status);
 	}
-/*	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
-	{
-		printf("app IsAliveRoutine faild to be added\n");
-		
-		ReturnFail(thread_status);
-	}
-*/	
+
 	/* end of creation*/
 	printf("app end of creation\n");
 	if (NULL == getenv("WD_ENV"))
@@ -227,7 +195,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 		printf("sempost return %d\n", sem_post(thread_status));
 		printf("app right before schedrun\n");
 		SchedRun(new_sched);
-		printf("app after schedrun\n");
+		printf("				!!!!!!!!!!	app after schedrun	!!!!!!!!!\n");
 	}
 	
 	printf("app exited loop due to dnr\n");

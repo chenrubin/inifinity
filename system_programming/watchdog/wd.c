@@ -135,13 +135,6 @@ void WD(void **vars)
 		
 		ReturnFail(thread_status);
 	}
-/*	if (UIDIsBad(SchedAdd(new_sched, 10, SchedulerStop,new_sched)))
-	{
-		printf("wd IsAliveRoutine faild to be added\n");
-		
-		ReturnFail(thread_status);
-	}
-*/	/* end of creation*/
 	
 	while (!IsDNR)
 	{
@@ -169,7 +162,7 @@ void WD(void **vars)
 		
 		printf("wd before schedrun and after app_pid = atoi(app_env); which is %d \n", (int)app_pid);
 		SchedRun(new_sched);
-		printf("wd after schedrun \n");
+		printf("					!!!!!!!!!!!	wd after schedrun !!!!!!!!!!!!\n");
 	}
 	
 	printf("wd exited loop due to dnr\n");
