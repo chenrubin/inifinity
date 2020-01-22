@@ -77,6 +77,8 @@ int MMI(char *argv[], int interval, int dead_time)
 	pthread_detach(thread);
 
 	sem_wait(thread_status);
+
+    sem_close(thread_status);
 	
 	return status;
 }
