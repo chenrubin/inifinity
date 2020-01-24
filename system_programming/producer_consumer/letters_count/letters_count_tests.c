@@ -33,6 +33,7 @@ int main()
 			{
 				printf("%c = %ld\n",letters[i],  histogram[i]);
 			}*/
+			free(histogram);
 		}
 		
 		avg = 0;
@@ -43,9 +44,7 @@ int main()
 		}
 		
 		printf("%ld threads = %f\n",num_of_threads[i], avg / 10);	
-	}
-	
-	free(histogram);	
+	}	
 	
 	return 0;
 }
