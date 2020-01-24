@@ -1,3 +1,10 @@
+/****************************************
+*	Author : ChenR						*
+*	Reviewer: Tsisana					*
+*	Counting letters in dictionary		*
+*	24/1/2020 							*
+****************************************/
+
 #include <sys/mman.h> /* mmap, munmap */
 #include <stdio.h>	/* printing errno */
 #include <unistd.h> /* lseek */
