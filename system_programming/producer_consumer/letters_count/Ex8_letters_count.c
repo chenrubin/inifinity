@@ -1,18 +1,18 @@
 #include <sys/mman.h> /* mmap, munmap */
 #include <stdio.h>
-#include <unistd.h>
-#include <semaphore.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <unistd.h> /* lseek */
+#include <fcntl.h> /* O_RDONLY */
 #include <string.h> /* strtok */
 #include <stdlib.h> /* malloc */
 #include <ctype.h> /* toupper */
-#include <pthread.h>
+#include <pthread.h> /* pthread_create */
+#include <assert.h> /* assert */
+#include <errno.h> /* errno */
 
 #define MULTIPLYER (8)
 #define NUM_OF_LETTERS_IN_ENGLISH (26)
 #define ASCII_ZERO_POINT ('A')
-#define WORDS_TO_DISREGARD 18
+#define WORDS_TO_DISREGARD 0
 
 typedef struct wrap
 {
@@ -20,23 +20,37 @@ typedef struct wrap
 	size_t size;
 }thread_param_t;
 
-static char *CopyDictToString();
+/* copy dictionary from file to buffer using mmap */
+static char *CopyDictToStringIMP();
+
+/* get file size for mmap */
 static size_t GetFileSizeIMP(int file_descriptor);
-static size_t CountWords(char *str);
-static void InsertWordsToArray(char **arr, char *word_list, size_t size);
-static void *CountingLettersInEachThread(void *param);
-static void *CountingLettersInEachThread(void *param);
-static void CountingLettersInEachWord(char *str, size_t *histogram);
-static size_t *SumAllThreadsResults(size_t *res_histo, size_t *thread_histo);
+
+/* count words in dictionary */
+static size_t CountWordsIMP(char *str);
+
+/* insert strings from buffer to array */
+static void InsertWordsToArrayIMP(char **arr, char *word_list, size_t size);
+
+/* thread routine that counts letters in a given chunk in an array of strings */
+static void *CountingLettersInEachThreadIMP(void *param);
+
+/* count the letters in each string */
+static void CountingLettersInEachWordIMP(char *str, size_t *histogram);
+
+/* sum all threads' histograms to one */
+static size_t *SumAllThreadsResultsIMP(size_t *res_histo, size_t *thread_histo);
+
+/* This is the main function for counting letters from dictionary */
 size_t *CountingLetters(size_t num_of_threads);
 
-static char *CopyDictToString()
+static char *CopyDictToStringIMP(size_t *fsize)
 {
 	char *word_list = NULL;
 	int fd = open("/usr/share/dict/american-english", O_RDONLY);
-	size_t fsize = GetFileSizeIMP(fd);
 	
-    word_list = mmap(NULL, fsize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	*fsize = GetFileSizeIMP(fd);
+    word_list = mmap(NULL, *fsize, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 
 	return word_list;
 }
@@ -50,7 +64,7 @@ static size_t GetFileSizeIMP(int file_descriptor)
 	return size;
 }
 
-static size_t CountWords(char *str)
+static size_t CountWordsIMP(char *str)
 {
 	size_t counter = 0;
 	char *token = NULL;
@@ -66,7 +80,7 @@ static size_t CountWords(char *str)
 	return counter;
 }
 
-static void InsertWordsToArray(char **arr, char *word_list, size_t size)
+static void InsertWordsToArrayIMP(char **arr, char *word_list, size_t size)
 {
 	int i = 0;
 	char *token = NULL;
@@ -75,7 +89,6 @@ static void InsertWordsToArray(char **arr, char *word_list, size_t size)
 	 
 	while (NULL != token)
 	{
-		
 		arr[i] = token;
 		++i;
 		token = strtok(NULL, ",. !\n");
@@ -87,28 +100,28 @@ static void InsertWordsToArray(char **arr, char *word_list, size_t size)
 	}
 }
 
-static void *CountingLettersInEachThread(void *param)
+static void *CountingLettersInEachThreadIMP(void *param)
 {
 	size_t i = 0;
 	char **str = ((thread_param_t *)param) -> str;
 	size_t size = ((thread_param_t *)param) -> size;
 	size_t *quantity_histogram = (size_t *)calloc(NUM_OF_LETTERS_IN_ENGLISH, 
 												  sizeof(size_t));
-
+	
 	if (NULL == quantity_histogram)
 	{
 		return NULL;
 	}
-	
+
 	for (i = 0; i < size; ++i)
 	{
-		CountingLettersInEachWord(*str + i, quantity_histogram);
+		CountingLettersInEachWordIMP(*(str + i), quantity_histogram);
 	}
 
 	return quantity_histogram;
 }
 
-static void CountingLettersInEachWord(char *str, size_t *histogram)
+static void CountingLettersInEachWordIMP(char *str, size_t *histogram)
 {
 	while ('\0' != *str)
 	{
@@ -117,11 +130,10 @@ static void CountingLettersInEachWord(char *str, size_t *histogram)
 			histogram[toupper(*str) - ASCII_ZERO_POINT] += 1;
 		}
 		++str;
-/*		printf("counter = %ld\n", histogram[toupper(*str) - ASCII_ZERO_POINT]);*/
 	}
 }
 
-static size_t *SumAllThreadsResults(size_t *res_histo, size_t *thread_histo)
+static size_t *SumAllThreadsResultsIMP(size_t *res_histo, size_t *thread_histo)
 {
 	size_t i = 0;
 	
@@ -136,18 +148,21 @@ static size_t *SumAllThreadsResults(size_t *res_histo, size_t *thread_histo)
 size_t *CountingLetters(size_t num_of_threads)
 {
 	size_t i = 0;
+	size_t fsize = 0;
 	char **ptr_to_words = NULL;
 	size_t counter = 0;
 	pthread_t *threads = NULL;
 	size_t amount_per_thread = 0;
 	thread_param_t *params = NULL;
-	char *word_list_for_count = CopyDictToString();
-	char *word_list_for_assign_pointers = CopyDictToString();
+	char *word_list_for_count = CopyDictToStringIMP(&fsize);
+	char *word_list_for_assign_pointers = CopyDictToStringIMP(&fsize);
 	size_t *res_histogram = NULL;
 	void *thread_histo = NULL;
 	size_t current_state = 0;
 	
-	counter = CountWords(word_list_for_count) - WORDS_TO_DISREGARD;
+	assert(num_of_threads);
+	
+	counter = CountWordsIMP(word_list_for_count) - WORDS_TO_DISREGARD;
 
 	ptr_to_words = (char **)malloc(MULTIPLYER * counter * sizeof(void *));
 	if (NULL == ptr_to_words)
@@ -155,7 +170,7 @@ size_t *CountingLetters(size_t num_of_threads)
 		return 0;
 	}
 	
-	InsertWordsToArray(ptr_to_words, 
+	InsertWordsToArrayIMP(ptr_to_words, 
 					   word_list_for_assign_pointers, 
 					   counter);
 	
@@ -166,18 +181,18 @@ size_t *CountingLetters(size_t num_of_threads)
 	}
 	
 	amount_per_thread = MULTIPLYER * counter / num_of_threads;
-	params = (thread_param_t *)malloc(sizeof(thread_param_t)); 
+	params = (thread_param_t *)malloc(num_of_threads * sizeof(thread_param_t)); 
 	
 	for (i = 0; i < num_of_threads; ++i)
 	{
 		current_state = i * amount_per_thread;
-		params[i].str = ptr_to_words + (i * amount_per_thread);
+		params[i].str = ptr_to_words + current_state;
 		params[i].size = amount_per_thread;
 		if (i == num_of_threads - 1)
 		{
 			params[i].size = MULTIPLYER * counter - current_state;
 		}
-		pthread_create(threads + i, NULL, CountingLettersInEachThread, 
+		pthread_create(threads + i, NULL, CountingLettersInEachThreadIMP, 
 										  params + i);						  
 	}
 	
@@ -191,9 +206,24 @@ size_t *CountingLetters(size_t num_of_threads)
 	for (i = 0; i < num_of_threads; ++i)
 	{
 		pthread_join(threads[i], &thread_histo);
-		SumAllThreadsResults(res_histogram, (size_t *)thread_histo);
+		SumAllThreadsResultsIMP(res_histogram, (size_t *)thread_histo);
 		free(thread_histo);
 	}
+	
+	if (-1 == munmap(word_list_for_count, fsize))
+	{
+		perror ("munmap failed\n");
+    	printf( "Value of errno: %d\n", errno);
+	}
+	if (-1 == munmap(word_list_for_assign_pointers, fsize))
+	{
+		perror ("munmap failed\n");
+    	printf( "Value of errno: %d\n", errno);
+	}
+	
+	free(ptr_to_words);
+	free(threads);
+	free(params);
 	
 	return res_histogram;
 }
