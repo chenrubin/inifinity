@@ -29,11 +29,11 @@ int main()
 			
 			times[j] = (double)(end - begin) / CLOCKS_PER_SEC;
 				
-		/*	for (i = 0; i < NUM_OF_LETTERS; ++i)
+	/*		for (i = 0; i < NUM_OF_LETTERS; ++i)
 			{
 				printf("%c = %ld\n",letters[i],  histogram[i]);
-			}*/
-			free(histogram);
+			}
+*/			free(histogram);
 		}
 		
 		avg = 0;

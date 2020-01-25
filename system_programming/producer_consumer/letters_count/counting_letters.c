@@ -78,8 +78,11 @@ static char *CopyDictToStringIMP(size_t *file_size)
 
 static size_t GetFileSizeIMP(int file_descriptor)
 {
-	size_t size = lseek(file_descriptor, 0, SEEK_END);
+	size_t size = 0;
 	
+	assert(file_descriptor);
+	
+	size = lseek(file_descriptor, 0, SEEK_END);
 	lseek(file_descriptor, 0, SEEK_SET);
 	
 	return size;
@@ -89,7 +92,11 @@ static size_t CountWordsIMP(char *str)
 {
 	size_t num_of_words = 0;
 	char *token = NULL;
-	char *tmp_str = str;
+	char *tmp_str = NULL;
+	
+	assert(str);
+	
+	tmp_str = str;
 	
 	token = strtok(tmp_str, ",. !\n");
 	while (NULL != token)
@@ -105,6 +112,8 @@ static void InsertWordsToArrayIMP(char **arr, char *word_list, size_t size)
 {
 	int i = 0;
 	char *token = NULL;
+	
+	assert(word_list);
 	
 	token = strtok(word_list, ",. !\n");
 	 
@@ -124,9 +133,15 @@ static void InsertWordsToArrayIMP(char **arr, char *word_list, size_t size)
 static void *CountingLettersInEachThreadIMP(void *param)
 {
 	size_t i = 0;
-	char **str = ((thread_param_t *)param) -> str;
-	size_t size = ((thread_param_t *)param) -> size;
-	size_t *quantity_histogram = (size_t *)calloc(NUM_OF_LETTERS_IN_ENGLISH, 
+	char **str = NULL;
+	size_t size = 0;
+	size_t *quantity_histogram = NULL;
+	
+	assert(param);
+	
+	str = ((thread_param_t *)param) -> str;
+	size = ((thread_param_t *)param) -> size;
+	quantity_histogram = (size_t *)calloc(NUM_OF_LETTERS_IN_ENGLISH, 
 												  sizeof(size_t));
 	
 	if (NULL == quantity_histogram)
@@ -144,6 +159,9 @@ static void *CountingLettersInEachThreadIMP(void *param)
 
 static void CountingLettersInEachWordIMP(char *str, size_t *histogram)
 {
+	assert(str);
+	assert(histogram);
+	
 	while ('\0' != *str)
 	{
 		if (0 != isalpha(*str))
@@ -158,6 +176,9 @@ static size_t *SumAllThreadsResultsIMP(size_t *res_histo,
 									   size_t *thread_histogram)
 {
 	size_t i = 0;
+	
+	assert(res_histo);
+	assert(thread_histogram);
 	
 	for (i = 0; i < NUM_OF_LETTERS_IN_ENGLISH; ++i)
 	{
@@ -174,6 +195,9 @@ static void UpdateThreadParamsIMP(thread_param_t *param,
 								  size_t num_of_current_thread,
 								  size_t num_of_threads)
 {	
+	assert(param);
+	assert(arr_of_strings);
+	
 	param -> str = arr_of_strings + num_of_current_thread * amount_per_thread;
 	param -> size = amount_per_thread;
 	if (num_of_current_thread == num_of_threads - 1)
