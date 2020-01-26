@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/resource.h>
+#include <unistd.h>
 
 #define NUM_OF_LETTERS 26
 #define NUM_OF_THREADS 100
@@ -15,19 +17,23 @@ int main()
 	size_t i = 0;
 	size_t j = 0;
 	size_t *histogram = NULL;
-	clock_t begin = 0;
-	clock_t end = 0;
 	double avg = 0;
+	struct rusage usage;
+	struct timeval start, end;
 	
 	for (i = 0; i < 11; ++i)
 	{	
 		for (j = 0; j < 10; ++j)
 		{
-			begin = clock();
+			getrusage(RUSAGE_SELF, &usage);
+			start = usage.ru_stime;
 			histogram = CountingLetters(num_of_threads[i]);
-			end = clock();
+			getrusage(RUSAGE_SELF, &usage);
+			end = usage.ru_stime;
 			
-			times[j] = (double)(end - begin) / CLOCKS_PER_SEC;
+			
+			times[j] = (double)(end.tv_usec - start.tv_usec) / 1000000 + 
+					   (double)(end.tv_sec - start.tv_sec);
 				
 	/*		for (i = 0; i < NUM_OF_LETTERS; ++i)
 			{
