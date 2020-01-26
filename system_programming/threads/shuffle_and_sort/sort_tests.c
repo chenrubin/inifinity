@@ -13,7 +13,7 @@ int func(const void *str1, const void *str2);
 
 int main()
 {
-	size_t num_of_threads[] = {2,1,4,8,15,16,40,100,101,1000,5000};
+	size_t num_of_threads[] = {30,1,4,8,15,16,40,100,101,1000,5000};
 	double times[10] = {0};
 	size_t i = 0;
 	size_t j = 0;
