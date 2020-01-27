@@ -27,6 +27,9 @@ extern const ilrd_uid_t BAD_UID;
 The  function creates a new UID of Counter, time stamp & Process number
 If the UIDCreate fails, the function will return a new UID with BAD_UID stamp.
 To validate the new UID use the UIDIsBad function.
+adding 
+#define THREAD_SAFE
+will enable thread safe uid creation
 */
 ilrd_uid_t UIDCreate(void);
 

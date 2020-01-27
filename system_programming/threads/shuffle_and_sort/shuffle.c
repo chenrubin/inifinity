@@ -1,7 +1,7 @@
 /****************************************
 *	Author : ChenR						*
-*	Reviewer: Tsisana					*
-*	Counting letters in dictionary		*
+*	Reviewer: Kewan						*
+*	Shuffle								*
 *	24/1/2020 							*
 ****************************************/
 

@@ -11,6 +11,10 @@
 #include "uid.h"
 #include "../../chen/MyUtils.h" /* MAX2,MIN2 and print results macro*/
 
+#ifdef THREAD_SAFE
+int flag_g = 0;
+#endif
+
 const ilrd_uid_t BAD_UID = {0, -1, 0};
 
 ilrd_uid_t UIDCreate(void)
@@ -20,8 +24,17 @@ ilrd_uid_t UIDCreate(void)
 	
 	new_uid.pid = getpid();
 	new_uid.time = time(NULL);
+	
+#ifdef THREAD_SAFE 	
+	while(__sync_lock_test_and_set(&flag_g, 1))
+	{}
+	__sync_lock_test_and_set(&(new_uid.counter), counter);
+	__sync_add_and_fetch(&counter, 1);
+	__sync_lock_release(&flag_g);
+#else
 	new_uid.counter = counter;
 	++counter;
+#endif	
 	
 	return new_uid;
 }

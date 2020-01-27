@@ -1,8 +1,8 @@
 /****************************************
 *	Author : ChenR						*
-*	Reviewer: Tsisana					*
-*	Counting letters in dictionary		*
-*	24/1/2020 							*
+*	Reviewer: Kewan						*
+*	Sort								*
+*	27/1/2020 							*
 ****************************************/
 
 #include <sys/mman.h> /* mmap, munmap */
@@ -484,6 +484,5 @@ static int IsBeforeIMP(const void *new_data,
 			   				  
 int func(const void *str1, const void *str2) 
 {
-/*	printf("str1 = %s, str2 = %s\n", *(char **)str1, *(char **)str2);*/
    return (strcmp(*(char **)str1, *(char **)str2));
 }
