@@ -17,6 +17,8 @@
 #include <errno.h> /* errno */
 #include <strings.h> /* strcmp */
 
+#include "../../../ds/sorting/sorting.h"
+
 #define MULTIPLYER (1)
 #define LETTERS_IN_ENGLISH (26)
 #define ASCII_ZERO_POINT ('A')
@@ -103,17 +105,16 @@ static void UpdateThreadParamsIMP(thread_param_t *param,
 								  size_t num_of_threads,
 								  compare func);
 
-/* munmap  word_list_count and word_list_pointers *//*								  
-static void FreeMapping(char *word_list_count, 
-						char *word_list_pointers, 
-						size_t file_size);
-*/
 /* Free all allocations */
 static void FreeAllocations(char **strings_ptr, 
 							pthread_t *threads, 
 							thread_param_t *params,
-							FILE *fp);													  
-
+							FILE *fp);
+							
+static int IsBeforeIMP(const void *new_data, 
+			  	 	   const void *src_data, 
+			   		   void *param);							
+			   		   
 /* copy buffer to file with length of num_of_words */
 void CopyBufferToFile(size_t num_of_words, char **strings_ptr, FILE *fp);
 
@@ -222,6 +223,7 @@ static void *SortingChunkInEachThreadIMP(void *param)
 	size_t size = 0;
 	size_t element_size = 0;
 	compare func = NULL;
+	int heap_param = 0;
 	
 	assert(param);
 	
@@ -229,54 +231,15 @@ static void *SortingChunkInEachThreadIMP(void *param)
 	size = ((thread_param_t *)param) -> size;
 	element_size = ((thread_param_t *)param) -> element_size;
 	func = ((thread_param_t *)param) -> func;
+/*	
+	HeapSort(str, size, element_size, IsBeforeIMP, &heap_param);
+*/	
 
 	qsort(str, size, element_size, func);
 	
 	return 0;
 }
-/*
-static void CountingLettersInEachWordIMP(char *str, size_t *histogram)
-{
-	assert(str);
-	assert(histogram);
-	
-	while ('\0' != *str)
-	{
-		if (0 != isalpha(*str))
-		{
-			histogram[toupper(*str) - ASCII_ZERO_POINT] += 1;
-		}
-		++str;
-	}
-}
-*/
-/*
-static size_t *SumAllThreadsResultsIMP(size_t *res_histo, 
-									   size_t num_of_threads,
-									   pthread_t *threads)
-{
-	size_t i = 0;
-	size_t j = 0;
-	void *thread_histogram = NULL;
-	
-	assert(res_histo);
-	assert(num_of_threads);
-	
-	for (i = 0; i < num_of_threads; ++i)
-	{
-		pthread_join(threads[i], &thread_histogram);
 
-		for (j = 0; j < LETTERS_IN_ENGLISH; ++j)
-		{
-			res_histo[j] += *((size_t *)thread_histogram + j);
-		}
-		
-		free(thread_histogram);
-	}
-	
-	return res_histo;
-}
-*/
 static void UpdateThreadParamsIMP(thread_param_t *param, 
 								  char **arr_of_strings, 
 								  size_t amount_per_thread, 
@@ -415,24 +378,7 @@ static int ThreadsSortingWords(pthread_t **threads,
 	
 	return 0;
 }
-/*
-static void FreeMapping(char *word_list_count, 
-						char *word_list_pointers, 
-						size_t file_size)
-{
-	if (-1 == munmap(word_list_count, file_size))
-	{
-		perror ("munmap failed\n");
-    	printf( "Value of errno: %d\n", errno);
-	}
-	
-	if (-1 == munmap(word_list_pointers, file_size))
-	{
-		perror ("munmap failed\n");
-    	printf( "Value of errno: %d\n", errno);
-	}
-}
-*/
+
 static void FreeAllocations(char **strings_ptr, 
 							pthread_t *threads, 
 							thread_param_t *params,
@@ -455,6 +401,7 @@ FILE *Sort(size_t num_of_threads, char *file_name, compare func)
 	char *word_list_pointers = NULL;
 	FILE *new_fp = NULL;
 	size_t amount_per_thread = 0;
+	int i = 0;
 	
 	assert(num_of_threads);
 	
@@ -481,7 +428,12 @@ FILE *Sort(size_t num_of_threads, char *file_name, compare func)
 		
 		return NULL;
 	}
-
+	
+	for (i = 0; i< num_of_words; ++i)
+	{
+		printf("%s, ", *(strings_ptr + i));
+	}
+	
 	MergeAllChunks(strings_ptr, num_of_words * MULTIPLYER, num_of_threads, 
 				   amount_per_thread, func);
 
@@ -495,12 +447,7 @@ FILE *Sort(size_t num_of_threads, char *file_name, compare func)
 	}
 	
 	CopyBufferToFile(num_of_words, strings_ptr, new_fp);
-/*	for (i = 0; i < num_of_words * MULTIPLYER; ++i)
-	{
-		fputs(*(char **)(strings_ptr + i), new_fp);
-		fputs("\n", new_fp);
-	}
-*/	
+	
 	FreeAllocations(strings_ptr, threads, params, new_fp);
 		
 	return new_fp;
@@ -521,7 +468,22 @@ void CopyBufferToFile(size_t num_of_words, char **strings_ptr, FILE *fp)
 	}
 }
 
-int func (const void *str1, const void *str2) 
+static int IsBeforeIMP(const void *new_data, 
+			  	 	   const void *src_data, 
+			   		   void *param)
 {
+	(void)param;
+	
+	if ((0 <= strcmp(*(char **)new_data, *(char **)src_data)))
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+			   				  
+int func(const void *str1, const void *str2) 
+{
+/*	printf("str1 = %s, str2 = %s\n", *(char **)str1, *(char **)str2);*/
    return (strcmp(*(char **)str1, *(char **)str2));
 }
