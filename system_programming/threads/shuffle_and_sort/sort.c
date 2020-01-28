@@ -45,7 +45,7 @@ typedef struct wrap1
 }merge_param_t;
 
 /* copy dictionary from file to buffer using mmap */
-static char *CopyDictToStringIMP(size_t *file_size, char *src_file);
+static char *CopyDictToStringIMP(size_t file_size, int fd);
 
 /* get file size for mmap */
 static size_t GetFileSizeIMP(int file_descriptor);
@@ -78,7 +78,7 @@ void MergeAllChunks(char **string_ptr,
 					 compare func);
 
 /* compare funtion for qsort */
-int func (const void *str1, const void *str2) ;
+int func(const void *str1, const void *str2) ;
 
 /* This is the main function for counting letters from dictionary */
 FILE *Sort(size_t num_of_threads, char *func_name, compare func);
@@ -110,11 +110,11 @@ static void FreeAllocations(char **strings_ptr,
 							pthread_t *threads, 
 							thread_param_t *params,
 							FILE *fp);
-							
+/*							
 static int IsBeforeIMP(const void *new_data, 
 			  	 	   const void *src_data, 
 			   		   void *param);							
-			   		   
+*/			   		   
 /* copy buffer to file with length of num_of_words */
 void CopyBufferToFile(size_t num_of_words, char **strings_ptr, FILE *fp);
 
@@ -128,53 +128,63 @@ int main(int argc, char *argv[])
 	
 	return 0;
 }
-  
-static char *CopyDictToStringIMP(size_t *file_size, char *src_file)
-{
-	char *word_list = NULL;
-	int fd = open(src_file, O_RDONLY);
-	
-	*file_size = GetFileSizeIMP(fd);
-    word_list = mmap(NULL, 
-    				 *file_size, 
-    				 PROT_READ | PROT_WRITE, 
-    				 MAP_PRIVATE, 
-    				 fd, 
-    				 0);
 
-	return word_list;
-}
-
-static size_t GetFileSizeIMP(int file_descriptor)
+FILE *Sort(size_t num_of_threads, char *file_name, compare func)
 {
-	size_t size = 0;
-	
-	assert(file_descriptor);
-	
-	size = lseek(file_descriptor, 0, SEEK_END);
-	lseek(file_descriptor, 0, SEEK_SET);
-	
-	return size;
-}
-
-static size_t CountWordsIMP(char *str)
-{
+	size_t file_size = 0;
+	char **strings_ptr = NULL;
 	size_t num_of_words = 0;
-	char *token = NULL;
-	char *tmp_str = NULL;
+	pthread_t *threads = NULL;
+	thread_param_t *params = NULL;
+	char *word_list_count = NULL;
+	char *word_list_pointers = NULL;
+	FILE *new_fp = NULL;
+	size_t amount_per_thread = 0;
 	
-	assert(str);
+	assert(num_of_threads);
 	
-	tmp_str = str;
 	
-	token = strtok(tmp_str, ",. !\n");
-	while (NULL != token)
+	strings_ptr = InsertWordsToArrayIMP(&num_of_words, 
+										&file_size, 
+										word_list_count, 
+										word_list_pointers,
+										file_name);
+	if (NULL == strings_ptr)
 	{
-		token = strtok(NULL, ",. !\n");
-		++(num_of_words);
+		return NULL;
 	}
 	
-	return num_of_words;
+	if (1 == ThreadsSortingWords(&threads,
+								 num_of_words, 
+								 &num_of_threads, 
+								 strings_ptr,
+								 &params,
+								 func,
+								 &amount_per_thread))
+	{
+		free(threads);
+		free(strings_ptr);
+		
+		return NULL;
+	}
+
+	MergeAllChunks(strings_ptr, num_of_words * MULTIPLYER, num_of_threads, 
+				   amount_per_thread, func);
+
+	new_fp = fopen("sorted_words.txt", "w+");
+	if (NULL == new_fp)
+	{
+		free(threads);
+		free(strings_ptr);
+		
+		return NULL;
+	}
+	
+	CopyBufferToFile(num_of_words, strings_ptr, new_fp);
+	
+	FreeAllocations(strings_ptr, threads, params, new_fp);
+		
+	return new_fp;
 }
 
 static char **InsertWordsToArrayIMP(size_t *num_of_words, 
@@ -186,9 +196,20 @@ static char **InsertWordsToArrayIMP(size_t *num_of_words,
 	int i = 0;
 	char *token = NULL;
 	char **strings_ptr = NULL;
+	int fd = open(src_file, O_RDONLY);
 	
-	word_list_for_count = CopyDictToStringIMP(file_size, src_file);
-	word_list_for_assign_pointers = CopyDictToStringIMP(file_size, src_file);
+	*file_size = GetFileSizeIMP(fd);
+	word_list_for_count = CopyDictToStringIMP(*file_size, fd/*src_file*/);
+	if (NULL == word_list_for_count)
+	{
+		return NULL;
+	}
+	
+	word_list_for_assign_pointers = CopyDictToStringIMP(*file_size, fd/*src_file*/);
+	if (NULL == word_list_for_assign_pointers)
+	{
+		return NULL;
+	}
 	
 	*num_of_words = CountWordsIMP(word_list_for_count) - WORDS_TO_DISREGARD;
 	strings_ptr = (char **)malloc(MULTIPLYER * 
@@ -215,120 +236,6 @@ static char **InsertWordsToArrayIMP(size_t *num_of_words,
 	}
 	
 	return strings_ptr;
-}
-
-static void *SortingChunkInEachThreadIMP(void *param)
-{
-	char **str = NULL;
-	size_t size = 0;
-	size_t element_size = 0;
-	compare func = NULL;
-	int heap_param = 0;
-	
-	assert(param);
-	
-	str = ((thread_param_t *)param) -> str;
-	size = ((thread_param_t *)param) -> size;
-	element_size = ((thread_param_t *)param) -> element_size;
-	func = ((thread_param_t *)param) -> func;
-/*	
-	HeapSort(str, size, element_size, IsBeforeIMP, &heap_param);
-*/	
-
-	qsort(str, size, element_size, func);
-	
-	return 0;
-}
-
-static void UpdateThreadParamsIMP(thread_param_t *param, 
-								  char **arr_of_strings, 
-								  size_t amount_per_thread, 
-								  size_t num_of_words,
-								  size_t num_of_current_thread,
-								  size_t num_of_threads,
-								  compare func)
-{	
-	assert(param);
-	assert(arr_of_strings);
-	
-	param -> str = arr_of_strings + num_of_current_thread * amount_per_thread;
-	param -> element_size = sizeof(void *);
-	param -> func = func;
-	param -> size = amount_per_thread;
-	
-	if (num_of_current_thread == num_of_threads - 1)
-	{
-		param -> size = num_of_words - 
-						(num_of_current_thread * amount_per_thread);
-	}
-}
-
-void MergeAllChunks(char **string_ptr, 
-					 size_t num_of_words, 
-					 size_t num_of_threads, 
-					 size_t size_per_thread, 
-					 compare func)
-{
-	size_t i = 0;
-	size_t size_first_chunk = 0;
-	size_t size_second_chunk = 0;
-	
-	for (i = 0; i < num_of_threads; ++i)
-	{
-		size_first_chunk += size_per_thread;
-		size_second_chunk = size_per_thread;
-
-		if ((num_of_threads - 1) == i)
-		{
-			size_second_chunk = num_of_words - size_first_chunk;
-		}
-		
-		MergeTwoChucksIMP(string_ptr, 
-					   	  size_first_chunk, 
-					   	  string_ptr + size_first_chunk, 
-					   	  size_second_chunk, 
-					   	  func);	
-	}
-}				   
-
-void MergeTwoChucksIMP(char **arr1, 
-					   size_t size1, 
-					   char **arr2, 
-					   size_t size2, 
-					   compare func)
-{
-	size_t i = 0;
-	size_t j = 0;	
-	char **ptr_arr = (char **)malloc((sizeof(void *)) * (size1 + size2));
-
-	while ((i < size1) && (j < size2))
-	{
-		if (func((arr1 + i),(arr2 + j)) < 0)
-		{
-			ptr_arr[i + j] = arr1[i];
-			++i;
-		}
-		else
-		{
-			ptr_arr[i + j] = arr2[j];
-			++j;
-		}
-	}
-	
-	while (i < size1)
-	{
-		ptr_arr[i + j] = arr1[i];
-		++i;
-	}
-	while (j < size2)
-	{
-		ptr_arr[i + j] = arr2[j];
-		++j;
-	}
-	
-	memcpy(arr1, ptr_arr, sizeof(void *) * (size1 + size2));
-	
-	free(ptr_arr);
 }
 
 static int ThreadsSortingWords(pthread_t **threads, 
@@ -379,6 +286,170 @@ static int ThreadsSortingWords(pthread_t **threads,
 	return 0;
 }
 
+void MergeAllChunks(char **string_ptr, 
+					 size_t num_of_words, 
+					 size_t num_of_threads, 
+					 size_t size_per_thread, 
+					 compare func)
+{
+	size_t i = 0;
+	size_t size_first_chunk = 0;
+	size_t size_second_chunk = 0;
+	
+	for (i = 0; i < num_of_threads; ++i)
+	{
+		size_first_chunk += size_per_thread;
+		size_second_chunk = size_per_thread;
+
+		if ((num_of_threads - 1) == i)
+		{
+			size_second_chunk = num_of_words - size_first_chunk;
+		}
+		
+		MergeTwoChucksIMP(string_ptr, 
+					   	  size_first_chunk, 
+					   	  string_ptr + size_first_chunk, 
+					   	  size_second_chunk, 
+					   	  func);	
+	}
+}	
+  
+static char *CopyDictToStringIMP(size_t file_size, int fd)
+{
+	char *word_list = NULL;
+  	
+  	word_list = mmap(NULL, 
+    				 file_size, 
+    				 PROT_READ | PROT_WRITE, 
+    				 MAP_PRIVATE, 
+    				 fd, 
+    				 0);				 
+	if (MAP_FAILED == word_list)
+	{
+		return NULL;
+	}
+	
+	return word_list;
+}
+
+static size_t GetFileSizeIMP(int file_descriptor)
+{
+	size_t size = 0;
+	
+	assert(file_descriptor);
+	
+	size = lseek(file_descriptor, 0, SEEK_END);
+	lseek(file_descriptor, 0, SEEK_SET);
+	
+	return size;
+}
+
+static size_t CountWordsIMP(char *str)
+{
+	size_t num_of_words = 0;
+	char *token = NULL;
+	char *tmp_str = NULL;
+	
+	assert(str);
+	
+	tmp_str = str;
+	
+	token = strtok(tmp_str, ",. !\n");
+	while (NULL != token)
+	{
+		token = strtok(NULL, ",. !\n");
+		++(num_of_words);
+	}
+	
+	return num_of_words;
+}
+
+static void *SortingChunkInEachThreadIMP(void *param)
+{
+	char **str = NULL;
+	size_t size = 0;
+	size_t element_size = 0;
+	compare func = NULL;
+/*	int heap_param = 0;*/
+	
+	assert(param);
+	
+	str = ((thread_param_t *)param) -> str;
+	size = ((thread_param_t *)param) -> size;
+	element_size = ((thread_param_t *)param) -> element_size;
+	func = ((thread_param_t *)param) -> func;
+/*	
+	HeapSort(str, size, element_size, IsBeforeIMP, &heap_param);
+*/	
+
+	qsort(str, size, element_size, func);
+	
+	return 0;
+}
+
+static void UpdateThreadParamsIMP(thread_param_t *param, 
+								  char **arr_of_strings, 
+								  size_t amount_per_thread, 
+								  size_t num_of_words,
+								  size_t num_of_current_thread,
+								  size_t num_of_threads,
+								  compare func)
+{	
+	assert(param);
+	assert(arr_of_strings);
+	
+	param -> str = arr_of_strings + num_of_current_thread * amount_per_thread;
+	param -> element_size = sizeof(void *);
+	param -> func = func;
+	param -> size = amount_per_thread;
+	
+	if (num_of_current_thread == num_of_threads - 1)
+	{
+		param -> size = num_of_words - 
+						(num_of_current_thread * amount_per_thread);
+	}
+}			   
+
+void MergeTwoChucksIMP(char **arr1, 
+					   size_t size1, 
+					   char **arr2, 
+					   size_t size2, 
+					   compare func)
+{
+	size_t i = 0;
+	size_t j = 0;	
+	char **ptr_arr = (char **)malloc((sizeof(void *)) * (size1 + size2));
+
+	while ((i < size1) && (j < size2))
+	{
+		if (func((arr1 + i),(arr2 + j)) < 0)
+		{
+			ptr_arr[i + j] = arr1[i];
+			++i;
+		}
+		else
+		{
+			ptr_arr[i + j] = arr2[j];
+			++j;
+		}
+	}
+	
+	while (i < size1)
+	{
+		ptr_arr[i + j] = arr1[i];
+		++i;
+	}
+	while (j < size2)
+	{
+		ptr_arr[i + j] = arr2[j];
+		++j;
+	}
+	
+	memcpy(arr1, ptr_arr, sizeof(void *) * (size1 + size2));
+	
+	free(ptr_arr);
+}
+
 static void FreeAllocations(char **strings_ptr, 
 							pthread_t *threads, 
 							thread_param_t *params,
@@ -388,69 +459,6 @@ static void FreeAllocations(char **strings_ptr,
 	free(threads);
 	free(params);
 	fclose(fp);
-}
-
-FILE *Sort(size_t num_of_threads, char *file_name, compare func)
-{
-	size_t file_size = 0;
-	char **strings_ptr = NULL;
-	size_t num_of_words = 0;
-	pthread_t *threads = NULL;
-	thread_param_t *params = NULL;
-	char *word_list_count = NULL;
-	char *word_list_pointers = NULL;
-	FILE *new_fp = NULL;
-	size_t amount_per_thread = 0;
-	int i = 0;
-	
-	assert(num_of_threads);
-	
-	strings_ptr = InsertWordsToArrayIMP(&num_of_words, 
-										&file_size, 
-										word_list_count, 
-										word_list_pointers,
-										file_name);
-	if (NULL == strings_ptr)
-	{
-		return NULL;
-	}
-	
-	if (1 == ThreadsSortingWords(&threads,
-								 num_of_words, 
-								 &num_of_threads, 
-								 strings_ptr,
-								 &params,
-								 func,
-								 &amount_per_thread))
-	{
-		free(threads);
-		free(strings_ptr);
-		
-		return NULL;
-	}
-	
-	for (i = 0; i< num_of_words; ++i)
-	{
-		printf("%s, ", *(strings_ptr + i));
-	}
-	
-	MergeAllChunks(strings_ptr, num_of_words * MULTIPLYER, num_of_threads, 
-				   amount_per_thread, func);
-
-	new_fp = fopen("sorted_words.txt", "w+");
-	if (NULL == new_fp)
-	{
-		free(threads);
-		free(strings_ptr);
-		
-		return NULL;
-	}
-	
-	CopyBufferToFile(num_of_words, strings_ptr, new_fp);
-	
-	FreeAllocations(strings_ptr, threads, params, new_fp);
-		
-	return new_fp;
 }
 
 void CopyBufferToFile(size_t num_of_words, char **strings_ptr, FILE *fp)
@@ -467,7 +475,7 @@ void CopyBufferToFile(size_t num_of_words, char **strings_ptr, FILE *fp)
 		fputs("\n", fp);
 	}
 }
-
+/*
 static int IsBeforeIMP(const void *new_data, 
 			  	 	   const void *src_data, 
 			   		   void *param)
@@ -481,7 +489,7 @@ static int IsBeforeIMP(const void *new_data,
 	
 	return 0;
 }
-			   				  
+*/			   				  
 int func(const void *str1, const void *str2) 
 {
    return (strcmp(*(char **)str1, *(char **)str2));
