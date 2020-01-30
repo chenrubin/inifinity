@@ -8,7 +8,6 @@
 
 #include <stdio.h> /* printf */
 #include <unistd.h> /* ssize */
-#include <time.h>
 #include <alloca.h> /* alloca */
 #include <stdlib.h> /* qsort */
 
@@ -25,7 +24,13 @@ typedef enum status
 {
 	SUCCESS,
 	FAIL
-}status_t; 
+}status_t;
+
+typedef enum
+{
+	LEFT,
+	RIGHT
+} direction_t;
 
 typedef struct loc_possible
 {
@@ -54,11 +59,8 @@ static void CreateNextStepsStructArrayIMP(size_t location,
 /* checks if current location is last in path */
 static int IsLastInPathIMP(size_t location, size_t prev_loc_bitmap);
 
-/* Checks if one of the right steps is legal or not */
-static int IsRightStepLegalIMP(ssize_t next_step, size_t location);
-
-/* Checks if one of the left steps is legal or not */
-static int IsLeftStepLegalIMP(ssize_t next_step, size_t location);
+/* checks if step is legal */
+static int IsStepLegalIMP(ssize_t next_step, size_t location, direction_t dir);
 
 /* Checks how many possible legal steps for a location.
    This is done for huristics sorting of next possible steps */
@@ -74,11 +76,8 @@ static int CompareFuncIMP(const void *data1, const void *data2);
 int HorsesTour(size_t start, size_t *result_path)
 {
 	size_t prev_loc_bitmap = 0;
-	status_t status = SUCCESS;
 	
-	status = RecHorsesTourIMP(start, result_path, 0, prev_loc_bitmap);
-	
-	return status;
+	return (RecHorsesTourIMP(start, result_path, 0, prev_loc_bitmap));
 }
 
 static int RecHorsesTourIMP(size_t location, 
@@ -104,7 +103,11 @@ static int RecHorsesTourIMP(size_t location,
 	prev_loc_bitmap = SetLocationIMP(location, prev_loc_bitmap);
 	result_path[current_index] = location;
 
-	poss_arr = (poss_per_loc_t *)alloca(sizeof(poss_per_loc_t) * NUM_OF_STEPS);
+	poss_arr = (poss_per_loc_t *)malloc(sizeof(poss_per_loc_t) * NUM_OF_STEPS);
+	if (NULL == poss_arr)
+	{
+		return FAIL;
+	}
 	CreateNextStepsStructArrayIMP(location, poss_arr);
 	
 	qsort(poss_arr, NUM_OF_STEPS, 
@@ -125,6 +128,8 @@ static int RecHorsesTourIMP(size_t location,
 		}
 	}
 	
+	free(poss_arr);
+	
 	return FAIL;
 }
 
@@ -142,46 +147,46 @@ static void CreateNextStepsStructArrayIMP(size_t location,
 										  poss_per_loc_t *poss_arr)
 {
 	poss_per_loc_t *poss_arr_runner = poss_arr;
-
-	poss_arr_runner -> location = (ssize_t)location - 2 * CHESS_SIZE + 1;
-	poss_arr_runner -> possibilities =  
-					   HowManyPossibleStepsIMP((ssize_t)location - 
-					   							2 * CHESS_SIZE + 1);
+	ssize_t temp_location = 0;
+	
+	temp_location = (ssize_t)location - 2 * CHESS_SIZE + 1;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities =  HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location + 2 - CHESS_SIZE;
-	poss_arr_runner -> possibilities =  
-					   HowManyPossibleStepsIMP((ssize_t)location + 
-					   							2 - CHESS_SIZE);
+	temp_location = (ssize_t)location + 2 - CHESS_SIZE;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location + 2 + CHESS_SIZE;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location + 
-					   							2 + CHESS_SIZE);
+	temp_location = (ssize_t)location + 2 + CHESS_SIZE;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location + 2 * CHESS_SIZE + 1;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location + 
-					   							2 * CHESS_SIZE + 1);
+	temp_location = (ssize_t)location + 2 * CHESS_SIZE + 1;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location + 2 * CHESS_SIZE - 1;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location + 
-					   							2 * CHESS_SIZE - 1);
+	temp_location = (ssize_t)location + 2 * CHESS_SIZE - 1;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location - 2 + CHESS_SIZE;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location - 
-					   							2 + CHESS_SIZE);
+	temp_location = (ssize_t)location - 2 + CHESS_SIZE;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location - 2 - CHESS_SIZE;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location - 
-					   							2 - CHESS_SIZE);
+	temp_location = (ssize_t)location - 2 - CHESS_SIZE;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
+	
 	++poss_arr_runner;
-	poss_arr_runner -> location = (ssize_t)location - 2 * CHESS_SIZE - 1;
-	poss_arr_runner -> possibilities = 
-					   HowManyPossibleStepsIMP((ssize_t)location - 
-					   							2 * CHESS_SIZE - 1);
+	temp_location = (ssize_t)location - 2 * CHESS_SIZE - 1;
+	poss_arr_runner -> location = temp_location;
+	poss_arr_runner -> possibilities = HowManyPossibleStepsIMP(temp_location);
 	
 	CheckStepsLegalityIMP(poss_arr, location);				   							
 }
@@ -193,9 +198,9 @@ static void CheckStepsLegalityIMP(poss_per_loc_t *poss_arr, size_t location)
 	for (i = 0; i < NUM_OF_STEPS; ++i)
 	{
 		if (((i >= (NUM_OF_STEPS / 2)) && 
-			  IsLeftStepLegalIMP(poss_arr[i].location, location)) ||
+			  IsStepLegalIMP(poss_arr[i].location, location, LEFT)) ||
 			((i < (NUM_OF_STEPS / 2)) && 
-			  IsRightStepLegalIMP(poss_arr[i].location, location)))
+			  IsStepLegalIMP(poss_arr[i].location, location, RIGHT)))
 		{
 			poss_arr[i].IsLegal = 1;
 		}
@@ -212,21 +217,21 @@ static size_t HowManyPossibleStepsIMP(size_t location)
 	size_t i = 0;
 	size_t counter = 0;
 	
-	possible_steps[0] = (ssize_t)location - 2 * CHESS_SIZE + 1;
-	possible_steps[1] = (ssize_t)location + 2 - CHESS_SIZE;
-	possible_steps[2] = (ssize_t)location + 2 + CHESS_SIZE;
-	possible_steps[3] = (ssize_t)location + 2 * CHESS_SIZE + 1;
-	possible_steps[4] = (ssize_t)location + 2 * CHESS_SIZE - 1;
-	possible_steps[5] = (ssize_t)location - 2 + CHESS_SIZE;
-	possible_steps[6] = (ssize_t)location - 2 - CHESS_SIZE;
-	possible_steps[7] = (ssize_t)location - 2 * CHESS_SIZE - 1;
+	possible_steps[0] = ((ssize_t)location - 2 * CHESS_SIZE + 1);
+	possible_steps[1] = ((ssize_t)location + 2 - CHESS_SIZE);
+	possible_steps[2] = ((ssize_t)location + 2 + CHESS_SIZE);
+	possible_steps[3] = ((ssize_t)location + 2 * CHESS_SIZE + 1);
+	possible_steps[4] = ((ssize_t)location + 2 * CHESS_SIZE - 1);
+	possible_steps[5] = ((ssize_t)location - 2 + CHESS_SIZE);
+	possible_steps[6] = ((ssize_t)location - 2 - CHESS_SIZE);
+	possible_steps[7] = ((ssize_t)location - 2 * CHESS_SIZE - 1);
 	
 	for (i = 0; i < NUM_OF_STEPS; ++i)
 	{
 		if (((i >= (NUM_OF_STEPS / 2)) && 
-			  IsLeftStepLegalIMP(possible_steps[i], location)) ||
+			  IsStepLegalIMP(possible_steps[i], location, LEFT)) ||
 			((i < (NUM_OF_STEPS / 2)) && 
-			  IsRightStepLegalIMP(possible_steps[i], location)))
+			  IsStepLegalIMP(possible_steps[i], location, RIGHT)))
 		{
 			++counter;
 		}
@@ -240,27 +245,25 @@ static int IsLastInPathIMP(size_t location, size_t prev_loc_bitmap)
 	return (ALL_BITS_SET == (((size_t)LSB << location) | prev_loc_bitmap));
 }
 
-static int IsRightStepLegalIMP(ssize_t next_step, size_t location)
+static int IsStepLegalIMP(ssize_t next_step, size_t location, direction_t dir)
 {
-	if ((next_step < 0) ||
-		(next_step > FULL_PATH) ||
-		((next_step % CHESS_SIZE) < (location % CHESS_SIZE)))
+	if (RIGHT == dir)
 	{
-		return 0;
+		if ((next_step < 0) || (next_step > FULL_PATH) ||
+			((next_step % CHESS_SIZE) < (location % CHESS_SIZE)))
+		{
+			return 0;
+		}
 	}
-
-	return 1;
-}
-
-static int IsLeftStepLegalIMP(ssize_t next_step, size_t location)
-{
-	if ((next_step < 0) ||
-		(next_step > FULL_PATH) ||
-		((next_step % CHESS_SIZE) > (location % CHESS_SIZE)))
+	else
 	{
-		return 0;
+		if ((next_step < 0) || (next_step > FULL_PATH) ||
+			((next_step % CHESS_SIZE) > (location % CHESS_SIZE)))
+		{
+			return 0;
+		}	
 	}
-
+	
 	return 1;
 }
 
