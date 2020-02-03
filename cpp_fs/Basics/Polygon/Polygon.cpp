@@ -50,7 +50,7 @@ void Polygon::Add(const Point &p)
 }
 	
 bool Polygon::IsEqual(const Polygon& other_) const
-{	
+{
 	if (m_numPoints == other_.m_numPoints)
 	{
 		size_t i = 0;
