@@ -6,21 +6,23 @@
 
 using namespace std;
 
-void Point::AdjustBy(Point& p)
+Point::Point()
+	: x(0)
+	, y(0)
+{}
+
+Point::Point(const int a, const int b)
 {
-	x += p.x;
-	y += p.y;
+	x = a;
+	y = b;
 }
 
-void Point::AdjustBy(int dx, int dy)
+Point& Point::operator=(const Point& other_)
 {
-	x += dx;
-	y += dy;
-}
-
-double Point::Length()
-{
-	return (sqrt(pow(y, 2) + pow(x, 2)));
+	x = other_.x;
+	y = other_.y;
+	
+	return *this;
 }
 
 void Point::Print(char par1, char par2)
@@ -33,38 +35,22 @@ void Point::Print(Point::paran_type paran)
 	switch (paran)
 	{
 		case ROUND:
-			printf("point is (%f,%f)\n",x,y);
+			printf("point is (%d,%d)",x,y);
 			break;
 		case CURLY:
-			printf("point is {%f,%f}\n",x,y);
+			printf("point is {%d,%d}",x,y);
 			break;
 		case SQUARE:
-			printf("point is [%f,%f]\n",x,y);
+			printf("point is [%d,%d]",x,y);
 			break;
 		default:
-			printf("point is <%f,%f>\n",x,y);
+			printf("point is <%d,%d>",x,y);
 			break;			
 	}	
 }
 
-Point::Point()
-	: x(0), y(0)
+int Point::IsEqual(const Point p)
 {
-	printf("Point default Ctor\n");
-}
-
-Point::Point(const int a, const int b)
-{
-	x = a;
-	y = b;
-}
-
-Point Add(Point p1, Point p2)
-{
-	Point p_res = {0};
-	
-	p_res.x = p1.x + p2.x;
-	p_res.y = p1.y + p2.y;
-	
-	return p_res;
+	return (x == p.x &&
+			y == p.y);
 }

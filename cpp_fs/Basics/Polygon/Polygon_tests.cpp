@@ -1,58 +1,72 @@
 #include <stdio.h>
 
-#include "new_delete.h"
+#include "Polygon.h"
+#include "point.h"
 #include "MyUtils.h"
 
 int main()
 {
-	Stack new_stack;
+	int i = 0;
+	int point_x5[] = {1,2,3,4,5};
+	int point_y5[] = {2,3,4,5,6};
+	int point_x7[] = {1,2,3,4,5,6,7};
+	int point_y7[] = {2,3,4,5,6,7,8};
 	
-	PRINTTESTRESULTS("IsEmpty",1, 1 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",2, 0 == new_stack.Count());
-	new_stack.Push(1);
-	PRINTTESTRESULTS("IsEmpty",3, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",4, 1 == new_stack.Count());
-	PRINTTESTRESULTS("Top",5, 1 == new_stack.Top());
-	new_stack.Push(2);
-	PRINTTESTRESULTS("IsEmpty",6, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",7, 2 == new_stack.Count());
-	PRINTTESTRESULTS("Top",8, 2 == new_stack.Top());
-	new_stack.Push(3);
-	PRINTTESTRESULTS("IsEmpty",9, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",10, 3 == new_stack.Count());
-	PRINTTESTRESULTS("Top",11, 3 == new_stack.Top());
-	new_stack.Push(4);
-	PRINTTESTRESULTS("IsEmpty",12, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",13, 4 == new_stack.Count());
-	PRINTTESTRESULTS("Top",14, 4 == new_stack.Top());
-	new_stack.Push(5);
-	PRINTTESTRESULTS("IsEmpty",15, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",16, 5 == new_stack.Count());
-	PRINTTESTRESULTS("Top",17, 5 == new_stack.Top());
+	Polygon pol1(5);
+	Polygon pol2(5);
+//	Polygon pol3(5);
+	Polygon pol4(7);
+	Polygon pol5(7);
+	Polygon pol6(7);
 	
-	new_stack.Pop();
-	PRINTTESTRESULTS("IsEmpty",18, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",19, 4 == new_stack.Count());
-	PRINTTESTRESULTS("Top",20, 4 == new_stack.Top());
-	new_stack.Pop();
-	PRINTTESTRESULTS("IsEmpty",21, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",22, 3 == new_stack.Count());
-	PRINTTESTRESULTS("Top",23, 3 == new_stack.Top());
-	new_stack.Pop();
-	PRINTTESTRESULTS("IsEmpty",24, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",25, 2 == new_stack.Count());
-	PRINTTESTRESULTS("Top",26, 2 == new_stack.Top());
-	new_stack.Pop();
-	PRINTTESTRESULTS("IsEmpty",27, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",28, 1 == new_stack.Count());
-	PRINTTESTRESULTS("Top",29, 1 == new_stack.Top());
-	new_stack.Pop();
-	PRINTTESTRESULTS("IsEmpty",30, 1 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",31, 0 == new_stack.Count());
+	for (i = 0; i < 5; ++i)
+	{
+		Point p(point_x5[i], point_y5[i]);
+		pol1.Add(p);
+		pol2.Add(p);
+		PRINTTESTRESULTS("IsEqual",i, 1 == pol1.IsEqual(pol2));
+	}
 	
-	new_stack.Push(1);
-	PRINTTESTRESULTS("IsEmpty",32, 0 == new_stack.IsEmpty());
-	PRINTTESTRESULTS("Count",33, 1 == new_stack.Count());
-	PRINTTESTRESULTS("Top",34, 1 == new_stack.Top());
-	new_stack.~Stack();
+	for (i = 0; i < 7; ++i)
+	{
+		Point p(point_x7[i], point_y7[i]);
+		pol4.Add(p);
+		PRINTTESTRESULTS("IsEqual",i, 0 == pol4.IsEqual(pol5));
+	}
+	for (i = 0; i < 7; ++i)
+	{
+		Point p(point_x7[i], point_y7[i]);
+		pol5.Add(p);
+		if (6 == i)
+		{
+			PRINTTESTRESULTS("IsEqual",i, 1 == pol5.IsEqual(pol4));
+		}
+		else
+		{
+			PRINTTESTRESULTS("IsEqual",i, 0 == pol4.IsEqual(pol5));
+		}
+	}
+	
+//	PRINTTESTRESULTS("IsEqual",i, 0 == pol3.IsEqual(pol5));
+	Polygon pol3(pol5);
+	PRINTTESTRESULTS("IsEqual",i, 1 == pol3.IsEqual(pol5));
+	
+	for (i = 0; i < 7; ++i)
+	{
+		Point p(point_y7[i], point_x7[i]);
+		pol6.Add(p);
+	}
+	
+	PRINTTESTRESULTS("IsEqual",i, 0 == pol6.IsEqual(pol5));
+	pol6 = pol5;
+	PRINTTESTRESULTS("IsEqual",i, 1 == pol6.IsEqual(pol5));
+	
+	pol1.Print();
+	pol2.Print();
+	pol3.Print();
+	pol4.Print();
+	pol5.Print();
+	pol6.Print();
+	
+	return 0;
 }

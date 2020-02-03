@@ -1,5 +1,10 @@
+#ifndef __ILRD_POLYGON__ 
+#define __ILRD_POLYGON__
+
 #include <stddef.h> /*size_t*/
 #include <stdio.h> /*printf*/
+
+#include "point.h"
 
 struct Polygon
 {
@@ -10,22 +15,16 @@ struct Polygon
 	~Polygon();
 	
 	//CCtor
-	Polygon(const &Polygon other_);
+	Polygon(const Polygon& other_);
 	
 	// operator
-	Polygon& operator=(const &Polygon other_);
+	Polygon& operator=(const Polygon& other_);
 	
 	void Add(const Point &p);
-	bool IsEqual(const Polygon& other) const;
+	bool IsEqual(const Polygon& other_) const;
 	void Print() const;
 	
-	size_t m_numPonts;
+	size_t m_numPoints;
 	Point *m_points;
-}
-
-Polygon::Polygon(size_t numPoints)
-	:numPoints(0)
-{
-	numPoints = numPoints;
-	m_points = new Point[numPoints];
-}
+};
+#endif

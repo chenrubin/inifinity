@@ -1,100 +1,82 @@
 #include <stdio.h> /*printf*/
 #include <assert.h> /* assert */
 
-#include "new_delete.h"
+#include "Polygon.h"
+#include "point.h"
 
-
-Stack::Node::Node()
-	: m_data(0), m_next(NULL)
+Polygon::Polygon(size_t numPoints)
+	:m_numPoints(0)
 {
-	printf("Default Node Ctor\n");
+	m_numPoints = numPoints;
+	m_points = new Point[m_numPoints];
+	m_numPoints = 0;
 }
 
-Stack::Node::Node(int m_int, Stack::Node *next)
-	: m_data(m_int), m_next(next)
+Polygon::~Polygon()
 {
-	printf("Default Node Ctor\n");
+	delete[] m_points; 
 }
 
-DataType Stack::Node::GetData() const
+Polygon::Polygon(const Polygon& other_)
+	: m_numPoints(other_.m_numPoints)
 {
-	return m_data;
-}
-
-bool Stack::Node::HasNext() const
-{
-	return (NULL != m_next);
-}
+	size_t i = 0;
+	m_points = new Point[m_numPoints];
 	
-const Stack::Node &Stack::Node::GetNext() const
-{
-	assert(HasNext());
-	
-	return *m_next;
-}
-
-Stack::Stack()
-	: m_dummy(0,NULL)
-{
-	printf("Stack Ctor");
-}
-
-Stack::~Stack()
-{	
-	while (!IsEmpty())
+	for (i = 0; i < m_numPoints; ++i)
 	{
-		Pop();
+		m_points[i] = other_.m_points[i];
 	}
 }
 
-void Stack::Push(DataType Data)
+Polygon& Polygon::operator=(const Polygon& other_)
 {
-	Stack::Node *new_node = new Node(Data, NULL);
+	m_numPoints = other_.m_numPoints;
+	size_t i = 0;
 	
-	if (m_dummy.HasNext())
+	for (i = 0; i < m_numPoints; ++i)
 	{
-		new_node->m_next = &m_dummy.GetNext();
+		m_points[i] = other_.m_points[i];
 	}
 	
-	m_dummy.m_next = new_node;
+	return *this;
 }
-
-void Stack::Pop()
-{	
-	const Node &temp_node = m_dummy.GetNext();
 	
-	if (m_dummy.GetNext().HasNext())
+void Polygon::Add(const Point &p)
+{
+	m_points[m_numPoints] = p;
+	
+	++m_numPoints;
+}
+	
+bool Polygon::IsEqual(const Polygon& other_) const
+{	
+	if (m_numPoints == other_.m_numPoints)
 	{
-		m_dummy.m_next = (const Node *)&m_dummy.GetNext().GetNext();
+		size_t i = 0;
+		for (i = 0; i < m_numPoints; ++i)
+		{
+			if (!(m_points[i].IsEqual(other_.m_points[i])))
+			{
+				return false;
+			}
+		}
 	}
 	else
 	{
-		m_dummy.m_next = NULL;
+		return false;
 	}
 	
-	delete &temp_node;
+	return true;
 }
 
-size_t Stack::Count() const
+void Polygon::Print() const
 {
-	Node *runner = (Node *)&m_dummy;
-	size_t counter = 0;
+	size_t i = 0;
 	
-	while (runner->HasNext())
+	for (i = 0; i < m_numPoints; ++i)
 	{
-		++counter;
-		runner = (Node *)&(runner->GetNext());
+		m_points[i].Print(Point::ROUND);
 	}
-	
-	return counter;
-}
-
-DataType Stack::Top() const
-{
-	return (m_dummy.m_next->m_data);
-}
-
-bool Stack::IsEmpty() const
-{
-	return (!(m_dummy.HasNext()));
+	printf("\n");
 }

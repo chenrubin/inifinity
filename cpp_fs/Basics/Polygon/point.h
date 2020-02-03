@@ -1,3 +1,6 @@
+#ifndef __ILRD_POINT__ 
+#define __ILRD_POINT__
+
 struct Point
 {
 	enum paran_type
@@ -9,14 +12,12 @@ struct Point
 	};
 	explicit Point();
 	explicit Point(const int a, const int b);
-	void AdjustBy(Point& p);
-	void AdjustBy(int dx, int dy);
-	double Length();
+	Point& operator=(const Point& other_);
+	int IsEqual(const Point p2);
 	void Print(char par1, char par2);
 	void Print(enum paran_type);
 	
-	double x;
-	double y;
+	int x;
+	int y;
 };
-
-Point Add(Point p1, Point p2);
+#endif
