@@ -30,7 +30,7 @@ Polygon::Polygon(const Polygon& other_)
 }
 
 Polygon& Polygon::operator=(const Polygon& other_)
-{
+{	
 	m_numPoints = other_.m_numPoints;
 	size_t i = 0;
 	
