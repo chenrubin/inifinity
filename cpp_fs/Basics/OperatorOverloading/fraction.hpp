@@ -8,6 +8,16 @@ public:
 	explicit Fraction(int numerator_);
 	explicit Fraction(int numerator_, int denominator_);
 	bool IsUndefined() const;
+	void AddToSelf(int numerator_, int denominator_);
+	void AddToSelf(int a_);
+	void Print();
+	bool IsEqual(int numerator_, int denominator_);
+	bool IsEqual(int numerator_);	
+	int GetNumer() const;
+	int GetDenomin() const;
+	void SetNumer(int val);
+	void SetDenomin(int val);
+	
 	Fraction operator+(const Fraction& frac1);
 	Fraction operator-(const Fraction& frac1);
 	Fraction operator+(const int num);
@@ -19,19 +29,9 @@ public:
 	Fraction operator+();
 	Fraction operator-();
 	Fraction& operator+=(const Fraction& other_);
-	void AddToSelf(int numerator_, int denominator_);
-	void AddToSelf(int a_);
-	void Print();
-	bool operator==(const Fraction& other_) const;
-	bool IsEqual(int numerator_, int denominator_);
-	bool IsEqual(int numerator_);	
-	int GetNumer() const;
-	int GetDenomin() const;
-	void SetNumer(int val);
-	void SetDenomin(int val);
-	
 	Fraction& operator-=(const Fraction& other_);
 	Fraction& operator=(const Fraction& other_);
+	bool operator==(const Fraction& other_) const;
 	
 private:	
 	int m_numerator;
