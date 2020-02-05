@@ -1,18 +1,26 @@
-#include <string.h>
+#ifndef __ILRD_STRING_HPP__
+#define __ILRD_STRING_HPP__
 
-class String
+#include <stddef.h> /* size_t */
+
+namespace ilrd
 {
-public:
-	explicit String(char *str);
-	explicit String& String(const String& other_);
-	String& =operator(const String& other_);
-	size_t Length();
-	char *Cstr();
-	bool opertaor==(const String& other);
-	bool operator>(const String& other);
-	bool operator<(const String& other);
-	
-	
-private:
-	char *m_str;	
+	class String
+	{
+	public:
+		String(const char *str = "");
+		String(const String& other);
+		~String();
+		String& operator=(const String& other);
+		size_t Length() const;
+		const char *Cstr() const;	
+		
+	private:
+		char *m_str;	
+	};
+
+	bool operator==(const String& str1, const String& str2);
+	bool operator>(const String& str1, const String& str2);
+	bool operator<(const String& str1, const String& str2);
 }
+#endif
