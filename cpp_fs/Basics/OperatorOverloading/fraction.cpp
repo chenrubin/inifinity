@@ -109,7 +109,7 @@ static void ExpandFractionIMP(int *numerator, int *denominator, int expand_by)
 	*denominator *= expand_by;
 }
 
-Fraction Fraction::operator+(const int num)
+Fraction Fraction::operator+(int num)
 {
 	int num_numer = num; 
 	int num_denonim = 1;
@@ -119,7 +119,7 @@ Fraction Fraction::operator+(const int num)
 	return Fraction(new_numer, new_denomin);
 }
 
-Fraction Fraction::operator-(const int num)
+Fraction Fraction::operator-(int num)
 {
 	int num_numer = num; 
 	int num_denonim = 1;

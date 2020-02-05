@@ -20,8 +20,8 @@ public:
 	
 	Fraction operator+(const Fraction& frac1);
 	Fraction operator-(const Fraction& frac1);
-	Fraction operator+(const int num);
-	Fraction operator-(const int num);
+	Fraction operator+(int num);
+	Fraction operator-(int num);
 	Fraction& operator++();
 	Fraction& operator--();
 	Fraction operator++(int);
