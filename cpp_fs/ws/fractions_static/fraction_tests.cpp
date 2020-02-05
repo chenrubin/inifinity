@@ -140,7 +140,7 @@ int main()
 					 10 == Fraction::getNumOfFractions());
 	PRINTTESTRESULTS("GetNumer",31, 1 == (f1.GetNumer()));
 	PRINTTESTRESULTS("GetDenomin",32, 2 == (f1.GetDenomin()));
-	PRINTTESTRESULTS("GetNumer",33, 7 == (f2.GetNumer()));
+	PRINTTESTRESULTS("GetNumer",33, -7 == (f2.GetNumer()));
 	PRINTTESTRESULTS("GetDenomin",34, 4 == (f2.GetDenomin()));
 	PRINTTESTRESULTS("GetNumer",35, -10 == (f3.GetNumer()));
 	PRINTTESTRESULTS("GetDenomin",36, 8 == (f3.GetDenomin()));

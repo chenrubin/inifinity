@@ -187,10 +187,9 @@ Fraction Fraction::operator+()
 
 Fraction Fraction::operator-()
 {
-	int numerator = m_numerator * (-1);
-	Fraction frac(numerator, m_denominator);
+	m_numerator = -m_numerator;
 	
-	return frac;
+	return *this;
 }
 
 Fraction& Fraction::operator=(const Fraction& other_)
