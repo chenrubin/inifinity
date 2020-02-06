@@ -1,9 +1,9 @@
 #include <stdio.h> /* printf */
 #include <string.h> /* strcmp */
+#include <iostream> /* cout */
 
 #include "string.hpp"
 #include "MyUtils.h"
-
 
 int main()
 {
@@ -36,7 +36,14 @@ int main()
 	PRINTTESTRESULTS("<",18, 0 == (str2 < str3));
 	PRINTTESTRESULTS(">",19, 0 == (str3 > str2));
 	PRINTTESTRESULTS("<",20, 0 == (str_default < str_default));
-	PRINTTESTRESULTS(">",21, 1 == (str1 > str3));	
+	PRINTTESTRESULTS(">",21, 1 == (str1 > str3));
+	
+	str3 = str3;
+	PRINTTESTRESULTS("Self assignment",22, 1 == (str3 == str3));
+	
+	std::cout << str1 << std::endl;
+	std::cout << str2 << std::endl;
+	
 
 	return 0;
 }

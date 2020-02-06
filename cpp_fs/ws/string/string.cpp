@@ -5,67 +5,65 @@
 *		5/2/2020			*
 ****************************/
 
-#include <string.h> /* strlen */
+#include <cstring> /* strlen */
 #include <ostream> /* namespaces */
-#include <assert.h> /* assert */
+#include <cassert> /* assert */
+#include <iostream> /* namespaces */
 
 #include "string.hpp"
-
-ilrd::String::String(const char *str)
-	: m_str(NULL)
+namespace ilrd
 {
-	assert(NULL != str);
-	
-	m_str = new char[strlen(str) + 1];
-	assert(NULL != m_str);
-	strcpy(m_str, str);
-}
+String::String(const char *str)
+	: m_str(String::StrDupIMP(str))
+{}
 
-ilrd::String::String(const String& other)
-	: m_str(NULL)
-{
-	assert(NULL != other.m_str);
-	
-	m_str = new char[strlen(other.m_str) + 1];
-	assert(NULL != m_str);
-	strcpy(m_str, other.m_str);
-}
+String::String(const String& other)
+	: m_str(String::StrDupIMP(other.Cstr()))
+{}
 
-ilrd::String::~String()
+String::~String()
 {
 	delete[] m_str;
 }
 
-ilrd::String& ilrd::String::operator=(const String& other)
+String& ilrd::String::operator=(const String& other_)
 {
-	assert(NULL != other.m_str);
+	assert(NULL != other_.m_str);
 	
-	if (Length() < other.Length())
+	if (Length() <= other_.Length())
 	{
+		char *temp_str = StrDupIMP(other_.m_str);
 		delete[] m_str;
-		m_str = new char[other.Length() + 1];
+		m_str = temp_str;
 	}
-	
-	strcpy(m_str, other.m_str);
+	else
+	{
+		strcpy(m_str, other_.Cstr());
+	}	
 	
 	return *this;
 }
 
-size_t ilrd::String::Length() const
+size_t String::Length() const
 {
 	assert(NULL != m_str);
 	
 	return strlen(m_str);
 }
 
-const char *ilrd::String::Cstr() const
+const char *String::Cstr() const
 {
 	assert(NULL != m_str);
 	
 	return m_str;
-}	
+}
 
-bool ilrd::operator==(const String& str1, const String& str2)
+std::ostream& operator<<(std::ostream& os_, const String& str)
+{
+	return os_ << str.Cstr();
+}
+
+bool operator==(const String& str1, const String& str2)
 {
 	assert(NULL != str1.Cstr());
 	assert(NULL != str2.Cstr());
@@ -73,7 +71,7 @@ bool ilrd::operator==(const String& str1, const String& str2)
 	return (0 == strcmp(str1.Cstr(), str2.Cstr()));
 }
 
-bool ilrd::operator>(const String& str1, const String& str2)
+bool operator>(const String& str1, const String& str2)
 {
 	assert(NULL != str1.Cstr());
 	assert(NULL != str2.Cstr());
@@ -81,10 +79,21 @@ bool ilrd::operator>(const String& str1, const String& str2)
 	return (0 < strcmp(str1.Cstr(), str2.Cstr()));
 }
 
-bool ilrd::operator<(const String& str1, const String& str2)
+bool operator<(const String& str1, const String& str2)
 {
 	assert(NULL != str1.Cstr());
 	assert(NULL != str2.Cstr());
 	
 	return (0 > strcmp(str1.Cstr(), str2.Cstr()));
 }
+
+char *String::StrDupIMP(const char *str)
+{
+	assert(str);
+	
+	char *res_str = new char[strlen(str) + 1];
+	strcpy(res_str, str);
+		
+	return res_str;
+}
+}// end of namespace ilrd
