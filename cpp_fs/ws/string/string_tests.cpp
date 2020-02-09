@@ -44,6 +44,9 @@ int main()
 	std::cout << str1 << std::endl;
 	std::cout << str2 << std::endl;
 	
+	PRINTTESTRESULTS("implicit conversion",23, 1 == (str3 == "mishka"));
+	PRINTTESTRESULTS("implicit conversion",24, 1 == ("mishka" == str3));
+	
 
 	return 0;
 }

@@ -13,34 +13,45 @@ size_t Fraction::frac_counter = 0;
 static void ExpandFractionIMP(int *numerator, int *denominator, int expand_by);
 
 Fraction::Fraction()
-	: m_numerator(0)
+	: ZERO(0)
+	, HALF(1/2)
+	, ONE(1)
+	, m_numerator(0)
 	, m_denominator(1)
+	
 {
 	++frac_counter;
 }
 
 Fraction::Fraction(int numerator_)
-	: m_numerator(numerator_)
+	: ZERO(0)
+	, HALF(1/2)
+	, ONE(1)
+	, m_numerator(numerator_)
 	, m_denominator(DEFAULT_DENOMINATOR)
 {
 	++frac_counter;
 }
 
 Fraction::Fraction(int numerator_, int denominator_)
-	: m_numerator(numerator_)
+	: ZERO(0)
+	, HALF(1/2)
+	, ONE(1)
+	, m_numerator(numerator_)
 	, m_denominator(denominator_)
 {
 	++frac_counter;
 }
 
 Fraction::Fraction(const Fraction& other)
-	: m_numerator(other.m_numerator)
+	: ZERO(0)
+	, HALF(1/2)
+	, ONE(1)
+	, m_numerator(other.m_numerator)
 	, m_denominator(other.m_denominator)
 {
 	++frac_counter;
 }
-
-
 
 // conversion from A (assignment):
 Fraction& Fraction::operator=(const int num)

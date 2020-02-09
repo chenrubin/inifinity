@@ -12,7 +12,7 @@ int main()
 					 0 == Fraction::getNumOfFractions());
 	Fraction frac1;
 	PRINTTESTRESULTS("Checking frac counter",0, 
-					 1 == Fraction::getNumOfFractions());
+					 frac1.ONE == Fraction::getNumOfFractions());
 	Fraction frac2(2);
 	PRINTTESTRESULTS("Checking frac counter",0, 
 					 2 == Fraction::getNumOfFractions());

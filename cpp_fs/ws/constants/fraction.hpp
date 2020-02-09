@@ -3,6 +3,10 @@
 
 namespace ilrd
 {
+class Fraction;
+
+std::ostream& operator<<(std::ostream& os_, const Fraction& frac);
+
 class Fraction
 {
 private:
@@ -24,16 +28,9 @@ public:
 	int GetDenomin() const;
 	void SetNumer(int val);
 	void SetDenomin(int val);
-	/* Fraction to other types */
-//	operator int();
+
 	operator double();
 	Fraction& operator=(const int num);
-	
-	/* Conversion int to Fraction */
-	/* Fraction(const int num) 
-	 {}*/
-  	// conversion from A (assignment):
-  //	Fraction& operator=(const A& x) {return *this;}
   
 	Fraction operator+(const Fraction& frac1);
 	Fraction operator-(const Fraction& frac1);
@@ -50,18 +47,17 @@ public:
 	Fraction& operator=(const Fraction& other_);
 	bool operator==(const Fraction& other_) const;
 	
+	const int ZERO;
+	const double HALF;
+	const int ONE;
+	
 	static int getNumOfFractions();
 	
 private:	
 	int m_numerator;
-	int m_denominator;
+	int m_denominator;	
 };
 
-std::ostream& operator<<(std::ostream& os_, const Fraction& frac);
-/*
-double operator+(const int num, const Fraction& frac);
-double operator-(const int num, const Fraction& frac);
-*/
 inline Fraction Fraction::operator+(int num)
 {
 	int num_numer = num; 
