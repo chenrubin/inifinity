@@ -11,7 +11,7 @@ namespace ilrd
 size_t Fraction::frac_counter = 0; 
 
 static void ExpandFractionIMP(int *numerator, int *denominator, int expand_by);
-
+/*
 Fraction::Fraction()
 	: ZERO(0)
 	, HALF(1/2)
@@ -42,7 +42,7 @@ Fraction::Fraction(int numerator_, int denominator_)
 {
 	++frac_counter;
 }
-
+*/
 Fraction::Fraction(const Fraction& other)
 	: ZERO(0)
 	, HALF(1/2)

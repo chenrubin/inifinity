@@ -1,7 +1,9 @@
 #ifndef __ILRD_STRING_HPP__
 #define __ILRD_STRING_HPP__
 
+
 #include <stddef.h> /* size_t */
+#include <iostream> /* size_t */
 
 namespace ilrd
 {

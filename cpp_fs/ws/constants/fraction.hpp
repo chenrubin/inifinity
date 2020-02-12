@@ -47,9 +47,9 @@ public:
 	Fraction& operator=(const Fraction& other_);
 	bool operator==(const Fraction& other_) const;
 	
-	const int ZERO;
-	const double HALF;
-	const int ONE;
+	static const int ZERO;
+	static const double HALF;
+	static const int ONE;
 	
 	static int getNumOfFractions();
 	
