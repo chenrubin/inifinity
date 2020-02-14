@@ -6,7 +6,8 @@ namespace ilrd
 {
 
 Logger::Logger(Severity initialSeverity)
-	:m_outputSeverity(initialSeverity), m_output(std::cerr)
+	: m_outputSeverity(initialSeverity)
+	, m_output(&std::cerr)
 {
 	std::cout << "Ctor of logger" << std::endl;
 }

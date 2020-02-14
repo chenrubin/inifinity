@@ -32,7 +32,7 @@ public:
 	
 private:
 	Severity m_outputSeverity;
-	std::ostream m_output;
+	std::ostream &m_output;
 };
 
 } // end of namespace ilrd
