@@ -14,11 +14,7 @@ Logger::Logger(Severity initialSeverity)
 
 void Logger::Log(Severity msgSeverity, const char *msg)
 {
-	if (static_cast<int>(msgSeverity) >= 
-		static_cast<int>(m_outputSeverity))	
-	{
-		m_output << msg;
-	}
+	Log(msgSeverity, static_cast<const std::string>(msg));
 }
 
 void Logger::Log(Severity msgSeverity, const std::string &msg)
@@ -26,7 +22,7 @@ void Logger::Log(Severity msgSeverity, const std::string &msg)
 	if (static_cast<int>(msgSeverity) >= 
 		static_cast<int>(m_outputSeverity))	
 	{
-		m_output << msg;
+		*m_output << msg;
 	}	
 }
 
@@ -35,7 +31,7 @@ void Logger::SetOutputSeverity(Severity outputSeverity)
 	m_outputSeverity = outputSeverity;
 }
 
-void Logger::SetOutput(std::ostream &output)
+void Logger::SetOutput(std::ostream *output)
 {
 	m_output = output;
 }

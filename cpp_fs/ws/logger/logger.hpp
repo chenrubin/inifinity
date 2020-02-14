@@ -28,11 +28,11 @@ public:
 	void SetOutputSeverity(Severity outputSeverity);
 	
 	// detemine output of log (file, cerr ...)
-	void SetOutput(std::ostream &output);
+	void SetOutput(std::ostream *output);
 	
 private:
 	Severity m_outputSeverity;
-	std::ostream &m_output;
+	std::ostream *m_output;
 };
 
 } // end of namespace ilrd
