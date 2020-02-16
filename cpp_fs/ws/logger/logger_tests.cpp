@@ -43,7 +43,7 @@ int main()
 	
 	std::ofstream log_file;
 	log_file.open("f_logger.txt", std::ofstream::out | std::ofstream::app);
-	log.SetOutput(&log_file);
+	log.SetOutput(log_file);
 	log.Log(Logger::DEBUG, debug_str);
 	log.Log(Logger::INFO, info_str);
 	log.Log(Logger::WARNING, warning_str);
@@ -58,7 +58,7 @@ int main()
 
 	std::ostringstream log_str(std::ostringstream::ate);
 	log.SetOutputSeverity(Logger::DEBUG);
-	log.SetOutput(&log_str);
+	log.SetOutput(log_str);
 	log.Log(Logger::DEBUG, debug_str);
 	PRINTTESTRESULTS("stringStream",1, 0 == log_str.str().compare(exp_str1));
 	log.Log(Logger::INFO, info_str);
