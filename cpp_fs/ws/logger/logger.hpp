@@ -1,3 +1,11 @@
+/*******************************\
+*		Author: Chen			*
+*		Reviewer: Sasha			*
+*		Logger					*
+*		16/2/2020				*
+*								*
+********************************/
+
 #ifndef __LOGGER_HPP__
 #define __LOGGER_HPP__
 #include <iosfwd>

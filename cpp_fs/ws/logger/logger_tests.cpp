@@ -1,15 +1,15 @@
-#include <iostream>
-#include <cstring> 
-#include <fstream>
-#include <sstream>
-#include <cstdio> /* EOF */
+#include <iostream> /* cout */
+#include <cstring> /* string */
+#include <fstream> /* ifstream, ofstream */
+#include <sstream> /* ostringstream */
+#include <cstdio> /* EOF , remove*/
 
 #include "logger.hpp"
 #include "MyUtils.hpp"
 
 using namespace ilrd;
 
-bool IsSameContent(std::ofstream &log_file1, std::ofstream &log_file2);
+bool IsSameContent(std::ifstream &log_file1, std::ifstream &log_file2);
 
 int main()
 {
@@ -19,14 +19,11 @@ int main()
 	std::string info_str = "This is info str\n";
 	char* warning_str = "This is warning str\n";
 	std::string error_str = "This is error str\n";
+	
 	std::string exp_str1 = "This is debug str\n";
 	std::string exp_str2 = "This is debug str\nThis is info str\n";
 	std::string exp_str3 = "This is debug str\nThis is info str\nThis is warning str\n";
 	std::string exp_str4 = "This is debug str\nThis is info str\nThis is warning str\nThis is error str\n";
-	std::ofstream exp_log_file;
-	exp_log_file.open("f_logger.txt", std::ofstream::out | std::ofstream::app);
-	exp_log_file << "This is warning str" << std::endl << "This5 is error str" << std::endl;
-	
 	log.Log(Logger::DEBUG, debug_str);
 	log.Log(Logger::INFO, info_str);
 	log.Log(Logger::WARNING, warning_str);
@@ -37,17 +34,27 @@ int main()
 	log.Log(Logger::WARNING, warning_str);
 	log.Log(Logger::ERROR, error_str);
 	
+	std::ofstream exp_log_file;
+	exp_log_file.open("exp_logger.txt", std::ofstream::out);
+	exp_log_file << "This is warning str" << std::endl << "This is error str" << std::endl;
+	exp_log_file.close();
+	std::ifstream in_exp_log_file;
+	in_exp_log_file.open("exp_logger.txt", std::ofstream::in);
+	
 	std::ofstream log_file;
 	log_file.open("f_logger.txt", std::ofstream::out | std::ofstream::app);
-	log.SetOutputSeverity(Logger::INFO);
 	log.SetOutput(&log_file);
 	log.Log(Logger::DEBUG, debug_str);
 	log.Log(Logger::INFO, info_str);
 	log.Log(Logger::WARNING, warning_str);
-	log.Log(Logger::ERROR, error_str);	
-	PRINTTESTRESULTS("file_logger",1, true == IsSameContent(log_file, exp_log_file));
+	log.Log(Logger::ERROR, error_str);
 	log_file.close();
+	std::ifstream in_log_file;
+	in_log_file.open("f_logger.txt", std::ifstream::in);
+	PRINTTESTRESULTS("file_logger",1, true == IsSameContent(in_log_file, in_exp_log_file));
 	exp_log_file.close();
+	std::remove("f_logger.txt");
+	std::remove("exp_logger.txt");
 
 	std::ostringstream log_str(std::ostringstream::ate);
 	log.SetOutputSeverity(Logger::DEBUG);
@@ -62,10 +69,10 @@ int main()
 	PRINTTESTRESULTS("stringStream",4, 0 == log_str.str().compare(exp_str4));	
 }
 
-bool IsSameContent(std::ofstream &log_file1, std::ofstream &log_file2)
+bool IsSameContent(std::ifstream &log_file1, std::ifstream &log_file2)
 {
-	log_file1.seekp(log_file1.beg);
-	log_file2.seekp(log_file2.beg);
+	log_file1.seekg(0);
+	log_file2.seekg(0);
 	std::streambuf* file1_buf = log_file1.rdbuf();
 	std::streambuf* file2_buf = log_file2.rdbuf();
 	
@@ -73,10 +80,9 @@ bool IsSameContent(std::ofstream &log_file1, std::ofstream &log_file2)
 	char c_file2 = file2_buf->sbumpc();
 	
 	while (c_file1 != EOF)
-	{
-		std::cout << "inside while" << std::endl;
+	{		
 		if (c_file1 != c_file2)
-		{
+		{			
 			return false;
 		}
 		
@@ -94,22 +100,4 @@ bool IsSameContent(std::ofstream &log_file1, std::ofstream &log_file2)
 		return true;
 	}
 	return false;
-}	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
+}

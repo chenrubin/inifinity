@@ -1,3 +1,11 @@
+/*******************************\
+*		Author: Chen			*
+*		Reviewer: Sasha			*
+*		Logger					*
+*		16/2/2020				*
+*								*
+********************************/
+
 #include <iostream> /* std::cout */
 
 #include "logger.hpp"
