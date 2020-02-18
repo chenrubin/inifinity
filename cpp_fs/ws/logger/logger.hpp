@@ -10,10 +10,12 @@
 #define __LOGGER_HPP__
 #include <iosfwd>
 
+#include "MyUtils.hpp"
+
 namespace ilrd
 {
 
-class Logger
+class Logger: private Uncopyable
 {
 public:
 	enum Severity

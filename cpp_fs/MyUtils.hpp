@@ -13,7 +13,8 @@
 #define PRINTTESTRESULTS(func,num, res) \
 (printf("%-55s: Test %d %s\n" KNRM,func, num, (int)((res) == 1) ?\
 KGRN "\t\tpassed" : KRED "\t\tfailed"))
-
+namespace ilrd
+{
 class Uncopyable 
 {
 protected:
@@ -23,5 +24,5 @@ private:
 	Uncopyable(const Uncopyable&);
 	Uncopyable& operator=(const Uncopyable&);
 };
-
+}
 #endif

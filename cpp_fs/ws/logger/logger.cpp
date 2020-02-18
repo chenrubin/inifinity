@@ -24,15 +24,15 @@ Logger::Logger(Severity initialSeverity)
 
 void Logger::Log(Severity msgSeverity, const char *msg)
 {
-	Log(msgSeverity, static_cast<const std::string>(msg));
+	if ((msgSeverity) >= (m_outputSeverity))	
+	{
+		*m_output << msg;
+	}
 }
 
 void Logger::Log(Severity msgSeverity, const std::string &msg)
 {
-	if ((msgSeverity) >= (m_outputSeverity))	
-	{
-		*m_output << msg;
-	}	
+	Log(msgSeverity, msg.c_str());
 }
 
 void Logger::SetOutputSeverity(Severity outputSeverity)
