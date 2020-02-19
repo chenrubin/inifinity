@@ -16,6 +16,7 @@ public:
 	explicit Point(double x_ = 0, double y_ = 0);	// default args = 0?
 	Point(const Point& other_);
 	Point& operator=(const Point& other_);
+	bool operator==(const Point& other_);
 	~Point();
 
 	void SetX(double x_);
@@ -32,19 +33,19 @@ class Shape
 {
 public:
 	enum Color { WHITE, BLUE /* TODO */}; // enum from the lib / decoupling??
-	explicit Shape(Point& position_, double angle_, Color color_);
+	explicit Shape(const Point& position_, double angle_, Color color_);
 	Shape(const Shape& other_);
 	Shape& operator=(const Shape& other_);
-	virtual ~Shape() = 0;
+	virtual ~Shape();
 
-	void SetPosition(const Point& position_);
+	virtual void SetPosition(const Point& position_);
 	const Point& GetPosition() const;
-	void SetAngle(double angle_);
+	virtual void SetAngle(double angle_);
 	double GetAngle() const;
-	void SetColor(Color color_);
+	virtual void SetColor(Color color_);
 	Color GetColor() const;
-	virtual void Draw() const = 0;	// TODO: DrawIMP? 
-	virtual void Revolve() = 0;
+	virtual void Draw() const = 0;
+	virtual void Revolve(double angle_);
 
 private:
 	Point m_position;
@@ -60,7 +61,6 @@ public:
 	Circle& operator=(const Circle& other_);
 	~Circle();
 	void Draw() const;
-	void Revolve();
 
 private:
 	double m_radius;
@@ -76,10 +76,9 @@ public:
 	Line& operator=(const Line& other_);
 	~Line();
 	void Draw() const;
-	void Revolve();
 
 private:
-	/* len / a + b */
+	double m_len;
 };
 
 class Rectangle : public Shape
@@ -88,10 +87,9 @@ public:
 	explicit Rectangle(Point& center_, double angle_, Color color_, 
 			double width_, double height_);
 	Rectangle(const Rectangle& other_);
-	Rectangle& operator=(const Rectangle& other_); 
+	Rectangle& operator=(const Rectangle& other_);
 	~Rectangle();
 	void Draw() const;
-	void Revolve();
 
 private:
 	double m_width;
@@ -106,7 +104,6 @@ public:
 	Square& operator=(const Square& other_);
 	~Square();
 	void Draw() const;
-	void Revolve();
 
 private:
 	double m_edge;
@@ -115,14 +112,19 @@ private:
 class GroupOfShapes : public Shape
 {
 public:
-	explicit GroupOfShapes();
+	explicit GroupOfShapes(Point& center_, double angle_, Color color_);
 	~GroupOfShapes();
 	void AddShape(Shape& shape_);
 	void RemoveShape(const Shape& shape_);
+	void SetPosition(const Point& position_);
+	void SetAngle(double angle_);
+	void SetColor(Color color_);
 	void Draw() const;
-	void Revolve();
+	void Revolve(double angle);
+
 private:
-	std::vector<Shape*> shapes;
+	std::vector<Shape*> m_shapes;
+	std::vector<Shape *>::iterator FindShapeInContainerIMP(Shape& shape_);
 };
 
 /*----------------------------------------------------------------------------*/
