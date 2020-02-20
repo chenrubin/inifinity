@@ -1,26 +1,24 @@
 // shapes.hpp
 // Last update: 18/02/2020
 // Author: RD 78-79
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #ifndef __SHAPES_HPP__
 #define __SHAPES_HPP__ 
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #include <vector>	// std::vector
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 namespace ilrd
 {
-/*----------------------------------------------------------------------------*/
-class Point	// should we use the point from the email? or our own point class?
+/*---------------------------------------------------------------------------*/
+class Point
 {
 public:
-	explicit Point(double x_ = 0, double y_ = 0);	// default args = 0?
+	explicit Point(double x_ = 0, double y_ = 0);
 	Point(const Point& other_);
-	Point& operator=(const Point& other_);
-	bool operator==(const Point& other_);
 	~Point();
 
 	void SetX(double x_);
-	void SetY(double y_);	// or maybe: void Move(double x_, double y_) ?
+	void SetY(double y_);
 	double GetX() const;
 	double GetY() const;
 
@@ -32,7 +30,7 @@ private:
 class Shape
 {
 public:
-	enum Color { WHITE, BLUE /* TODO */}; // enum from the lib / decoupling??
+	enum Color {WHITE, BLUE};
 	explicit Shape(const Point& position_, double angle_, Color color_);
 	Shape(const Shape& other_);
 	Shape& operator=(const Shape& other_);
@@ -124,10 +122,9 @@ public:
 
 private:
 	std::vector<Shape*> m_shapes;
-	std::vector<Shape *>::iterator FindShapeInContainerIMP(Shape& shape_);
 };
 
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 } // namespace ilrd
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #endif // __SHAPES_HPP__
