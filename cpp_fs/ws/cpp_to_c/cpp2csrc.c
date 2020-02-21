@@ -31,11 +31,19 @@ struct Taxi
 	struct PublicTransport pT;
 };
 
+struct SpecialTaxi
+{
+	struct Taxi tx;
+};
+
 void PublicTransport_ctor(struct PublicTransport *pubTran);
 void PublicTransport_dtor(struct PublicTransport *pubTran);
 void PublicTransport_cctor(struct PublicTransport *pubTran,
 						   struct PublicTransport *res);
-void display_Pt(struct PublicTransport *pubTran);						   
+void display_Pt(struct PublicTransport *pubTran);
+void display_staxi(struct SpecialTaxi *stx);
+void display_taxi(struct Taxi *taxi);
+static void print_count_Pt();
 int get_ID(struct PublicTransport *pubTran);
 void Minibus_ctor(struct Minibus *mini);
 void Minibus_dtor(struct Minibus *mini);
@@ -45,6 +53,8 @@ void Wash_Mini(struct Minibus *mini, int minutes);
 
 void print_info_mini(struct Minibus *m);
 struct PublicTransport print_info_int(int i);
+void print_info_ptRef(struct PublicTransport *pt);
+void taxi_display(struct Taxi s);
 
 /* Minibus virtuals*/
 typedef void (*func2)(struct Minibus *, int); /* wash*/
@@ -54,6 +64,7 @@ static int s_count = 0;
 static void (*pt_vtable[NUM_V_FUNC_PT])() = {NULL}; /* moran amra*/
 static void (*mini_vtable[NUM_V_FUNC_MINI])() = {NULL}; /* shaddad amar*/
 static void (*taxi_vtable[NUM_V_FUNC_TAXI])() = {NULL}; /* jesus*/
+static void (*specialtaxi_vtable[NUM_V_FUNC_TAXI])() = {NULL}; /* jesus*/
 
 /* PublicTransport Ctor	*/
 void PublicTransport_ctor(struct PublicTransport *pubTran)
@@ -63,14 +74,14 @@ void PublicTransport_ctor(struct PublicTransport *pubTran)
 	pt_vtable[1] = display_Pt;
 	++s_count;
 	pubTran->m_license_plate = s_count;
-	printf("PublicTransport::Ctor() %d\n", pubTran->m_license_plate);
+	printf("PublicTransport::Ctor()%d\n", pubTran->m_license_plate);
 }
 
 /* PublicTransport dtor */
 void PublicTransport_dtor(struct PublicTransport *pubTran)
 {
 	--s_count;
-	printf("PublicTransport::Dtor() %d\n", pubTran->m_license_plate);
+	printf("PublicTransport::Dtor()%d\n", pubTran->m_license_plate);
 }
 
 /* PublicTransport cctor */
@@ -86,6 +97,11 @@ void PublicTransport_cctor(struct PublicTransport *this,
 int get_ID(struct PublicTransport *pubTran)
 {	
 	return pubTran->m_license_plate;
+}
+
+static void print_count_Pt()
+{
+	printf("s_count: %d\n", s_count);
 }
 
 void display_Pt(struct PublicTransport *pubTran)
@@ -126,14 +142,14 @@ void Display_Mini(struct Minibus *mini)
 
 void Wash_Mini(struct Minibus *mini, int minutes)
 {
-	printf("Minibus::wash(%d)ID:%d\n", minutes,get_ID(&mini->pT));
+	printf("Minibus::wash(%d) ID:%d\n", minutes,get_ID(&mini->pT));
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Taxi_ctor(struct Taxi *taxi)
 {
 	taxi_vtable[0] = PublicTransport_dtor;
-	taxi_vtable[1] = display_Pt;
+	taxi_vtable[1] = display_taxi;
 	PublicTransport_ctor(&(taxi->pT));
 	taxi->pT.vptr = taxi_vtable;
 	printf("Taxi::Ctor()\n");
@@ -153,7 +169,33 @@ void Taxi_cctor(struct Taxi *this, struct Taxi *other)
 
 void display_taxi(struct Taxi *taxi)
 {
-    printf("Taxi::display() ID:%d", get_ID(&taxi->pT));
+    printf("Taxi::display() ID:%d\n", get_ID(&taxi->pT));
+}
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void SpecialTaxi_ctor(struct SpecialTaxi *this)
+{
+	specialtaxi_vtable[0] = PublicTransport_dtor;
+	specialtaxi_vtable[1] = display_staxi;
+	Taxi_ctor(&this->tx);
+	this->tx.pT.vptr = specialtaxi_vtable;
+	printf("SpecialTaxi::Ctor()\n");
+}
+
+void SpecialTaxi_dtor(struct SpecialTaxi *this)
+{
+	printf("SpecialTaxi::Dtor()\n");
+	Taxi_dtor(&this->tx);
+}
+
+void SpecialTaxi_cctor(struct SpecialTaxi *this, struct SpecialTaxi *other)
+{
+	Taxi_cctor(&this->tx, &other->tx);
+	printf("SpecialTaxi::CCtor()\n");
+}
+
+void display_staxi(struct SpecialTaxi *this)
+{
+    printf("SpecialTaxi::display() ID:%d", get_ID(&this->tx.pT));
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /* print_info funcntions */
@@ -177,6 +219,24 @@ struct PublicTransport print_info_int(int i)
 	return pt;
 }
 
+void print_info_ptRef(struct PublicTransport *pt)
+{
+	display_Pt(pt);
+}
+/* end of print_info functions */
+
+void taxi_display(struct Taxi s)
+{
+    display_taxi(&s);
+}
+
+/* template functions */
+int max_func_int(const int *t1, const int *t2)
+{
+	return (*t1 > *t2 ? *t1 : *t2);
+}
+/* end of template functions */
+
 int main()
 {	
 	struct PublicTransport pT;
@@ -188,6 +248,35 @@ int main()
 	struct Taxi *t2 = (struct Taxi *)malloc(sizeof(struct Taxi));
 	struct Minibus *m3 = (struct Minibus *)malloc(sizeof(struct Minibus));
 	struct PublicTransport *array[3];
+	/**/
+
+	/*public transport arr2*/
+	struct Minibus m_arr2;
+	struct PublicTransport m_arr2_pt;
+	struct Taxi tx_arr2;
+	struct PublicTransport tx_arr2_pt;
+	struct PublicTransport pt_arr2;
+	struct PublicTransport arr2[3];
+	/**/
+	
+	/**/
+	struct Minibus m2;
+	/**/
+
+	/**/
+	struct Minibus arr3[4];
+	struct Taxi *arr4[4] = {NULL};
+	/**/
+
+	/**/
+	int max_int1 = 1;
+	int max_int2 = 2;
+	float max_int_float = 2.0;
+	/**/
+
+	/**/
+	struct SpecialTaxi stx;
+	struct Taxi tx_from_stx;
 	/**/
 
 	Minibus_ctor(&m);
@@ -207,6 +296,73 @@ int main()
 	{
 		array[i]->vptr[DISPLAY](array[i]);
 	}
+
+	Minibus_dtor(m1);
+	Taxi_dtor(t2);
+	Minibus_dtor(m3);
+
+	free(m1);
+	free(t2);
+	free(m3);
+
+	Minibus_ctor(&m_arr2);
+	PublicTransport_cctor(&m_arr2_pt, (struct PublicTransport *)&m_arr2);
+	m_arr2_pt.vptr = pt_vtable;
+	Minibus_dtor(&m_arr2);
+	arr2[0] = m_arr2_pt;
+	Taxi_ctor(&tx_arr2);
+	PublicTransport_cctor(&tx_arr2_pt, (struct PublicTransport *)&tx_arr2);
+	tx_arr2_pt.vptr = pt_vtable;
+	Taxi_dtor(&tx_arr2);
+	arr2[1] = tx_arr2_pt; 
+	PublicTransport_ctor(&pt_arr2);
+	arr2[2] = pt_arr2;
+
+	for (i = 0; i < 3; ++i)
+	{
+		arr2[i].vptr[DISPLAY](&arr2[i]);
+	}
+	print_info_ptRef(&arr2[0]);
+
+	print_count_Pt();
+	Minibus_ctor(&m2);
+	print_count_Pt();
+
+	for (i = 0; i < 4; ++i)
+	{
+		Minibus_ctor(&arr3[i]);
+	}
+
+	for (i = 0; i < 4; ++i)
+	{
+		arr4[i] = (struct Taxi *)malloc(sizeof(struct Taxi));
+		Taxi_ctor(arr4[i]);
+	}
+
+	for (i = 3; i >= 0; --i)
+	{
+		free(arr4[i]);
+		Taxi_dtor(arr4[i]);
+	}
+
+	printf("%d\n", max_func_int(&max_int1, &max_int2));
+	printf("%d\n", max_func_int(&max_int1,(const int *)&max_int_float));
+
+	SpecialTaxi_ctor(&stx);
+	Taxi_cctor(&tx_from_stx, (struct Taxi *)&stx);
+	taxi_display(tx_from_stx);
+	Taxi_dtor(&tx_from_stx);
+
+	SpecialTaxi_dtor(&stx);
+	for (i = 3; i >= 0; --i)
+	{
+		Minibus_dtor(&arr3[i]);
+	}
+	Minibus_dtor(&m2);
+	PublicTransport_dtor(&pt_arr2);
+	PublicTransport_dtor(&tx_arr2_pt);
+	PublicTransport_dtor(&m_arr2_pt);
+	Minibus_dtor(&m);
 
 	return 0;
 }
