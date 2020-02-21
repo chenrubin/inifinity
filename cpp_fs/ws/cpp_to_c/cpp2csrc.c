@@ -47,16 +47,15 @@ static void **mini_vtable[3];
 /* PublicTransport Ctor	*/
 void PublicTransport_ctor(struct PublicTransport *pubTran)
 {
-	++(s_count);
-	pubTran->m_license_plate = 0;
-	pubTran->m_license_plate += s_count;
+	++s_count;
+	pubTran->m_license_plate = s_count;
 	printf("PublicTransport::Ctor() %d\n", pubTran->m_license_plate);
 }
 
 /* PublicTransport dtor */
 void PublicTransport_dtor(struct PublicTransport *pubTran)
 {
-	--(s_count);
+	--s_count;
 	printf("PublicTransport::Dtor() %d\n", pubTran->m_license_plate);
 }
 
@@ -91,8 +90,8 @@ void Minibus_ctor(struct Minibus *mini)
 
 void Minibus_dtor(struct Minibus *mini)
 {
-	PublicTransport_dtor(&mini->pT);
 	printf("Minibus::Dtor()\n");
+	PublicTransport_dtor(&mini->pT);
 }
 
 void Minibus_cctor(struct Minibus *mini, struct Minibus *mini_res)
