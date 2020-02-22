@@ -5,6 +5,9 @@
 #define NUM_V_FUNC_PT 2
 #define NUM_V_FUNC_MINI 3
 #define NUM_V_FUNC_TAXI 2
+#define NUM_V_FUNC_STAXI 2
+#define NUM_V_FUNC_PUBCON 2
+
 typedef void (*vptr_func)();
 
 enum 
@@ -36,6 +39,15 @@ struct SpecialTaxi
 	struct Taxi tx;
 };
 
+struct PublicConvoy
+{
+	struct PublicTransport pT;
+	struct PublicTransport *m_pt1;
+	struct PublicTransport *m_pt2;
+	struct Minibus m_m;
+	struct Taxi m_t;
+};
+
 void PublicTransport_ctor(struct PublicTransport *pubTran);
 void PublicTransport_dtor(struct PublicTransport *pubTran);
 void PublicTransport_cctor(struct PublicTransport *pubTran,
@@ -43,6 +55,7 @@ void PublicTransport_cctor(struct PublicTransport *pubTran,
 void display_Pt(struct PublicTransport *pubTran);
 void display_staxi(struct SpecialTaxi *stx);
 void display_taxi(struct Taxi *taxi);
+void display_pc(struct PublicConvoy *pc);
 static void print_count_Pt();
 int get_ID(struct PublicTransport *pubTran);
 void Minibus_ctor(struct Minibus *mini);
@@ -64,7 +77,8 @@ static int s_count = 0;
 static void (*pt_vtable[NUM_V_FUNC_PT])() = {NULL}; /* moran amra*/
 static void (*mini_vtable[NUM_V_FUNC_MINI])() = {NULL}; /* shaddad amar*/
 static void (*taxi_vtable[NUM_V_FUNC_TAXI])() = {NULL}; /* jesus*/
-static void (*specialtaxi_vtable[NUM_V_FUNC_TAXI])() = {NULL}; /* jesus*/
+static void (*specialtaxi_vtable[NUM_V_FUNC_STAXI])() = {NULL}; /* jesus*/
+static void (*publicconvoy_vtable[NUM_V_FUNC_PUBCON])() = {NULL}; /* jesus*/
 
 /* PublicTransport Ctor	*/
 void PublicTransport_ctor(struct PublicTransport *pubTran)
@@ -198,6 +212,54 @@ void display_staxi(struct SpecialTaxi *this)
     printf("SpecialTaxi::display() ID:%d", get_ID(&this->tx.pT));
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void Publicconvoy_ctor(struct PublicConvoy *this)
+{
+	struct Minibus m;
+	struct Taxi tx;
+	struct Minibus m_m;
+	struct Taxi m_t;
+	mini_vtable[0] = PublicTransport_dtor;
+	mini_vtable[1] = display_pc;
+	PublicTransport_ctor(&(this->pT));
+	this->pT.vptr = publicconvoy_vtable;
+
+	
+	Minibus_ctor(&m);
+	this->m_pt1 = (struct PublicTransport *)&m;
+	Taxi_ctor(&tx);
+	this->m_pt2 = (struct PublicTransport *)&tx;
+	Minibus_ctor(&m_m);
+	Taxi_ctor(&m_t);
+}
+
+void Publicconvoy_dtor(struct PublicConvoy *this)
+{
+	Taxi_dtor(&this->m_t);
+	Minibus_dtor(&this->m_m);
+	Taxi_dtor((struct Taxi *)&this->m_pt2);
+	Minibus_dtor((struct Minibus *)&this->m_pt1);
+	PublicTransport_dtor(&this->pT);
+}
+
+void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_)
+{
+	PublicTransport_cctor(&this->pT, &other_->pT);
+	Minibus_cctor((struct Minibus *)&this->m_pt1,
+				   (struct Minibus *)&other_->m_pt1);
+	Taxi_cctor((struct Taxi *)&this->m_pt2,
+				   (struct Taxi *)&other_->m_pt2);
+	Minibus_cctor(&this->m_m,&other_->m_m);
+	Taxi_cctor(&this->m_t,&other_->m_t);
+}
+
+void display_pc(struct PublicConvoy *this)
+{
+    display_Pt(this->m_pt1);
+	display_Pt(this->m_pt2);
+	Display_Mini(&this->m_m);
+	display_taxi(&this->m_t);
+}
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /* print_info funcntions */
 void print_info_mini(struct Minibus *m)
 {
@@ -239,11 +301,11 @@ int max_func_int(const int *t1, const int *t2)
 
 int main()
 {	
-	struct PublicTransport pT;
+/*	struct PublicTransport pT;
 	struct Minibus m;
 
 	/*public transport array*/
-	int i = 0;
+/*	int i = 0;
 	struct Minibus *m1 = (struct Minibus *)malloc(sizeof(struct Minibus));
 	struct Taxi *t2 = (struct Taxi *)malloc(sizeof(struct Taxi));
 	struct Minibus *m3 = (struct Minibus *)malloc(sizeof(struct Minibus));
@@ -251,7 +313,7 @@ int main()
 	/**/
 
 	/*public transport arr2*/
-	struct Minibus m_arr2;
+/*	struct Minibus m_arr2;
 	struct PublicTransport m_arr2_pt;
 	struct Taxi tx_arr2;
 	struct PublicTransport tx_arr2_pt;
@@ -260,26 +322,31 @@ int main()
 	/**/
 	
 	/**/
-	struct Minibus m2;
+/*	struct Minibus m2;
 	/**/
 
 	/**/
-	struct Minibus arr3[4];
+/*	struct Minibus arr3[4];
 	struct Taxi *arr4[4] = {NULL};
 	/**/
 
 	/**/
-	int max_int1 = 1;
+/*	int max_int1 = 1;
 	int max_int2 = 2;
 	float max_int_float = 2.0;
 	/**/
 
 	/**/
-	struct SpecialTaxi stx;
+/*	struct SpecialTaxi stx;
 	struct Taxi tx_from_stx;
 	/**/
 
-	Minibus_ctor(&m);
+	/**/
+	struct PublicConvoy *ts1;
+	struct PublicConvoy *ts2;
+	/**/
+
+/*	Minibus_ctor(&m);
 	print_info_mini(&m);
 	pT = print_info_int(3);
 	display_Pt(&pT);
@@ -358,11 +425,20 @@ int main()
 	{
 		Minibus_dtor(&arr3[i]);
 	}
+
+	/* public convoy */
+	ts1 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
+	ts2 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
+	Publicconvoy_ctor(ts1);
+	Publicconvoy_cctor(ts2, ts1);
+	/*end of public convoy*/
+
+/*
 	Minibus_dtor(&m2);
 	PublicTransport_dtor(&pt_arr2);
 	PublicTransport_dtor(&tx_arr2_pt);
 	PublicTransport_dtor(&m_arr2_pt);
 	Minibus_dtor(&m);
-
+*/
 	return 0;
 }
