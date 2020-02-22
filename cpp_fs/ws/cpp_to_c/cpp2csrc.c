@@ -214,22 +214,19 @@ void display_staxi(struct SpecialTaxi *this)
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Publicconvoy_ctor(struct PublicConvoy *this)
 {
-	struct Minibus m;
-	struct Taxi tx;
-	struct Minibus m_m;
-	struct Taxi m_t;
-	mini_vtable[0] = PublicTransport_dtor;
-	mini_vtable[1] = display_pc;
+	publicconvoy_vtable[0] = PublicTransport_dtor;
+	publicconvoy_vtable[1] = display_pc;
+	
 	PublicTransport_ctor(&(this->pT));
 	this->pT.vptr = publicconvoy_vtable;
 
-	
-	Minibus_ctor(&m);
-	this->m_pt1 = (struct PublicTransport *)&m;
-	Taxi_ctor(&tx);
-	this->m_pt2 = (struct PublicTransport *)&tx;
-	Minibus_ctor(&m_m);
-	Taxi_ctor(&m_t);
+	this->m_pt1 = (struct PublicTransport *)malloc(sizeof(struct Minibus));
+	Minibus_ctor((struct Minibus *)this->m_pt1);
+	this->m_pt2 = (struct PublicTransport *)malloc(sizeof(struct Taxi));
+	Taxi_ctor((struct Taxi *)this->m_pt2);
+
+	Minibus_ctor(&this->m_m);
+	Taxi_ctor(&this->m_t);
 }
 
 void Publicconvoy_dtor(struct PublicConvoy *this)
@@ -243,19 +240,22 @@ void Publicconvoy_dtor(struct PublicConvoy *this)
 
 void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_)
 {
-	PublicTransport_cctor(&this->pT, &other_->pT);
-	Minibus_cctor((struct Minibus *)this->m_pt1,
-				   (struct Minibus *)other_->m_pt1);
-	Taxi_cctor((struct Taxi *)this->m_pt2,
-				   (struct Taxi *)other_->m_pt2);
+	PublicTransport_ctor(&this->pT);
+	
+	this->m_pt1 = (struct PublicTransport *)malloc(sizeof(struct Minibus));
+	PublicTransport_cctor(this->m_pt1, other_->m_pt1);
+
+	this->m_pt2 = (struct PublicTransport *)malloc(sizeof(struct Taxi));
+	PublicTransport_cctor(this->m_pt2, other_->m_pt2);
+
 	Minibus_cctor(&this->m_m,&other_->m_m);
 	Taxi_cctor(&this->m_t,&other_->m_t);
 }
 
 void display_pc(struct PublicConvoy *this)
 {
-    display_Pt(this->m_pt1);
-	display_Pt(this->m_pt2);
+	this->m_pt1->vptr[DISPLAY](this->m_pt1);
+	this->m_pt2->vptr[DISPLAY](this->m_pt2);
 	Display_Mini(&this->m_m);
 	display_taxi(&this->m_t);
 }
@@ -430,9 +430,15 @@ int main()
 	ts1 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	ts2 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	Publicconvoy_ctor(ts1);
-	printf("\n!!!!!!!!!!!!!!!!!\n");
-	Publicconvoy_ctor(ts2);
 	Publicconvoy_cctor(ts2, ts1);
+	printf("\n!!!!!!!!!!!!!!!!!\n");
+	display_pc(ts1);
+	display_pc(ts2);
+/*	Publicconvoy_dtor(ts1);
+	free(ts1);
+	display_pc(ts2);
+	Publicconvoy_dtor(ts2);
+	free(ts2);
 	/*end of public convoy*/
 
 /*

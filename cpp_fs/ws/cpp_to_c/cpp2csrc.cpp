@@ -143,12 +143,12 @@ public:
         delete m_pt1;
         delete m_pt2;
     }
-
-    PublicConvoy(const PublicConvoy &other_)
-        : m_pt1(new PublicTransport)
-        , m_pt2(new PublicTransport)
-        , m_m(other_.m_m)
-        , m_t(other_.m_t)
+   // PublicTransport(const PublicTransport &other)
+    PublicConvoy(const PublicConvoy &other)
+        : m_pt1(new PublicTransport(*(other.m_pt1)))
+        , m_pt2(new PublicTransport(*(other.m_pt2)))
+        , m_m(other.m_m)
+        , m_t(other.m_t)
     {}    
 
     void display()
@@ -231,11 +231,11 @@ int main(int argc, char **argv, char **envp)
     taxi_display(st);
 */
     PublicConvoy *ts1 = new PublicConvoy();
-    cout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     PublicConvoy *ts2 = new PublicConvoy(*ts1);
- /*   ts1->display();
+    cout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    ts1->display();
     ts2->display();
-    delete ts1;
+ /*   delete ts1;
     ts2->display(); // this crashes. fix the bug!
     delete ts2;
 */
