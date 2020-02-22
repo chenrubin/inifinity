@@ -244,10 +244,10 @@ void Publicconvoy_dtor(struct PublicConvoy *this)
 void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_)
 {
 	PublicTransport_cctor(&this->pT, &other_->pT);
-	Minibus_cctor((struct Minibus *)&this->m_pt1,
-				   (struct Minibus *)&other_->m_pt1);
-	Taxi_cctor((struct Taxi *)&this->m_pt2,
-				   (struct Taxi *)&other_->m_pt2);
+	Minibus_cctor((struct Minibus *)this->m_pt1,
+				   (struct Minibus *)other_->m_pt1);
+	Taxi_cctor((struct Taxi *)this->m_pt2,
+				   (struct Taxi *)other_->m_pt2);
 	Minibus_cctor(&this->m_m,&other_->m_m);
 	Taxi_cctor(&this->m_t,&other_->m_t);
 }
@@ -430,6 +430,8 @@ int main()
 	ts1 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	ts2 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	Publicconvoy_ctor(ts1);
+	printf("\n!!!!!!!!!!!!!!!!!\n");
+	Publicconvoy_ctor(ts2);
 	Publicconvoy_cctor(ts2, ts1);
 	/*end of public convoy*/
 

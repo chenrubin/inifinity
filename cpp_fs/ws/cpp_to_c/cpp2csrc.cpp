@@ -231,6 +231,7 @@ int main(int argc, char **argv, char **envp)
     taxi_display(st);
 */
     PublicConvoy *ts1 = new PublicConvoy();
+    cout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     PublicConvoy *ts2 = new PublicConvoy(*ts1);
  /*   ts1->display();
     ts2->display();
