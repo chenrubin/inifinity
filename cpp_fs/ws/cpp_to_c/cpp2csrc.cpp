@@ -143,7 +143,7 @@ public:
         delete m_pt1;
         delete m_pt2;
     }
-   // PublicTransport(const PublicTransport &other)
+
     PublicConvoy(const PublicConvoy &other)
         : PublicTransport(other)
         , m_pt1(new Minibus(*(static_cast<Minibus *>(other.m_pt1))))
@@ -234,11 +234,10 @@ int main(int argc, char **argv, char **envp)
     PublicConvoy *ts2 = new PublicConvoy(*ts1);
     ts1->display();
     ts2->display();
-    /**/
+
     delete ts1;
     ts2->display(); // this crashes. fix the bug!
     delete ts2;
- //   cout << "\n!!!!!!!!!!!!!!!!!!\n";
 
     return 0;
 }
