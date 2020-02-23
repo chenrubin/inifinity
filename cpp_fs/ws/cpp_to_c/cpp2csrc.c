@@ -237,7 +237,9 @@ void Publicconvoy_dtor(struct PublicConvoy *this)
 	free(this->m_pt1);
 	free(this->m_pt2);
 	Taxi_dtor(&this->m_t);
-	Minibus_dtor(&this->m_m);	
+	Minibus_dtor(&this->m_m);
+	/* need to add change vptr back to class above the same as 
+	done in ctor but the opposite way*/
 	PublicTransport_dtor(&this->pT);
 }
 
