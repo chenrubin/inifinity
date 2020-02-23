@@ -1,6 +1,4 @@
 #include <iostream> //cout
-#include <cstring> //memcpy
-
 using namespace std;
 
 class PublicTransport {
@@ -131,26 +129,24 @@ public:
     }
 private:
 };
-/**/
+
 class PublicConvoy: public PublicTransport {
 public:
     PublicConvoy() : m_pt1(new Minibus()), m_pt2(new Taxi())
-    {
-    }
 
+    {}
+    
+    PublicConvoy(const PublicConvoy& other)
+      : m_pt1(new Minibus())
+      , m_pt2(new Taxi())
+      , m_m(other.m_m)
+      , m_t(other.m_t)
+    {}
     ~PublicConvoy()
     {
         delete m_pt1;
         delete m_pt2;
     }
-   // PublicTransport(const PublicTransport &other)
-    PublicConvoy(const PublicConvoy &other)
-        : PublicTransport(other)
-        , m_pt1(new Minibus(*(static_cast<Minibus *>(other.m_pt1))))
-        , m_pt2(new Taxi(*(static_cast<Taxi *>(other.m_pt2))))
-        , m_m(other.m_m)
-        , m_t(other.m_t)
-    {}    
 
     void display()
     {
@@ -200,45 +196,52 @@ int main(int argc, char **argv, char **envp)
     Minibus m;
     print_info(m);
     print_info(3).display();
-    PublicTransport *array[] = { new Minibus(), new Taxi(), new Minibus() };
+   PublicTransport *array[] = { new Minibus(), new Taxi(), new Minibus() };
 
     for (int i = 0; i < 3; ++i) {
         array[i]->display();
     }
 
-    for (int i = 0; i < 3; ++i) {
+   for (int i = 0; i < 3; ++i) {
         delete array[i];
     }
 
-    PublicTransport arr2[] = { Minibus(), Taxi(), PublicTransport() };
+   PublicTransport arr2[] = { Minibus(), Taxi(), PublicTransport() };
 
     for (int i = 0; i < 3; ++i) {
         arr2[i].display();
     }
+    
     print_info(arr2[0]);
+    
+
     PublicTransport::print_count();
     Minibus m2;
     m2.print_count();
 
     Minibus arr3[4];
     Taxi *arr4 = new Taxi[4];
-    delete[] arr4;
+   delete[] arr4;
 
     std::cout << max_func(1, 2) << "\n";
     std::cout << max_func<int>(1, 2.0f)<< "\n";
     SpecialTaxi st;
     taxi_display(st);
-  
 
+	 
     PublicConvoy *ts1 = new PublicConvoy();
+    
     PublicConvoy *ts2 = new PublicConvoy(*ts1);
+      
+	cout << "\n!!!!!!!!\n";
     ts1->display();
+    cout << "\n!!!!!!!!\n";
     ts2->display();
-    /**/
+    cout << "\n!!!!!!!!\n";
     delete ts1;
     ts2->display(); // this crashes. fix the bug!
     delete ts2;
- //   cout << "\n!!!!!!!!!!!!!!!!!!\n";
 
+    
     return 0;
 }

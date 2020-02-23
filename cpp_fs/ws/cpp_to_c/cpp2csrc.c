@@ -7,6 +7,7 @@
 #define NUM_V_FUNC_TAXI 2
 #define NUM_V_FUNC_STAXI 2
 #define NUM_V_FUNC_PUBCON 2
+#define MAX_FUNC(x,y) (((*x) > (*y)) ? (*x) : (*y))
 
 typedef void (*vptr_func)();
 
@@ -231,22 +232,26 @@ void Publicconvoy_ctor(struct PublicConvoy *this)
 
 void Publicconvoy_dtor(struct PublicConvoy *this)
 {
+	Minibus_dtor((struct Minibus *)this->m_pt1);
+	Taxi_dtor((struct Taxi *)this->m_pt2);
+	free(this->m_pt1);
+	free(this->m_pt2);
 	Taxi_dtor(&this->m_t);
-	Minibus_dtor(&this->m_m);
-	Taxi_dtor((struct Taxi *)&this->m_pt2);
-	Minibus_dtor((struct Minibus *)&this->m_pt1);
+	Minibus_dtor(&this->m_m);	
 	PublicTransport_dtor(&this->pT);
 }
 
 void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_)
 {
-	PublicTransport_ctor(&this->pT);
+	PublicTransport_cctor(&this->pT, &other_->pT);
 	
 	this->m_pt1 = (struct PublicTransport *)malloc(sizeof(struct Minibus));
-	PublicTransport_cctor(this->m_pt1, other_->m_pt1);
+	Minibus_cctor((struct Minibus *)this->m_pt1, (struct Minibus *)other_->m_pt1);
+	/*PublicTransport_cctor(this->m_pt1, other_->m_pt1);*/
 
 	this->m_pt2 = (struct PublicTransport *)malloc(sizeof(struct Taxi));
-	PublicTransport_cctor(this->m_pt2, other_->m_pt2);
+	Taxi_cctor((struct Taxi *)this->m_pt2, (struct Taxi *)other_->m_pt2);
+	/*PublicTransport_cctor(this->m_pt2, other_->m_pt2);*/
 
 	Minibus_cctor(&this->m_m,&other_->m_m);
 	Taxi_cctor(&this->m_t,&other_->m_t);
@@ -292,20 +297,13 @@ void taxi_display(struct Taxi s)
     display_taxi(&s);
 }
 
-/* template functions */
-int max_func_int(const int *t1, const int *t2)
-{
-	return (*t1 > *t2 ? *t1 : *t2);
-}
-/* end of template functions */
-
 int main()
 {	
-/*	struct PublicTransport pT;
+	struct PublicTransport pT;
 	struct Minibus m;
 
 	/*public transport array*/
-/*	int i = 0;
+	int i = 0;
 	struct Minibus *m1 = (struct Minibus *)malloc(sizeof(struct Minibus));
 	struct Taxi *t2 = (struct Taxi *)malloc(sizeof(struct Taxi));
 	struct Minibus *m3 = (struct Minibus *)malloc(sizeof(struct Minibus));
@@ -313,7 +311,7 @@ int main()
 	/**/
 
 	/*public transport arr2*/
-/*	struct Minibus m_arr2;
+	struct Minibus m_arr2;
 	struct PublicTransport m_arr2_pt;
 	struct Taxi tx_arr2;
 	struct PublicTransport tx_arr2_pt;
@@ -322,22 +320,22 @@ int main()
 	/**/
 	
 	/**/
-/*	struct Minibus m2;
+	struct Minibus m2;
 	/**/
 
 	/**/
-/*	struct Minibus arr3[4];
+	struct Minibus arr3[4];
 	struct Taxi *arr4[4] = {NULL};
 	/**/
 
 	/**/
-/*	int max_int1 = 1;
+	int max_int1 = 1;
 	int max_int2 = 2;
 	float max_int_float = 2.0;
 	/**/
 
 	/**/
-/*	struct SpecialTaxi stx;
+	struct SpecialTaxi stx;
 	struct Taxi tx_from_stx;
 	/**/
 
@@ -346,7 +344,7 @@ int main()
 	struct PublicConvoy *ts2;
 	/**/
 
-/*	Minibus_ctor(&m);
+	Minibus_ctor(&m);
 	print_info_mini(&m);
 	pT = print_info_int(3);
 	display_Pt(&pT);
@@ -371,7 +369,6 @@ int main()
 	free(m1);
 	free(t2);
 	free(m3);
-
 	Minibus_ctor(&m_arr2);
 	PublicTransport_cctor(&m_arr2_pt, (struct PublicTransport *)&m_arr2);
 	m_arr2_pt.vptr = pt_vtable;
@@ -412,41 +409,39 @@ int main()
 		Taxi_dtor(arr4[i]);
 	}
 
-	printf("%d\n", max_func_int(&max_int1, &max_int2));
-	printf("%d\n", max_func_int(&max_int1,(const int *)&max_int_float));
+	printf("%d\n", MAX_FUNC(&max_int1, &max_int2));
+	printf("%d\n", (int)MAX_FUNC(&max_int1,&max_int_float));
 
 	SpecialTaxi_ctor(&stx);
-	Taxi_cctor(&tx_from_stx, (struct Taxi *)&stx);
+	Taxi_cctor(&tx_from_stx, &stx.tx);
 	taxi_display(tx_from_stx);
 	Taxi_dtor(&tx_from_stx);
-
-	SpecialTaxi_dtor(&stx);
-	for (i = 3; i >= 0; --i)
-	{
-		Minibus_dtor(&arr3[i]);
-	}
 
 	/* public convoy */
 	ts1 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	ts2 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	Publicconvoy_ctor(ts1);
 	Publicconvoy_cctor(ts2, ts1);
-	printf("\n!!!!!!!!!!!!!!!!!\n");
 	display_pc(ts1);
 	display_pc(ts2);
-/*	Publicconvoy_dtor(ts1);
+	Publicconvoy_dtor(ts1);
 	free(ts1);
 	display_pc(ts2);
 	Publicconvoy_dtor(ts2);
 	free(ts2);
 	/*end of public convoy*/
 
-/*
+
+	SpecialTaxi_dtor(&stx);
+	for (i = 3; i >= 0; --i)
+	{
+		Minibus_dtor(&arr3[i]);
+	}
 	Minibus_dtor(&m2);
 	PublicTransport_dtor(&pt_arr2);
 	PublicTransport_dtor(&tx_arr2_pt);
 	PublicTransport_dtor(&m_arr2_pt);
 	Minibus_dtor(&m);
-*/
+
 	return 0;
 }
