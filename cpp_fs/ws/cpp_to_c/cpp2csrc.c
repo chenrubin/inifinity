@@ -85,18 +85,18 @@ void Publicconvoy_dtor(struct PublicConvoy *this);
 void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_);
 void display_pc(struct PublicConvoy *this);
 
-void UpdatePublicTransportVtable(struct PublicTransport *pubTran);
+void UpdatePublicTransportVtable();
 void UpdateMinibusVtable();
 void UpdateTaxiVtable();
 void UpdateSpecialTaxiVtable();
 void UpdatePublicConvoyVtable();
 
 static int s_count = 0;
-static void (*pt_vtable[NUM_V_FUNC_PT])() = {NULL};
-static void (*mini_vtable[NUM_V_FUNC_MINI])() = {NULL};
-static void (*taxi_vtable[NUM_V_FUNC_TAXI])() = {NULL};
-static void (*specialtaxi_vtable[NUM_V_FUNC_STAXI])() = {NULL};
-static void (*publicconvoy_vtable[NUM_V_FUNC_PUBCON])() = {NULL};
+static vptr_func pt_vtable[NUM_V_FUNC_PT] = {NULL};
+static vptr_func mini_vtable[NUM_V_FUNC_PT] = {NULL};
+static vptr_func taxi_vtable[NUM_V_FUNC_PT] = {NULL};
+static vptr_func specialtaxi_vtable[NUM_V_FUNC_PT] = {NULL};
+static vptr_func publicconvoy_vtable[NUM_V_FUNC_PT] = {NULL};
 
 /* PublicTransport Ctor	*/
 void PublicTransport_ctor(struct PublicTransport *pubTran)
@@ -119,10 +119,7 @@ void PublicTransport_dtor(struct PublicTransport *pubTran)
 /* PublicTransport cctor */
 void PublicTransport_cctor(struct PublicTransport *this,
 						   struct PublicTransport *other)
-{	
-
-	/*memcpy(this, other, sizeof(struct PublicTransport));*/
-
+{
 	++s_count;
 	this->m_license_plate = s_count;
 	printf("PublicTransport::CCtor() %d\n", this->m_license_plate);
@@ -144,7 +141,7 @@ void display_Pt(struct PublicTransport *pubTran)
 	printf("PublicTransport::display(): %d\n", pubTran->m_license_plate);
 }
 
-void UpdatePublicTransportVtable(struct PublicTransport *pubTran)
+void UpdatePublicTransportVtable()
 {
 	pt_vtable[0] = PublicTransport_dtor;
 	pt_vtable[1] = display_Pt;
@@ -190,7 +187,7 @@ void Wash_Mini(struct Minibus *mini, int minutes)
 
 void UpdateMinibusVtable()
 {
-	mini_vtable[0] = /*PublicTransport_dtor*/Minibus_dtor;
+	mini_vtable[0] = Minibus_dtor;
 	mini_vtable[1] = Display_Mini;
 	mini_vtable[2] = Wash_Mini;
 }
@@ -226,7 +223,7 @@ void display_taxi(struct Taxi *taxi)
 
 void UpdateTaxiVtable()
 {
-	taxi_vtable[0] = /*PublicTransport_dtor*/Taxi_dtor;
+	taxi_vtable[0] = Taxi_dtor;
 	taxi_vtable[1] = display_taxi;
 }
 
@@ -261,7 +258,7 @@ void display_staxi(struct SpecialTaxi *this)
 }
 void UpdateSpecialTaxiVtable()
 {
-	specialtaxi_vtable[0] = /*PublicTransport_dtor*/SpecialTaxi_dtor;
+	specialtaxi_vtable[0] = SpecialTaxi_dtor;
 	specialtaxi_vtable[1] = display_staxi;
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -313,15 +310,15 @@ void Publicconvoy_cctor(struct PublicConvoy *this, struct PublicConvoy *other_)
 
 void display_pc(struct PublicConvoy *this)
 {
-/*	this->m_pt1->vptr[DISPLAY](this->m_pt1);
-	this->m_pt2->vptr[DISPLAY](this->m_pt2);*/
+	this->m_pt1->vptr[DISPLAY](this->m_pt1);
+	this->m_pt2->vptr[DISPLAY](this->m_pt2);
 	Display_Mini(&this->m_m);
 	display_taxi(&this->m_t);
 }
 
 void UpdatePublicConvoyVtable()
 {
-	publicconvoy_vtable[0] = /*PublicTransport_dtor*/Publicconvoy_dtor;
+	publicconvoy_vtable[0] = Publicconvoy_dtor;
 	publicconvoy_vtable[1] = display_pc;
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -465,8 +462,8 @@ int main()
 
 	for (i = 3; i >= 0; --i)
 	{
-		free(arr4[i]);
 		Taxi_dtor(arr4[i]);
+		free(arr4[i]);
 	}
 
 	printf("%d\n", MAX_FUNC(&max_int1, &max_int2));
@@ -479,19 +476,17 @@ int main()
 	/* public convoy */
 	ts1 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
 	ts2 = (struct PublicConvoy *)malloc(sizeof(struct PublicConvoy));
+/*	printf("x\n");*/
 	Publicconvoy_ctor(ts1);
-printf("x\n");
-/*	Publicconvoy_cctor(ts2, ts1);*/
+	Publicconvoy_cctor(ts2, ts1);
 	display_pc(ts1);
-printf("x\n");
-/*	display_pc(ts2);*/
+	display_pc(ts2);
 	Publicconvoy_dtor(ts1);
 	free(ts1);
-/*	display_pc(ts2);
+	display_pc(ts2);
 	Publicconvoy_dtor(ts2);
-	free(ts2); */
+	free(ts2); 
 	/*end of public convoy*/
-
 
 	SpecialTaxi_dtor(&stx);
 	for (i = 3; i >= 0; --i)

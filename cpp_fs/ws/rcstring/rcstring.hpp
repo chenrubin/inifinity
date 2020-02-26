@@ -34,6 +34,7 @@ public:
     RCString& Concat(const RCString& other_);
 	
 private:
+struct 
 	char* m_str;
 	size_t* refernce_counter;
 };	       
