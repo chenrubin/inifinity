@@ -12,6 +12,7 @@ void TestOperators();
 void TestConCat();
 void TestCout();
 void TestCin();
+void TestProxy();
 
 int main()
 {
@@ -20,6 +21,7 @@ int main()
     TestConCat();
     TestCout();
     TestCin();
+    TestProxy();
 
     return 0;
 }
@@ -105,4 +107,18 @@ void TestCin()
     std::cin >> s2;
     std::cout << "s2 string is :" << s2 << std::endl;
     std::cout << "s3 string is :" << s3 << std::endl;
+}
+
+void TestProxy()
+{
+    RCString s1 = "moshe";
+    PRINTTESTRESULTS("TestProxy",1, 0 == strcmp("moshe", s1.CStr()));
+    RCString s2 = s1;
+    PRINTTESTRESULTS("TestProxy",2, 0 == strcmp("moshe", s1.CStr()));
+    PRINTTESTRESULTS("TestProxy",3, 0 == strcmp("moshe", s2.CStr()));
+    s1[4] = 'k';
+    PRINTTESTRESULTS("TestProxy",4, 0 == strcmp("moshk", s1.CStr()));
+    PRINTTESTRESULTS("TestProxy",5, 0 == strcmp("moshe", s2.CStr()));
+    char ch = s1[4];
+    PRINTTESTRESULTS("TestProxy",6, s1[4] == ch);
 }

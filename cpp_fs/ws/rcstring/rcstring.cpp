@@ -1,59 +1,44 @@
-#include <iostream>
+/*********************************
+ * Author: Chen Rubin            *
+ * Reviewer: Tsisana             *
+ * Date: Feb 26, 2020            *
+ * RCString                      *
+ * ******************************/
+
 #include <cstring> /* strcmp, strcpy, strlen */
 #include <cassert> /* assert */
 
 #include "rcstring.hpp"
+
+#define BUFF_SIZE 256
+
 namespace ilrd
 {
-char *StrDupIMP(const char *str);
-size_t *RefInitIMP();
 
-RCString::RCString(const char* str_)
-    : m_str(StrDupIMP(str_))
-    , refernce_counter(RefInitIMP())
+RCString::RCString(const char* str_) throw(std::bad_alloc)
+    : m_str_mems(PrivateMemsDup(str_))
 {}
 
 RCString::~RCString()
 {
-    if (1 == (*refernce_counter))
-    {
-        delete[] m_str;
-        delete refernce_counter;
-    }
-    else
-    {
-        m_str = NULL;
-        *refernce_counter -= 1;
-        refernce_counter = NULL;
-    }    
+    UpdateData();
 }
 
 RCString::RCString(const RCString& other_)
+    : m_str_mems(other_.m_str_mems)
 {
-    m_str = other_.m_str;
-    refernce_counter = other_.refernce_counter;
-    *refernce_counter += 1;
+    ++(*m_str_mems.refernce_counter);
 }
 
 RCString& RCString::operator=(const RCString& other_)
 {
     if (this != &other_)
     {
-        if (1 == *refernce_counter)
-        {
-            delete []m_str;
-            delete refernce_counter;
-            m_str = other_.m_str;
-            refernce_counter = other_.refernce_counter;
-            *refernce_counter += 1;
-        }
-        else
-        {
-            m_str = other_.m_str;
-            *refernce_counter -= 1;
-            refernce_counter = other_.refernce_counter;
-            *refernce_counter += 1;
-        }
+         UpdateData();
+         
+         m_str_mems.refernce_counter = other_.m_str_mems.refernce_counter;
+         m_str_mems.m_str = other_.m_str_mems.m_str;
+         ++(*m_str_mems.refernce_counter);    
     }
 
     return *this;
@@ -61,31 +46,24 @@ RCString& RCString::operator=(const RCString& other_)
 
 size_t RCString::Length() const
 {
-    return strlen(m_str);
+    return strlen(m_str_mems.m_str);
 }
 
 const char* RCString::CStr() const
 {
-    return m_str;
+    return m_str_mems.m_str;
 }
 
 const char& RCString::operator[] (size_t index_) const
 {
-    return (m_str[index_]);
+    return (m_str_mems.m_str[index_]);
 }
 
-char& RCString::operator[] (size_t index_)
+RCString::Proxy RCString::operator[] (size_t index_)
 {
-    if (1 == (*refernce_counter))
-    {
-        return (m_str[index_]);
-    }
+    Proxy prox(this, index_);
 
-    m_str = StrDupIMP(m_str);
-    *refernce_counter -= 1;
-    refernce_counter = RefInitIMP();
-
-    return m_str[index_];
+    return prox;
 }
 
 bool operator==(const RCString& str1_, const RCString& str2_)
@@ -117,79 +95,90 @@ std::ostream& operator<<(std::ostream& os_, const RCString& str_)
 
 std::istream& operator>>(std::istream& is_, RCString& str_)
 {
-    char buf[256];
-    is_.getline (buf, 256);
+    char buf[BUFF_SIZE];
+    is_.getline (buf, BUFF_SIZE);
     std::cout << "buf = "<< buf <<"\n";
     str_ = buf;
 
     return is_;
 }
 
-RCString& RCString::Concat(const RCString& other_)
+RCString& RCString::Concat(const RCString& other_) throw(std::bad_alloc)
 {
-    char *new_str = NULL;
     size_t new_len = Length() + other_.Length() + 1;
+    char *buf;
+    Str_priv temp = {0};
+    
+    buf = new char[sizeof(size_t) + new_len];
 
-    try
-    {
-        new_str = new char[new_len];
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << "Failed to allocate in concatenation: " <<e.what() 
-                                                                << std::endl;
-    }
-    strcpy(new_str, m_str);
-    strcat(new_str, other_.CStr());
+    temp.refernce_counter = new (buf) size_t(1);
+    temp.m_str = new (buf + sizeof(size_t)) char[new_len];
+    
+    strcpy(temp.m_str, m_str_mems.m_str);
+    strcat(temp.m_str, other_.CStr());
 
-    if (1 != *refernce_counter)
-    {
-        *refernce_counter -= 1;
-    }
-    else
-    {
-        delete refernce_counter;
-        delete[] m_str;
-        refernce_counter = RefInitIMP();
-    }
-    m_str = new_str;
+    UpdateData();
+
+    m_str_mems.m_str = temp.m_str;
+    m_str_mems.refernce_counter = temp.refernce_counter;
 
     return *this;
 }
 
-char *StrDupIMP(const char *str)
+void RCString::UpdateData()
+{
+    if (1 == *(m_str_mems.refernce_counter))
+    {
+        delete[] m_str_mems.refernce_counter;
+    }
+    else
+    {
+        --(*m_str_mems.refernce_counter);
+    }   
+}
+
+RCString::Str_priv RCString::PrivateMemsDup(const char *str) throw(std::bad_alloc)
 {
     assert(str);
 
-    char *res_str = NULL;
-    
-    try
-    {
-      res_str = new char[strlen(str) + 1];
-    }
-    catch(std::bad_alloc& e)
-    {
-        std::cerr << "Failed to allocate string " << e.what() << std::endl;
-    }
-    strcpy(res_str, str);
+    char *buf;
+    buf = new char[sizeof(size_t) + strlen(str) + 1];
 
-    return res_str;
+    m_str_mems.refernce_counter = new (buf) size_t(1);
+    m_str_mems.m_str = new (buf + sizeof(size_t)) char[strlen(str) + 1];
+    strcpy(m_str_mems.m_str, str);
+
+    return m_str_mems;
 }
 
-size_t *RefInitIMP()
+RCString::Proxy::Proxy(RCString *rcstr, size_t index)
+    : m_rcstr(rcstr)
+    , m_index(index)
+{}    
+
+RCString::Proxy::~Proxy()
+{}
+
+RCString& RCString::Proxy::operator=(const char& ch) throw(std::bad_alloc)
 {
-    size_t *res_ref = NULL;
-    
-    try
+    assert(ch);
+
+    if (1 == (*(m_rcstr->m_str_mems.refernce_counter)))
     {
-        res_ref = new size_t(1);
+        m_rcstr->m_str_mems.m_str[m_index] = ch;
     }
-    catch(std::bad_alloc& e)
+    else
     {
-        std::cerr << "Failed to allocate reference counter " << e.what() << std::endl;
+        --(*m_rcstr->m_str_mems.refernce_counter);
+        m_rcstr->m_str_mems = m_rcstr->PrivateMemsDup(m_rcstr->m_str_mems.m_str);
+        m_rcstr->m_str_mems.m_str[m_index] = ch;   
     }
 
-    return res_ref;
+    return *m_rcstr;
 }
 
+RCString::Proxy::operator char() const
+{
+    return (m_rcstr->m_str_mems.m_str[m_index]);
 }
+} // end of namespace ilrd
