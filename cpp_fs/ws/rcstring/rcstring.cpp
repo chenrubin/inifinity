@@ -172,4 +172,9 @@ RCString::Proxy::operator char() const
 {
     return (m_rcstr->m_str_mems.m_str[m_index]);
 }
+
+RCString::Proxy::Proxy(const Proxy& other_)
+    : m_rcstr(other_.m_rcstr)
+    , m_index(other_.m_index)
+{}
 } // end of namespace ilrd

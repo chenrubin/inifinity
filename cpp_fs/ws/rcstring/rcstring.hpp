@@ -40,6 +40,7 @@ private:
 	public:	
 		explicit Proxy(RCString *rcstr, size_t index);
 		~Proxy();
+		Proxy(const Proxy& other);
 		RCString &operator=(const char& ch) throw(std::bad_alloc);
 		operator char() const;
 
