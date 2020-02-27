@@ -38,7 +38,7 @@ private:
 	class Proxy
 	{
 	public:	
-		Proxy(RCString *rcstr, size_t index);
+		explicit Proxy(RCString *rcstr, size_t index);
 		~Proxy();
 		RCString &operator=(const char& ch) throw(std::bad_alloc);
 		operator char() const;

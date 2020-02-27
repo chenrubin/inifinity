@@ -106,21 +106,15 @@ std::istream& operator>>(std::istream& is_, RCString& str_)
 RCString& RCString::Concat(const RCString& other_) throw(std::bad_alloc)
 {
     size_t new_len = Length() + other_.Length() + 1;
-    char *buf;
-    Str_priv temp = {0};
+    char *buf = new char[sizeof(size_t) + new_len];
     
-    buf = new char[sizeof(size_t) + new_len];
-
-    temp.refernce_counter = new (buf) size_t(1);
-    temp.m_str = new (buf + sizeof(size_t)) char[new_len];
-    
-    strcpy(temp.m_str, m_str_mems.m_str);
-    strcat(temp.m_str, other_.CStr());
+    strcpy(buf + sizeof(size_t), CStr());
+    strcat(buf + sizeof(size_t), other_.CStr());
 
     UpdateData();
 
-    m_str_mems.m_str = temp.m_str;
-    m_str_mems.refernce_counter = temp.refernce_counter;
+    m_str_mems.m_str = buf + sizeof(size_t);
+    m_str_mems.refernce_counter = new (buf) size_t(1);
 
     return *this;
 }
@@ -163,16 +157,13 @@ RCString& RCString::Proxy::operator=(const char& ch) throw(std::bad_alloc)
 {
     assert(ch);
 
-    if (1 == (*(m_rcstr->m_str_mems.refernce_counter)))
-    {
-        m_rcstr->m_str_mems.m_str[m_index] = ch;
-    }
-    else
+    if (1 != (*(m_rcstr->m_str_mems.refernce_counter)))
     {
         --(*m_rcstr->m_str_mems.refernce_counter);
-        m_rcstr->m_str_mems = m_rcstr->PrivateMemsDup(m_rcstr->m_str_mems.m_str);
-        m_rcstr->m_str_mems.m_str[m_index] = ch;   
+        m_rcstr->m_str_mems = m_rcstr->PrivateMemsDup(m_rcstr->m_str_mems.m_str);         
     }
+
+    m_rcstr->m_str_mems.m_str[m_index] = ch;
 
     return *m_rcstr;
 }
