@@ -28,7 +28,7 @@ int main()
 
 	fd = open("/dev/ram0", O_RDONLY);    /* open floppy device */
     if (-1 == fd) 
-    { 
+    {
         std::cout << "errno = " << errno << std::endl;
     } 
 
@@ -55,8 +55,8 @@ int main()
 
     /* ... [read superblock and group descriptor] ... */
 
-    bitmap = (unsigned char *)malloc(block_size);    /* allocate memory for the bitmap */
-    lseek(fd, BLOCK_OFFSET(group.bg_block_bitmap), SEEK_SET);
+ /*   bitmap = (unsigned char *)malloc(block_size);    /* allocate memory for the bitmap */
+/    lseek(fd, BLOCK_OFFSET(group.bg_block_bitmap), SEEK_SET);
     read(fd, bitmap, block_size);   /* read bitmap from disk */
 
     free(bitmap);        
