@@ -34,6 +34,11 @@ int main()
     std::cout << str1;
     std::cout << std::endl;
 
+    std::cout << "\n!!!!!!!!!!!!!!!!!!\n"; 
+
+    Tree new_tree(&dir1);
+    std::cout << new_tree;
+
     return 0;
 }
 

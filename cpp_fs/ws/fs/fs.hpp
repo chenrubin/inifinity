@@ -46,6 +46,22 @@ public:
 private:
 	std::vector<Entry*> m_entries;
 };
+
+/**/
+
+class Tree
+{
+public:
+	explicit Tree(Directory *dir_);
+	~Tree();
+	Entry *GetEntry();
+
+private:
+	Entry *m_ent;
+};
+
+void operator<<(std::ostream os_, const Tree& tree);
+/**/
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd
 /*----------------------------------------------------------------------------*/

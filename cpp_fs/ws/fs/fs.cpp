@@ -78,6 +78,25 @@ Entry* Directory::RemoveEntry(Entry* entry_)
     return *it;
 }
 
+/**/
+Tree::Tree(Directory *dir_)
+    : m_ent(dir_)
+{}
+
+Tree::~Tree()
+{}
+
+Entry *Tree::GetEntry()
+{
+    return m_ent;
+}
+
+void operator<<(std::ostream os_, const Tree& tree_)
+{
+    tree_.GetEntry()->ToString();
+}
+/**/
+
 static std::string IndentIMP(std::string str, size_t level)
 {
     std::string res;
