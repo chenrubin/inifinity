@@ -45,7 +45,7 @@ Directory::~Directory()
 std::string Directory::ToString(size_t level) const
 {
     std::string res = Entry::GetName();
-    //std::sort(m_entries.begin(), m_entries.end(), CompFuncIMP);
+    
     for (size_t i = 0; i < m_entries.size(); ++i)
     {
         res += '\n';
