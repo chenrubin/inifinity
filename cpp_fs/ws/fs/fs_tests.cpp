@@ -1,4 +1,6 @@
 #include <iostream> /* cout */
+#include <dirent.h> /* opendir, readdir */
+#include <cstring> /* opendir, readdir */
 
 #include "fs.hpp"
 
@@ -30,15 +32,14 @@ int main()
 
     std::cout << "\n!!!!!!!!!!!!!!!!!!\n"; 
     main_dir.RemoveEntry(&dir1);
-    std::string str1 = main_dir.ToString();    
+    std::string str1 = main_dir.ToString(DT_DIR);
     std::cout << str1;
     std::cout << std::endl;
 
     std::cout << "\n!!!!!!!!!!!!!!!!!!\n"; 
-
-    Tree new_tree(&dir1);
+    
+    Tree new_tree("/home/student0/workInLab");
     std::cout << new_tree;
 
     return 0;
 }
-

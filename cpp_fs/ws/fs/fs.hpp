@@ -47,21 +47,25 @@ private:
 	std::vector<Entry*> m_entries;
 };
 
-/**/
+void ParseDirectory();
 
 class Tree
 {
 public:
-	explicit Tree(Directory *dir_);
+	explicit Tree(std::string path);
 	~Tree();
 	Entry *GetEntry();
 
 private:
+	std::string& m_path;
 	Entry *m_ent;
+	std::vector<Entry*> m_allocations;
+
+	Entry *ParseDirectory(std::string path);
 };
 
-void operator<<(std::ostream os_, const Tree& tree);
-/**/
+std::ostream& operator<<(std::ostream& os_, Tree& tree);
+
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd
 /*----------------------------------------------------------------------------*/
