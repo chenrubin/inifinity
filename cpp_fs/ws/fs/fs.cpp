@@ -36,7 +36,7 @@ std::string File::ToString(size_t level) const
 
     return  Entry::GetName();
 }
-/**/
+
 Directory::Directory(const std::string& name_)
     : Entry(name_)
 {}
@@ -76,12 +76,16 @@ Entry* Directory::RemoveEntry(Entry* entry_)
     {
         m_entries.erase(it);        
     }
+    else
+    {
+        throw(std::invalid_argument("no file was found"));
+    }
+    
 
     return *it;
 }
 
 Tree::Tree(std::string path)
-    : m_path(path)
 {
     m_ent = ParseDirectory(path);
 }
@@ -151,7 +155,6 @@ Entry *Tree::ParseDirectory(std::string path)
 
             ((Directory *)dir)->AddEntry(dir_entry);
             m_allocations.push_back(dir_entry);
-           // std::cout << "\ninside parseDirectory , size = \n" <<  m_allocations.size();
         }
 
         dir_ent = readdir(p_dir);

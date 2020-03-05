@@ -10,8 +10,6 @@
 /*----------------------------------------------------------------------------*/
 namespace ilrd
 { 
-// TODO: throw exceptions 
-// make it uncopyable
 
 class Entry
 {
@@ -47,8 +45,6 @@ private:
 	std::vector<Entry*> m_entries;
 };
 
-void ParseDirectory();
-
 class Tree
 {
 public:
@@ -57,7 +53,6 @@ public:
 	Entry *GetEntry();
 
 private:
-	std::string& m_path;
 	Entry *m_ent;
 	std::vector<Entry*> m_allocations;
 
