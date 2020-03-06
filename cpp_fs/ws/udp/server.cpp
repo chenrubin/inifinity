@@ -5,24 +5,26 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include <cstring> /* memset */
 
-#define PROTOCOL (6)
+#define PROTOCOL (0)
 #define Q_LEN (5)
-#define PORT (1237)
+#define PORT (4651)
 #define BUFF_SIZE (5)
 
 int main()
 {
-    struct sockaddr_in addr;
-    socklen_t size = 0;
-    char buff[5] = "Pong";
+    struct sockaddr_in addr, client_addr;
+    char buff[5] = "Ping";
     char read_buff[5];
     
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(PORT);
 
-    int sockfd = socket(AF_INET, SOCK_STREAM , PROTOCOL);
+    memset(&client_addr, 0, sizeof(client_addr));
+
+    int sockfd = socket(AF_INET, SOCK_DGRAM , PROTOCOL);
     if (-1 == sockfd)
     {
         perror("socket");
@@ -33,22 +35,12 @@ int main()
         perror("bind");
     }
 
-    std::cout << "server before listen" << std::endl;
-    if (-1 == listen(sockfd, Q_LEN))
-    {
-        perror("listen");
-    }
-
-    std::cout << "server after listen and before accept" << std::endl;
-    size = sizeof(addr);
-    int new_socket = accept(sockfd, (struct sockaddr *)&addr, &size);
-
-    std::cout << "server after accept" << std::endl;
+    socklen_t size = sizeof(client_addr);
     for (int i = 0; i < 20; ++i)
     {
-        read(new_socket , read_buff, 256);
+        recvfrom(sockfd, read_buff, BUFF_SIZE, MSG_WAITALL, (struct sockaddr *)&client_addr, &size);
         std::cout << "buff = " << read_buff << std::endl;
-        send(new_socket, buff, BUFF_SIZE, 0);
+        sendto(sockfd, buff, BUFF_SIZE, MSG_CONFIRM, (struct sockaddr *)&client_addr, sizeof(client_addr));
     }
 
     close(sockfd);
