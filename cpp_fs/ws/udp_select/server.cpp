@@ -10,34 +10,28 @@
 
 #define PROTOCOL (0)
 #define Q_LEN (5)
-#define PORT_BC (4651)
-#define PORT_TCP (5000)
-#define PORT_UDP (6000)
-#define STDIN (0)
+#define PORT (4651)
 #define BUFF_SIZE (30)
+#define STDIN 0
 
 int main()
 {
-    struct sockaddr_in client_bc_addr, client_tcp_addr, client_udp_addr;
-    char read_buff[5];
+    struct sockaddr_in server_addr1, server_addr2;
     int broadcast = 1;
     fd_set readfds;
+	char read_buff[256];
     
     struct timeval tv;
     tv.tv_sec = 30;
     tv.tv_usec = 0;
     
-    client_bc_addr.sin_family = AF_INET;
-    client_bc_addr.sin_addr.s_addr = inet_addr("10.1.255.255"); /*INADDR_BROADCAST*/ /*INADDR_ANY*/;
-    client_bc_addr.sin_port = htons(PORT_BC);
+    server_addr1.sin_family = AF_INET;
+    server_addr1.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    server_addr1.sin_port = htons(PORT);
 
-    client_tcp_addr.sin_family = AF_INET;
-    client_tcp_addr.sin_addr.s_addr = INADDR_ANY;
-    client_tcp_addr.sin_port = htons(PORT_TCP);
-
-    client_udp_addr.sin_family = AF_INET;
-    client_udp_addr.sin_addr.s_addr = INADDR_ANY;
-    client_udp_addr.sin_port = htons(PORT_UDP);
+	server_addr2.sin_family = AF_INET;FD_SET(STDIN, &readfds);
+    server_addr2.sin_addr.s_addr = INADDR_BROADCAST;
+    server_addr2.sin_port = htons(PORT);
 
     int sockfd_bc = socket(AF_INET, SOCK_DGRAM , IPPROTO_UDP);
     if (-1 == sockfd_bc)
@@ -62,72 +56,103 @@ int main()
         perror("setsockopt");
     }
 
+	if (-1 == bind(sockfd_bc, (struct sockaddr *)&server_addr2, sizeof(server_addr2)))
+	{
+		perror("bind sockfd_bc");
+	}
+	if (-1 == bind(sockfd_tcp, (struct sockaddr *)&server_addr1, sizeof(server_addr1)))
+	{
+		perror("bind sockfd_tcp");
+	}
+	if (-1 == bind(sockfd_udp, (struct sockaddr *)&server_addr1, sizeof(server_addr1)))
+	{
+		perror("bind sockfd_udp");
+	}
+
     FD_SET(STDIN, &readfds);
     FD_SET(sockfd_bc, &readfds);
     FD_SET(sockfd_tcp, &readfds);
     FD_SET(sockfd_udp, &readfds);
 
+	if (-1 == listen(sockfd_tcp, Q_LEN))
+    {
+        perror("listen");
+    }
+
     for (int i = 0; i < 30 ; ++i)
     {
-        sleep(10);
+     //   sleep(10);
 
         fd_set temp_set = readfds;
-        if (-1 == select(sockfd_tcp + 1, &temp_set, NULL, NULL, &tv))
+		int sel = select(sockfd_tcp + 1, &temp_set, NULL, NULL, &tv);
+        if (-1 == sel)
         {
             perror("select: ");
         }
-        
+
         for (int i = 0; i < sockfd_tcp + 1; ++i)
         {
             if (FD_ISSET(i, &temp_set))
             {
                 if (0 == i)
                 {
-                    std::cout << "A key was pressed" << std::endl; 
+                    std::cout << "A key was pressed" << std::endl;
                 }
 
-                else if (i == sockfd_bc)
+                if (i == sockfd_bc)
                 {
-                    std::cout << "sockfd_bc" << std::endl; 
-                    char buff[] = "replay on bc";
+					socklen_t size = 0;
+                    std::cout << "sockfd_bc" << std::endl;
+                    char buff[] = "about to recieve bc";
+					recvfrom(sockfd_bc, read_buff, 256, 0, (struct sockaddr *)&server_addr1, &size);
+					std::cout << read_buff << std::endl;
+
                     if (-1 == sendto(sockfd_bc, buff, 
                                         BUFF_SIZE, MSG_CONFIRM, 
-                                        (struct sockaddr *)&client_bc_addr, 
-                                        sizeof(client_bc_addr)))
+                                        (struct sockaddr *)&server_addr2, 
+                                        sizeof(server_addr2)))
                     {
                         perror("server bc sendto");
                     }
                 }
                     
-                else if (i == sockfd_tcp)
+                if (i == sockfd_tcp)
                 {
-                    std::cout << "sockfd_tcp" << std::endl; 
-                    char buff[] = "replay on tcp";
-                    if (-1 == sendto(sockfd_tcp, buff, 
+					socklen_t size = sizeof(server_addr1);
+                    std::cout << "sockfd_tcp" << std::endl;
+					int new_tcp_sock = accept(sockfd_tcp, (struct sockaddr *)&server_addr1, &size);
+                    char buff[] = "about to recieve tcp";
+					std::cout << read_buff << std::endl;
+
+					read(new_tcp_sock, read_buff, 256);
+                    if (-1 == sendto(new_tcp_sock, buff, 
                                         BUFF_SIZE, MSG_CONFIRM, 
-                                        (struct sockaddr *)&client_tcp_addr, 
-                                        sizeof(client_tcp_addr)))
+                                        (struct sockaddr *)&server_addr1, 
+                                        sizeof(server_addr1)))
                     {
                         perror("server tcp sendto");
                     }
                 }
-                else if (i == sockfd_udp)
+                if (i == sockfd_udp)
                 {
-                    std::cout << "sockfd_udp" << std::endl; 
-                    char buff[] = "replay on udp";
+                    std::cout << "inside server about to receive udp" << std::endl; 
+                    char buff[] = "server sends reply to udp";
+					socklen_t size = 0;
+
+					recvfrom(sockfd_udp, read_buff, 256, 0, (struct sockaddr *)&server_addr1, &size);
+					std::cout << read_buff << std::endl;
                     if (-1 == sendto(sockfd_udp, buff, 
-                                        BUFF_SIZE, MSG_CONFIRM, 
-                                        (struct sockaddr *)&client_udp_addr, 
-                                        sizeof(client_udp_addr)))
+                                     BUFF_SIZE, MSG_CONFIRM, 
+                                     (struct sockaddr *)&server_addr1, 
+                                     sizeof(server_addr1)))
                     {
                         perror("server udp sendto");
                     }
+
+					FD_CLR(sockfd_udp, &readfds);
                 }
             } // end of -> if (FD_ISSET(i, &temp_set))
-        }
-
-        std::cout << "buff = " << read_buff << std::endl;
-        
+        }        
     }
 
     close(sockfd_bc);
