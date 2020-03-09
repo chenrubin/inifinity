@@ -139,7 +139,8 @@ int main()
                     char buff[] = "server sends reply to udp";
 					socklen_t size = 0;
 
-					recvfrom(sockfd_udp, read_buff, 256, 0, (struct sockaddr *)&server_addr1, &size);
+					ssize_t res = recvfrom(sockfd_udp, read_buff, 256, 0, (struct sockaddr *)&server_addr1, &size);
+					std::cout << "res = " << res << std::endl;
 					std::cout << read_buff << std::endl;
                     if (-1 == sendto(sockfd_udp, buff, 
                                      BUFF_SIZE, MSG_CONFIRM, 
