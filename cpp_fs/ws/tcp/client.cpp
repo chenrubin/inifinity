@@ -8,7 +8,7 @@
 
 #define PROTOCOL (6)
 #define BUFF_SIZE (5)
-#define PORT (1237)
+#define PORT (3333)
 
 int main()
 {
@@ -34,6 +34,7 @@ std::cout << "client after connect" << std::endl;
     for (int i = 0; i < 20; ++i)
     {
         send(sockfd, buff, BUFF_SIZE, 0);
+        sleep(1);
         read(sockfd ,read_buff, 5);
         std::cout << "buff = " << read_buff << std::endl;
     }

@@ -8,7 +8,7 @@
 
 #define PROTOCOL (6)
 #define Q_LEN (5)
-#define PORT (1237)
+#define PORT (3333)
 #define BUFF_SIZE (5)
 
 int main()
@@ -44,9 +44,10 @@ int main()
     int new_socket = accept(sockfd, (struct sockaddr *)&addr, &size);
 
     std::cout << "server after accept" << std::endl;
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 60; ++i)
     {
         read(new_socket , read_buff, 256);
+        sleep(1);
         std::cout << "buff = " << read_buff << std::endl;
         send(new_socket, buff, BUFF_SIZE, 0);
     }

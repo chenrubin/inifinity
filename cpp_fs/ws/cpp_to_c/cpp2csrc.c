@@ -71,7 +71,8 @@ void Taxi_cctor(struct Taxi *this, struct Taxi *other);
 void display_taxi(struct Taxi *taxi);
 
 void print_info_mini(struct Minibus *m);
-struct PublicTransport print_info_int(int i);
+void print_info_int(int i, struct PublicTransport *ret_tran);
+/*struct PublicTransport print_info_int(int i);*/
 void print_info_ptRef(struct PublicTransport *pt);
 void taxi_display(struct Taxi s);
 
@@ -328,6 +329,18 @@ void print_info_mini(struct Minibus *m)
     Wash_Mini(m, 3);
 }
 
+void print_info_int(int i, struct PublicTransport *ret_tran)
+{
+	struct Minibus ret;
+
+	Minibus_ctor(&ret);
+	printf("print_info(int i)\n");
+	Display_Mini(&ret);
+	
+	PublicTransport_cctor(ret_tran, &ret.pT);
+	Minibus_dtor(&ret);
+}
+/*
 struct PublicTransport print_info_int(int i)
 {
     struct Minibus ret;
@@ -342,7 +355,7 @@ struct PublicTransport print_info_int(int i)
 	
 	return pt;
 }
-
+*/
 void print_info_ptRef(struct PublicTransport *pt)
 {
 	display_Pt(pt);
@@ -403,7 +416,7 @@ int main()
 
 	Minibus_ctor(&m);
 	print_info_mini(&m);
-	pT = print_info_int(3);
+	/*pT = */print_info_int(3, &pT);
 	display_Pt(&pT);
 	PublicTransport_dtor(&pT);
 
@@ -441,7 +454,8 @@ int main()
 
 	for (i = 0; i < 3; ++i)
 	{
-		arr2[i].vptr[DISPLAY](&arr2[i]);
+		display_Pt(&arr2[i]);
+		/*arr2[i].vptr[DISPLAY](&arr2[i]);*/
 	}
 	print_info_ptRef(&arr2[0]);
 
@@ -481,10 +495,12 @@ int main()
 	Publicconvoy_cctor(ts2, ts1);
 	display_pc(ts1);
 	display_pc(ts2);
-	Publicconvoy_dtor(ts1);
+	/*Publicconvoy_dtor(ts1);*/
+	ts1->pT.vptr[DTOR](ts1);
 	free(ts1);
 	display_pc(ts2);
-	Publicconvoy_dtor(ts2);
+	/*Publicconvoy_dtor(ts2);*/
+	ts2->pT.vptr[DTOR](ts2);
 	free(ts2); 
 	/*end of public convoy*/
 
