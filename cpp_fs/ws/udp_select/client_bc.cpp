@@ -1,11 +1,6 @@
-#include <sys/socket.h> 
-#include <iostream>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <arpa/inet.h>
+#include <iostream> /* cout, endl */
+#include <stdio.h> /* perror */
+#include <arpa/inet.h> /* recvfrom, sendto */
 
 #define PROTOCOL (0)
 #define BUFF_SIZE (30)
@@ -43,4 +38,3 @@ int main()
     recvfrom(sockfd, read_buff, BUFF_SIZE, MSG_WAITALL, (struct sockaddr *)&server_addr, &size);
     std::cout << "buff = " << read_buff << std::endl;
 }
-    

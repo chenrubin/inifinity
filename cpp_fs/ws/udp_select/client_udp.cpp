@@ -1,11 +1,6 @@
-#include <sys/socket.h> 
-#include <iostream>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <arpa/inet.h>
+#include <iostream> /* cout, endl */
+#include <stdio.h> /* perror */
+#include <arpa/inet.h> /* recvfrom, sendto */
 
 #define BUFF_SIZE (30)
 #define PORT (4651)

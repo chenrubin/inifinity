@@ -1,11 +1,7 @@
-#include <sys/socket.h> 
-#include <iostream>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <arpa/inet.h>
+#include <iostream> /* cout, endl */
+#include <unistd.h> /* read */
+#include <stdio.h> /* perror */
+#include <arpa/inet.h> /* send, connect */
 
 #define BUFF_SIZE (30)
 #define PORT (4651)
@@ -31,8 +27,6 @@ int main()
         perror("connect");
     }
 
-    socklen_t size = sizeof(server_addr);
-
     if (-1 == send(sockfd, buff, BUFF_SIZE, 0))
     {
         perror("client tcp send");
@@ -41,4 +35,3 @@ int main()
 	read(sockfd , read_buff, 256);
     std::cout << "buff = " << read_buff << std::endl;
 }
-    
