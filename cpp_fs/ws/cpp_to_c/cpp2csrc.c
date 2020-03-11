@@ -194,10 +194,31 @@ void UpdateMinibusVtable()
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Taxi_ctor(struct Taxi *taxi)
-{
-	UpdateTaxiVtable();
-
-	PublicTransport_ctor(&(taxi->pT));
+{play() ID:15
+==4300== Use of uninitialised value of size 8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  Uninitialised value was created by a heap allocation
+==4300==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4300==    by 0x108D31: PublicConvoy_cctor (cpp2csrc_secondTime.c:295)
+==4300==    by 0x109453: main (cpp2csrc_secondTime.c:477)
+==4300== 
+==4300== Invalid read of size 8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  Address 0x8 is not stack'd, malloc'd or (recently) free'd
+==4300== 
+==4300== 
+==4300== Process terminating with default action of signal 11 (SIGSEGV)
+==4300==  Access not within mapped region at address 0x8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  If you believe this happened as a result of a stack
+==4300==  overflow in your program's main thread (unlikely but
+==4300==  possible), you can try to increase the size of the
+==4300==  main thread stack using the --main-stacksize= flag.
+==4300==  The main thread stack size used in this run was 8388608.
+==4300== 
 	taxi->pT.vptr = taxi_vtable;
 
 	printf("Taxi::Ctor()\n");
@@ -421,9 +442,31 @@ int main()
 	PublicTransport_dtor(&pT);
 
 	Minibus_ctor(m1);
-	Taxi_ctor(t2);
-	Minibus_ctor(m3);
-	array[0] = (struct PublicTransport *)m1;
+	Taxi_ctor(t2);play() ID:15
+==4300== Use of uninitialised value of size 8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  Uninitialised value was created by a heap allocation
+==4300==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4300==    by 0x108D31: PublicConvoy_cctor (cpp2csrc_secondTime.c:295)
+==4300==    by 0x109453: main (cpp2csrc_secondTime.c:477)
+==4300== 
+==4300== Invalid read of size 8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  Address 0x8 is not stack'd, malloc'd or (recently) free'd
+==4300== 
+==4300== 
+==4300== Process terminating with default action of signal 11 (SIGSEGV)
+==4300==  Access not within mapped region at address 0x8
+==4300==    at 0x108DDC: PublicConvoy_display (cpp2csrc_secondTime.c:307)
+==4300==    by 0x109471: main (cpp2csrc_secondTime.c:480)
+==4300==  If you believe this happened as a result of a stack
+==4300==  overflow in your program's main thread (unlikely but
+==4300==  possible), you can try to increase the size of the
+==4300==  main thread stack using the --main-stacksize= flag.
+==4300==  The main thread stack size used in this run was 8388608.
+==4300== 
 	array[1] = (struct PublicTransport *)t2; 
 	array[2] = (struct PublicTransport *)m3;
 

@@ -171,7 +171,7 @@ void Minibus_cctor(struct Minibus *this,
     PublicTransport_cctor(&this->pT, &other->pT);
     this->m_numSeats = other->m_numSeats;
 
-    other->pT.vptr = mini_vtable;
+    this->pT.vptr = mini_vtable;
     printf("Minibus::CCtor()\n");
 }
 
@@ -479,12 +479,24 @@ int main()
     PublicConvoy_display(ts1);
     PublicConvoy_display(ts2);
 
-    PublicConvoy_dtor(ts1);
+   ts2->pT.vptr[DTOR](ts1);
     free(ts1);
     PublicConvoy_display(ts2);
 
-    PublicConvoy_dtor(ts2);
+    ts2->pT.vptr[DTOR](ts2);
     free(ts2);
+
+	SpecialTaxi_dtor(&st);
+	for (i = 3; i >= 0; --i)
+	{
+		Minibus_dtor(&arr3[i]);
+	}
+
+	Minibus_dtor(&m2);
+	PublicTransport_dtor(&pt_arr2);
+	PublicTransport_dtor(&pt_arr1);
+	PublicTransport_dtor(&pt_arr0);
+	Minibus_dtor(&m);
 
 
     return 0;
