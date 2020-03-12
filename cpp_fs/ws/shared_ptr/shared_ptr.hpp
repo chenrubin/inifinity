@@ -30,12 +30,21 @@ public:
 private:
 	template <typename U>
 	friend class SharedPtr;
-	void ReferenceHandle(const SharedPtr& other_);
-	void UpdateData();
+	/*
+		assign m_refernceCounter and m_ptr to other's
+	*/
+	void AssignRefAndPtr(const SharedPtr& other_);
+
+	/*
+		This is th Dtor function. It either decreases ref pointer 
+		or deletes entire object 
+	*/
+	void UpdaterefAndMaybeDelete();
 
 	T* m_ptr;
 	size_t* m_refernceCounter;
 };
+#endif // __SHARED_PTR_HPP__
 /*----------------------------------------------------------------------------*/
 	template <typename T>
 	SharedPtr<T>::SharedPtr(T* ptr_)
@@ -64,21 +73,21 @@ private:
 	SharedPtr<T>& SharedPtr<T>::operator=(const SharedPtr& other_)
 	{
 		++(*other_.m_refernceCounter);
-		UpdateData();		
-		ReferenceHandle(other_);
+		UpdaterefAndMaybeDelete();		
+		AssignRefAndPtr(other_);
 
 		return *this;
 	}
 	
 	template <typename T>
-	void SharedPtr<T>::ReferenceHandle(const SharedPtr& other_)
+	void SharedPtr<T>::AssignRefAndPtr(const SharedPtr& other_)
 	{
 		m_refernceCounter = other_.m_refernceCounter;
 		m_ptr = other_.m_ptr;
 	}
 
 	template <typename T>
-	void SharedPtr<T>::UpdateData()
+	void SharedPtr<T>::UpdaterefAndMaybeDelete()
 	{
 		--(*m_refernceCounter);
 		if (0 == *(m_refernceCounter))
@@ -91,7 +100,7 @@ private:
 	template <typename T>
 	SharedPtr<T>::~SharedPtr()
 	{
-		UpdateData();
+		UpdaterefAndMaybeDelete();
 	}
 
 	template <typename T>
@@ -108,4 +117,3 @@ private:
 
 } // namespace ilrd
 /*----------------------------------------------------------------------------*/
-#endif // __SHARED_PTR_HPP__
