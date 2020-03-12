@@ -27,6 +27,9 @@ int main()
         perror("client sendto");
     }
 	
-	recvfrom(sockfd, read_buff, BUFF_SIZE, MSG_WAITALL, (struct sockaddr *)&server_addr, &size);
+	if (-1 == recvfrom(sockfd, read_buff, BUFF_SIZE, MSG_WAITALL, (struct sockaddr *)&server_addr, &size))
+	{
+		perror("bc received: ")
+	}
     std::cout << "buff = " << read_buff << std::endl;
 }  
