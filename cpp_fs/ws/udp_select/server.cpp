@@ -336,7 +336,8 @@ void CloseSocketsIMP(fd_set *readfds, size_t maxSockId)
 {
 	assert(readfds);
 	for (size_t i = 0 ; i < maxSockId ; ++i)
-    {
+    {assert(socket >= 0);
+	assert(addr);
 		if (FD_ISSET(i, readfds))
 		{
 			close(i);
