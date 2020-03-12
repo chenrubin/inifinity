@@ -9,7 +9,7 @@
 int main()
 {
     sockaddr_in server_addr;
-    char buff[BUFF_SIZE] = "sending tcp";
+    char buff[BUFF_SIZE] = "sending tcp...";
     char read_buff[BUFF_SIZE]; 
 
     server_addr.sin_family = AF_INET;
@@ -26,12 +26,25 @@ int main()
     {
         perror("connect");
     }
+	std::cout << "connect" << std::endl;
 
     if (-1 == send(sockfd, buff, BUFF_SIZE, 0))
     {
         perror("client tcp send");
     }
+	std::cout << "sent" << std::endl;
     
 	read(sockfd , read_buff, 256);
+	std::cout << "read" << std::endl;
+    std::cout << "buff = " << read_buff << std::endl;
+
+    if (-1 == send(sockfd, buff, BUFF_SIZE, 0))
+    {
+        perror("client tcp send");
+    }
+	std::cout << "sent2" << std::endl;
+    
+	read(sockfd , read_buff, 256);
+	std::cout << "read" << std::endl;
     std::cout << "buff = " << read_buff << std::endl;
 }

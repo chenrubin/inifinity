@@ -26,7 +26,7 @@ void CreateAndBindSocketIMP(int *sock,
 void StdinHandlerIMP();
 
 /* read buffer from udp client and send acknowledgement */
-void UdpHandlerIMP(int socket, struct sockaddr_in *addr/*, fd_set *readfds*/);
+void UdpHandlerIMP(int socket, fd_set *readfds);
 
 /* read buffer from tcp client and send acknowledgement */
 void TcpHandlerIMP(int socket, 
@@ -114,7 +114,7 @@ void HandleDifferentClients(fd_set *readfds,
 							int sock_arr_len)
 {
 	int maxfd = GetMaxSocketIMP(sock_arr, sock_arr_len);
-	while (1)
+	while (true)
     {
 		fd_set temp_set = *readfds;
         if (-1 == select(maxfd + 1, &temp_set, NULL, NULL, NULL))
@@ -131,36 +131,21 @@ void HandleDifferentClients(fd_set *readfds,
                     StdinHandlerIMP();
                 }
 
-                if (j == sock_arr[0])
-                {
-                    BcHandlerIMP(sock_arr[0], &server_array[1]);  
-                }
+                // else if (j == sock_arr[0])
+                // {
+                //     BcHandlerIMP(j, &server_array[1]);  
+                // }
                     
-                if (j == sock_arr[2])
+                else if (j == sock_arr[2])
                 {
-                    TcpHandlerIMP(sock_arr[2], &server_array[0], readfds, &maxfd); 
+                    TcpHandlerIMP(j, &server_array[0], readfds, &maxfd); 
                 }
-                if (j == sock_arr[1])
-                {
-                    UdpHandlerIMP(sock_arr[1], &server_array[0]);
-                }
-				else
-				{
-					struct sockaddr_in addr;
-					char read_buff[100];
-					char send_buff[] = "hello";
-					read(j, read_buff, BUFF_SIZE);
-					std::cout << read_buff << std::endl;
 
-					if (-1 == sendto(j, send_buff, 
-									BUFF_SIZE, MSG_CONFIRM, 
-									(struct sockaddr *)&addr, 
-									sizeof(addr)))
-					{
-						perror("server else sendto");
-					}
+				else	// UDP + open TCP
+				{
+					UdpHandlerIMP(j, readfds);
 				}
-            } // end of -> if (FD_ISSET(i, &temp_set))			
+            } 
         }        
     }
 }
@@ -199,23 +184,36 @@ void StdinHandlerIMP()
     std::cout << "A key was pressed" << std::endl;
 }
 
-void UdpHandlerIMP(int socket, struct sockaddr_in *addr)
+void UdpHandlerIMP(int socket, fd_set *readfds)
 {
-    std::cout << "sockfd_udp" << std::endl;
-    socklen_t size = sizeof(*addr);
+    std::cout << "sockfd reply" << std::endl;
+	struct sockaddr_in addr;
+    socklen_t size = sizeof(addr);
     char read_buff[BUFF_SIZE];
-    char send_buff[] = "server send udp reply";
+    char send_buff[] = "server send a reply";
 
-    recvfrom(socket, read_buff, BUFF_SIZE, 0, (struct sockaddr *)addr, &size);
-    std::cout << read_buff << std::endl;
+    ssize_t bytes = recvfrom(socket, read_buff, BUFF_SIZE, 0, (struct sockaddr *)&addr, &size);
+	if (0 < bytes)
+	{
+    	std::cout << read_buff << std::endl;
 
-    if (-1 == sendto(socket, send_buff, 
-                     BUFF_SIZE, MSG_CONFIRM,
-                     (struct sockaddr *)addr, 
-                     size))
-    {
-        perror("server bc sendto");
-    }
+		if (-1 == sendto(socket, send_buff, 
+						BUFF_SIZE, MSG_CONFIRM,
+						(struct sockaddr *)&addr, 
+						size))
+		{
+			perror("server sendto");
+		}
+	}
+	else if (0 == bytes)
+	{
+		FD_CLR(socket, readfds);
+	}
+	else
+	{
+		perror("server recvfrom");
+	}
+	
 }
 
 void TcpHandlerIMP(int socket, 
@@ -223,10 +221,8 @@ void TcpHandlerIMP(int socket,
                    fd_set *readfds,
                    int *maxfd)
 {
-    std::cout << "sockfd_tcp" << std::endl;
+    std::cout << "sockfd tcp accept" << std::endl;
     socklen_t size = sizeof(*addr);
-    char read_buff[BUFF_SIZE];
-    char send_buff[] = "Server send tcp reply";
     
     int new_tcp_sock = accept(socket, (struct sockaddr *)addr, &size);
 	FD_SET(new_tcp_sock, readfds);
@@ -234,17 +230,6 @@ void TcpHandlerIMP(int socket,
     if (*maxfd < new_tcp_sock)
     {
         *maxfd = new_tcp_sock;
-    }
-
-    read(new_tcp_sock, read_buff, BUFF_SIZE);
-    std::cout << read_buff << std::endl;
-
-    if (-1 == sendto(new_tcp_sock, send_buff, 
-                     BUFF_SIZE, MSG_CONFIRM, 
-                     (struct sockaddr *)addr, 
-                     size))
-    {
-        perror("server tcp sendto");
     }
 }
 
@@ -269,6 +254,7 @@ void BcHandlerIMP(int socket, struct sockaddr_in *addr)
 
 void SetSockInArrayIMP(int *arr, size_t arr_len, fd_set *readfds)
 {
+	FD_ZERO(readfds);
     for (size_t i = 0; i < arr_len; ++i)
     {
         FD_SET(arr[i], readfds);
