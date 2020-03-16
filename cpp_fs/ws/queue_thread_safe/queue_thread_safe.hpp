@@ -14,7 +14,7 @@ pthread_mutex_t mutex;
 namespace ilrd
 {
 template <typename T>
-class Queue: private Uncopyable
+class Queue : private Uncopyable
 {
 public:
     explicit Queue(size_t capacity_);
@@ -67,10 +67,12 @@ void Queue<T>::Enqueue(const T& element_)
 template <typename T>
 T Queue<T>::DEqueue()
 {
+    pthread_mutex_lock(&mutex);
     sem_wait(semDequeue);
     T t = m_queue[m_end];
     m_end = ((m_end + 1) % (m_capacity + 1));
     sem_post(semEnqueue);
+    pthread_mutex_unlock(&mutex);
     
     return t;
 }
