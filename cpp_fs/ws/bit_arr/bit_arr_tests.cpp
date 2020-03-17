@@ -1,4 +1,8 @@
 #include "bit_arr.hpp"
+#include <stdio.h> 		/* cout			*/
+#include <iostream>
+#include "MyUtils.hpp"
+#include <cstring>		// std::string
 
 using namespace ilrd;
 
@@ -18,7 +22,7 @@ void TestBoolOperator();
 
 int main()
 {
-    TestCtorDtor();
+ /*   TestCtorDtor();
     TestFlipAll();
     TestSetAll(); 
     TestAssignOrOperator();  
@@ -28,10 +32,10 @@ int main()
     TestCountBits();
     TestConstBracketsOperator();
     TestBracketsOperator();
-    TestShiftLeftOperator();
+*/    TestShiftLeftOperator();
     TestShiftRightOperator();
-    TestBoolOperator();
-
+/*    TestBoolOperator();
+*/
     return 0;
 }
 
@@ -250,6 +254,11 @@ void TestShiftLeftOperator()
     new_barr2 <<= 1;
     PRINTTESTRESULTS("TestShiftLeftOperator",3, 0 == strcmp(new_barr1.ToString().c_str(), "18"));
     PRINTTESTRESULTS("TestShiftLeftOperator",4, 0 == strcmp(new_barr2.ToString().c_str(), "10000000000000000"));
+
+    BitArr<70> new_barr3;
+    new_barr3[0] = true;
+    new_barr3 <<= 65;
+    PRINTTESTRESULTS("TestShiftLeftOperator",4, 0 == strcmp(new_barr2.ToString().c_str(), "20000000000000000"));
 }
 
 void TestShiftRightOperator()
