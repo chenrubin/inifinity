@@ -14,6 +14,7 @@ void TestConstBracketsOperator();
 void TestBracketsOperator();
 void TestShiftLeftOperator();
 void TestShiftRightOperator();
+void TestBoolOperator();
 
 int main()
 {
@@ -29,6 +30,7 @@ int main()
     TestBracketsOperator();
     TestShiftLeftOperator();
     TestShiftRightOperator();
+    TestBoolOperator();
 
     return 0;
 }
@@ -51,11 +53,35 @@ void TestFlipAll()
     PRINTTESTRESULTS("TestFlipAll",3, 0 == strcmp(new_barr1.ToString().c_str(), "ff"));
     PRINTTESTRESULTS("TestFlipAll",4, 0 == strcmp(new_barr2.ToString().c_str(), "1ff"));
 
-    new_barr2.Flip(0);
+    try
+    {
+       new_barr2.Flip(0);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
     PRINTTESTRESULTS("TestFlipAll",5, 0 == strcmp(new_barr2.ToString().c_str(), "1fe"));
-    new_barr2.Flip(1);
+
+    try
+    {
+       new_barr2.Flip(1);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     PRINTTESTRESULTS("TestFlipAll",6, 0 == strcmp(new_barr2.ToString().c_str(), "1fc"));
-    new_barr2.Flip(0);
+
+    try
+    {
+       new_barr2.Flip(0);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     PRINTTESTRESULTS("TestFlipAll",7, 0 == strcmp(new_barr2.ToString().c_str(), "1fd"));
 }
 
@@ -240,4 +266,15 @@ void TestShiftRightOperator()
     new_barr2 >>= 1;
     PRINTTESTRESULTS("TestShiftRightOperator",3, 0 == strcmp(new_barr1.ToString().c_str(), "6"));
     PRINTTESTRESULTS("TestShiftRightOperator",4, 0 == strcmp(new_barr2.ToString().c_str(), "8000000000000000"));
+}
+
+void TestBoolOperator()
+{
+    BitArr<9> new_barr1;
+    new_barr1[0] = true;
+
+    PRINTTESTRESULTS("TestBoolOperator",1, true == new_barr1[0]);
+    PRINTTESTRESULTS("TestBoolOperator",2, false != new_barr1[0]);
+    PRINTTESTRESULTS("TestBoolOperator",3, false == new_barr1[1]);
+    PRINTTESTRESULTS("TestBoolOperator",4, true != new_barr1[1]);
 }

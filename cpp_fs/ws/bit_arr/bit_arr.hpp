@@ -1,6 +1,7 @@
 // Bit array - Header file
-// Last update: 15/03/2020
-// Author: RD 78-79
+// Last update: 17/03/2020
+// Author: Chen
+// Reviewer: Hana
 /*----------------------------------------------------------------------------*/
 #ifndef __BIT_ARR_HPP__ 
 #define __BIT_ARR_HPP__
@@ -8,15 +9,13 @@
 #include <cstddef>		// size_t
 #include <string>		// std::string
 /*----------------------------------------------------------------------------*/
-#include <algorithm> /* for each */
-#include <cstring>		// memset
-#include <iostream> // cout
-#include <bits/stdc++.h> /* transform */
-#include <numeric> /* accumulate  */
+#include <algorithm> 		/* for each 	*/
+#include <cstring>			/* memset 		*/
+#include <iostream> 		/* cout			*/
+#include <bits/stdc++.h> 	/* transform 	*/
+#include <numeric> 			/* accumulate  	*/
 #include "MyUtils.hpp" 
 
-/*void setAllFuncIMP(size_t &a);
-void PrintArrIMP(size_t &a);*/
 namespace ilrd
 {
 #define LUT_COUNT 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3,\
@@ -47,12 +46,10 @@ public:
     Setallbits(bool val) 
 		: m_value(val) 
 	{} 
-
-    // This operator overloading enables calling 
-    // operator function () on objects of increment 
+ 
     size_t operator()(size_t num);
 };
-
+/**/
 size_t Setallbits::operator()(size_t num) 
 { 
 	if (false == m_value)
@@ -66,23 +63,16 @@ size_t Setallbits::operator()(size_t num)
 	
 	return num; 
 }
-
+/**/
 class FlipAllBits
 {
 public: 
     FlipAllBits() 
 	{} 
 
-    // This operator overloading enables calling 
-    // operator function () on objects of increment 
     size_t operator()(size_t num);
 };
-
-size_t FlipAllBits::operator()(size_t num)
-{
-	return ~num;
-}
-
+/**/
 class ShiftLeft 
 { 
 private: 
@@ -92,19 +82,9 @@ public:
 		: m_shift(shift_) 
 	{} 
 
-    // This operator overloading enables calling 
-    // operator function () on objects of increment 
     size_t operator()(size_t num1, size_t num2);
 };
-
-size_t ShiftLeft::operator()(size_t num1, size_t num2) 
-{ 
-	num1 <<= m_shift;
-	num1 |= (num2 >> (numOfBitsInWord - m_shift));
-	
-	return num1; 
-}
-
+/**/
 class ShiftRight 
 { 
 private: 
@@ -114,29 +94,16 @@ public:
 		: m_shift(shift_) 
 	{} 
 
-    // This operator overloading enables calling 
-    // operator function () on objects of increment 
     size_t operator()(size_t num1, size_t num2);
 };
+/**/
 
-size_t ShiftRight::operator()(size_t num1, size_t num2) 
-{ 
-	num1 >>= m_shift;
-	num1 |= (num2 << (numOfBitsInWord - m_shift));
-	
-	return num1; 
-}
-
-}
-/*----------------------------------------------------------------------------*/
-namespace
-{
 /* count set or unset bits in num */
 size_t CountBitsInNumIMP(size_t num);
 
 std::string ConvertNumToStringIMP(size_t num);
 
-
+/* calculate local index and local element of size_t in array */
 void CalculateLocalIndexAndWord(size_t *localIndex, 
 								size_t *localWord, 
 								size_t index, 
@@ -150,8 +117,9 @@ bool GetBitIMP(size_t num, size_t index);
 
 /* remove the MSB irrelevant to user */
 void RemoveLeftOverBitsIMP(size_t *num, size_t TotalnumOfBits);
-}
 
+}
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 class BitArr : private Uncopyable
 {
@@ -165,7 +133,7 @@ public:
 	void SetAll(bool value_ = true) /*NOEXCEPT*/;
 	size_t Count(bool value_ = true) const /*NOEXCEPT*/;
 	void FlipAll() /*NOEXCEPT*/;
-	void Flip(size_t index_) /*NOEXCEPT*/;
+	void Flip(size_t index_) ;
 	std::string ToString() const;
 
 	BitArr& operator|=(const BitArr& other_) /*NOEXCEPT*/;
@@ -181,7 +149,7 @@ public:
 	bool operator!=(const BitArr<N>& other_) const /*NOEXCEPT*/;
 
 private:
-	static const size_t s_bitsInWord = sizeof(size_t) * 8;
+	static const size_t s_bitsInWord = sizeof(size_t) * wordSize;
 	static const size_t s_words = (N / s_bitsInWord) + ((0 == (N % s_bitsInWord)) ? 0 : 1);
 	size_t m_arr[s_words];
 };
@@ -206,21 +174,26 @@ BitArr<N>::BitArr()
 {
 	memset(m_arr, 0, s_words * sizeof(size_t));
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>::~BitArr()
 {}
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 void BitArr<N>::SetAll(bool value_)
 {
 	std::transform(m_arr, m_arr + s_words, m_arr, Setallbits(value_));
 	RemoveLeftOverBitsIMP(&m_arr[0], N);
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 void BitArr<N>::Flip(size_t index_)
 {
+	if (index_ >= N)
+	{
+		throw std::out_of_range("Illegal value\n");
+	}
+	
 	size_t localIndex = index_ % numOfBitsInWord;
 	size_t localWord = index_ / numOfBitsInWord;
 	localWord = s_words - 1 - localWord;
@@ -236,14 +209,14 @@ void BitArr<N>::Flip(size_t index_)
 
 	RemoveLeftOverBitsIMP(&m_arr[0], N);
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 void BitArr<N>::FlipAll()
 {
 	std::transform(m_arr, m_arr + s_words, m_arr, FlipAllBits());
 	RemoveLeftOverBitsIMP(&m_arr[0], N);
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>& BitArr<N>::operator|=(const BitArr& other_)
 {
@@ -256,7 +229,7 @@ BitArr<N>& BitArr<N>::operator|=(const BitArr& other_)
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>& BitArr<N>::operator&=(const BitArr<N>& other_)
 {
@@ -269,7 +242,7 @@ BitArr<N>& BitArr<N>::operator&=(const BitArr<N>& other_)
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>& BitArr<N>::operator^=(const BitArr<N>& other_)
 {
@@ -282,7 +255,7 @@ BitArr<N>& BitArr<N>::operator^=(const BitArr<N>& other_)
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>& BitArr<N>::operator<<=(size_t shift_)
 {
@@ -299,36 +272,36 @@ BitArr<N>& BitArr<N>::operator<<=(size_t shift_)
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>& BitArr<N>::operator>>=(size_t shift_)
 {
-	std::reverse(m_arr, m_arr + s_words - 1);
+	std::reverse(m_arr, m_arr + s_words);
 	std::transform(m_arr, 
 				   m_arr + s_words - 1,
 				   m_arr + 1, 
 				   m_arr,
-                   ShiftLeft(/*numOfBitsInWord - */shift_));
-	std::reverse(m_arr, m_arr + s_words - 1);
-	
+                   ShiftRight(shift_));
 	m_arr[s_words - 1] >>= shift_;
+	std::reverse(m_arr, m_arr + s_words);
+	
 	RemoveLeftOverBitsIMP(&m_arr[0], N);
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 bool BitArr<N>::operator==(const BitArr<N>& other_) const
 {
 	return (std::equal(m_arr, m_arr + s_words, other_.m_arr));
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 bool BitArr<N>::operator!=(const BitArr<N>& other_) const
 {
 	return (!(std::equal(m_arr, m_arr + s_words, other_.m_arr)));
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 size_t BitArr<N>::Count(bool value_) const
 {
@@ -347,7 +320,7 @@ size_t BitArr<N>::Count(bool value_) const
 		return N - res;
 	}
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 std::string BitArr<N>::ToString() const
 {
@@ -358,7 +331,7 @@ std::string BitArr<N>::ToString() const
 	res = std::accumulate(res_arr, res_arr + s_words, res);
 	size_t position = res.find_first_not_of("0");
 	
-	if (position != std::string::npos)
+	if (position != std::string::npos) // found match
 	{
 		res = res.substr(position);
 	}
@@ -369,7 +342,7 @@ std::string BitArr<N>::ToString() const
 	
 	return res;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 bool BitArr<N>::operator[](size_t index_) const
 {	
@@ -380,7 +353,7 @@ bool BitArr<N>::operator[](size_t index_) const
 
 	return  ((localWord & (LSB << localIndex)) >> localIndex);
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 typename BitArr<N>::BitProxy BitArr<N>::operator[](size_t index_)
 {
@@ -388,17 +361,17 @@ typename BitArr<N>::BitProxy BitArr<N>::operator[](size_t index_)
 
 	return bp;
 }
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>::BitProxy::BitProxy(BitArr<N>* arr_, size_t index_)
 	: m_arr(arr_)
 	, m_index(index_)
 {}
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 BitArr<N>::BitProxy::~BitProxy()
 {}
-
+/*----------------------------------------------------------------------------*/
 template <size_t N>
 typename BitArr<N>::BitProxy& BitArr<N>::BitProxy::operator=(bool value_)
 {
@@ -410,19 +383,51 @@ typename BitArr<N>::BitProxy& BitArr<N>::BitProxy::operator=(bool value_)
 
 	return *this;
 }
-
+/*----------------------------------------------------------------------------*/
+template <size_t N>
+BitArr<N>::BitProxy::operator bool() const
+{
+	size_t localIndex = 0;
+	size_t localWord = 0;
+	CalculateLocalIndexAndWord(&localIndex, &localWord, m_index, s_words);
+	size_t num = m_arr->m_arr[localWord]; 
+	
+	return ((num & (LSB << localIndex)) >> localIndex);
+}
+/*----------------------------------------------------------------------------*/
 namespace
 {
+/**/
+size_t ShiftLeft::operator()(size_t num1, size_t num2)
+{ 
+	num1 <<= m_shift;
+	num1 |= (num2 >> (numOfBitsInWord - m_shift));
+	
+	return num1; 
+}
+/**/
+size_t FlipAllBits::operator()(size_t num)
+{
+	return ~num;
+}
+/**/
+size_t ShiftRight::operator()(size_t num1, size_t num2) 
+{ 
+	num1 >>= m_shift;
+	num1 |= (num2 << (numOfBitsInWord - m_shift));
+	
+	return num1; 
+}
+/**/
 std::string ConvertNumToStringIMP(size_t num)
 {
 	std::stringstream ss;
 	ss << std::hex << std::setw(16) << std::setfill('0') << num;
-	//ss << std::hex << num;
 
 	return (ss.str());
 }
-
-size_t CountBitsInNumIMP(size_t num) /*later look to get rid of if*/
+/**/
+size_t CountBitsInNumIMP(size_t num)
 {
 	size_t counter = 0;
 	unsigned char *p_res = (unsigned char *)&num;
@@ -434,7 +439,7 @@ size_t CountBitsInNumIMP(size_t num) /*later look to get rid of if*/
 
 	return counter;
 }
-
+/**/
 void CalculateLocalIndexAndWord(size_t *localIndex, 
 								size_t *localWord, 
 								size_t index, 
@@ -445,22 +450,22 @@ void CalculateLocalIndexAndWord(size_t *localIndex,
 	
 	*localWord = s_words - 1 - *localWord;
 }
-
+/**/
 void SetBitIMP(bool value, size_t index, size_t *num)
 {
 	*num &= (~(LSB << index));
 	*num |= ((size_t)value << index);
 }
-
+/**/
 bool GetBitIMP(size_t num, size_t index)
 {
 	return (((LSB << index) & num) >> index);
 }
-
+/**/
 void RemoveLeftOverBitsIMP(size_t *num, size_t TotalnumOfBits)
 {
-	size_t leftOver = TotalnumOfBits % (wordSize * 8);
-	*num &= 0xFFFFFFFFFFFFFFFF >> ((wordSize * 8) - leftOver);
+	size_t leftOver = TotalnumOfBits % numOfBitsInWord;
+	*num &= 0xFFFFFFFFFFFFFFFF >> (numOfBitsInWord - leftOver);
 }
 
 } // namespace
