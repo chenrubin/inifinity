@@ -10,6 +10,8 @@
 #include <boost/function.hpp>	// boost::function
 
 #include "MyUtils.hpp"		// class Uncopyable
+
+#define NUM_OF_TYPES 3
 /*----------------------------------------------------------------------------*/
 namespace ilrd
 {
@@ -31,17 +33,28 @@ public:
 	void RemoveFd(int fd_, type_t type_);
 	
 	// throws exceptions from callback_ / returns errors from select
-	enum error_t { /* TODO */ };
+	enum error_t 
+	{ 
+		SUCCESS = 0,
+		EBADF_T = 1,
+		EINTR_T = 2,
+		EINVAL_T = 3,
+		ENOMEM_T = 4
+	};
+	
 	error_t Run();
 	
 	// if not running - throw exception ?
 	void Stop();
 
 private:
-	std::vector<std::pair<int, boost::function<void(int)> > > m_readFds;
-	std::vector<std::pair<int, boost::function<void(int)> > > m_writeFds;
-	std::vector<std::pair<int, boost::function<void(int)> > > m_exceptFds;
+	std::vector<std::pair<int, boost::function<void(int)> > > type_vec[NUM_OF_TYPES];
 	bool m_stop;
+
+	void UpdateFdSetsIMP(fd_set *read, fd_set *write, fd_set *except);
+	int GetMaxSocketIMP();
+	void InvokeHandlerIMP(Reactor::type_t type, int sockFd);
+	error_t SelectHandlerIMP(int err);
 };
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd

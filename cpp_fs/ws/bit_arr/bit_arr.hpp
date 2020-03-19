@@ -229,15 +229,36 @@ BitArr<N>& BitArr<N>::operator^=(const BitArr<N>& other_)
 template <size_t N>
 BitArr<N>& BitArr<N>::operator<<=(size_t shift_)
 {
-//	if (s_words > 1)
+/*	size_t ShiftedElement = shift_ / numOfBitsInWord;
+	size_t numOfRelevantBitsAfterShift = numOfBitsInWord * (s_words - ShiftedElement) - shift_% numOfBitsInWord;
+	std::transform(m_arr + ShiftedElement, 
+					m_arr + s_words - 1,
+					m_arr + ShiftedElement + 1, 
+					m_arr,
+					ShiftLeft(shift_));
+	RemoveLeftOverBitsIMP(&m_arr[ShiftedElement], numOfRelevantBitsAfterShift);
+	std::fill(m_arr + ShiftedElement + 1, m_arr + s_words, 0);
+*/
+	size_t tempShift = numOfBitsInWord - 1; 
+
+	while (shift_ > numOfBitsInWord - 1)
 	{
 		std::transform(m_arr, 
-				   	   m_arr + s_words - 1,
-				   	   m_arr + 1, 
-				   	   m_arr,
-                   	   ShiftLeft(shift_));
+					   m_arr + s_words - 1,
+					   m_arr + 1, 
+					   m_arr,
+					   ShiftLeft(tempShift));
+		m_arr[s_words - 1] <<= tempShift;
+		shift_ -= tempShift;
 	}
+
+	std::transform(m_arr, 
+					   m_arr + s_words - 1,
+					   m_arr + 1, 
+					   m_arr,
+					   ShiftLeft(shift_));
 	m_arr[s_words - 1] <<= shift_;
+	
 	RemoveLeftOverBitsIMP(&m_arr[0], N);
 
 	return *this;
@@ -292,16 +313,7 @@ std::string BitArr<N>::ToString() const
 
 	std::transform(m_arr, m_arr + s_words, res_arr, ConvertNumToStringIMP);
 	res = std::accumulate(res_arr, res_arr + s_words, res);
-	size_t position = res.find_first_not_of("0");
-	
-	if (position != std::string::npos) // found match
-	{
-		res = res.substr(position);
-	}
-	else
-	{
-		res = "0";
-	}
+	res = res.substr(res.length() - N);
 	
 	return res;
 }
@@ -391,10 +403,20 @@ size_t ShiftRight::operator()(size_t num1, size_t num2)
 /**/
 std::string ConvertNumToStringIMP(size_t num)
 {
-	std::stringstream ss;
+	std::string str;
+
+	for (size_t i = 0; i < numOfBitsInWord; ++i)
+	{
+		str.push_back((num & LSB) + '0');
+		num >>= 1;
+	}
+
+	std::reverse(str.begin(), str.end());
+/*	std::stringstream ss;
 	ss << std::hex << std::setw(16) << std::setfill('0') << num;
 
-	return (ss.str());
+	return (ss.str());*/
+	return str;
 }
 /**/
 size_t CountBitsInNumIMP(size_t num)

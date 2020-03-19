@@ -103,7 +103,7 @@ int main()
     if (-1 == setsockopt(sock_arr[0], SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
     {
         perror("setsockopt");
-		throw std::runtime_error("setseckopt failed");
+		throw std::runtime_error("setsockopt failed");
     }
 
     SetSockInArrayIMP(sock_arr, len, &readfds);
