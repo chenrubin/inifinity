@@ -48,7 +48,7 @@ public:
 	void Stop();
 
 private:
-	std::vector<std::pair<int, boost::function<void(int)> > > type_vec[NUM_OF_TYPES];
+	std::vector<std::pair<int, boost::function<void(int)> > > fd_types[NUM_OF_TYPES];
 	bool m_stop;
 
 	void UpdateFdSetsIMP(fd_set *read, fd_set *write, fd_set *except);
@@ -60,7 +60,3 @@ private:
 } // namespace ilrd
 /*----------------------------------------------------------------------------*/
 #endif // __REACTOR_HPP__
-
-/*int select(int nfds, fd_set *readfds, fd_set *writefds,
-                  fd_set *exceptfds, struct timeval *timeout);
-*/

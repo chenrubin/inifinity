@@ -144,8 +144,8 @@ void TestRun()
 
     rctr.AddFd(sock_arr[0],rctr.READ, callBc);
     rctr.AddFd(sock_arr[1],rctr.READ, callUdp);
- //   rctr.AddFd(STDOUT,rctr.WRITE, callStdout1);
-    rctr.AddFd(sock_arr[2],rctr.READ, callTcp);
+    rctr.AddFd(STDOUT,rctr.WRITE, callStdout1);
+ //   rctr.AddFd(sock_arr[2],rctr.READ, callTcp);
     Reactor::error_t status = rctr.Run();
 
     std::cout << "status = " << status << std::endl;

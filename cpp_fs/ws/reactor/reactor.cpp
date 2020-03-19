@@ -2,6 +2,7 @@
 #include <cerrno> /* errno */
 #include <stdexcept> /* std::runtime_error*/
 #include <stdio.h> /* perror */
+#include <algorithm> /* transform */
 
 #include "reactor.hpp" /* reactor Apis */
 
@@ -11,16 +12,42 @@ namespace ilrd
 
 namespace
 {
-    class RemoveFromVector
+    class FdCompare
     { 
     public:      
-        RemoveFromVector(int fd_);
-        ~RemoveFromVector();
+        FdCompare(int fd_);
+        ~FdCompare();
 
         bool operator()(std::pair<int, boost::function<void(int)> > p);
 
     private:
         int m_fd;
+    };
+
+    class FdSet
+    {
+    public:
+        FdSet(fd_set *set_)
+            : m_set(set_)
+        {}
+
+        void operator ()(std::pair<int, boost::function<void(int)> > pr);  
+    
+    private:
+        fd_set *m_set;
+    };
+
+    class MaxSocket
+    {
+    public:
+        MaxSocket(int *num)
+            : m_num(num)
+        {}
+
+        void operator()(std::pair<int, boost::function<void(int)> > pr);
+    
+    private:
+        int *m_num;
     };
 }
 
@@ -34,16 +61,16 @@ Reactor::~Reactor()
 void Reactor::AddFd(int fd_, type_t type_, boost::function<void(int)> callback_)
 {
     std::pair<int, boost::function<void(int)> > p(fd_, callback_);
-    type_vec[type_].push_back(p);
+    fd_types[type_].push_back(p);
 }
 
 void Reactor::RemoveFd(int fd_, type_t type_)
 {
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator iter;
-    iter =  std::find_if(type_vec[type_].begin(), 
-                         type_vec[type_].end(), 
-                         RemoveFromVector(fd_));
-    type_vec[type_].erase(iter);                    
+    iter =  std::find_if(fd_types[type_].begin(), 
+                         fd_types[type_].end(), 
+                         FdCompare(fd_));
+    fd_types[type_].erase(iter);                    
 }
 
 Reactor::error_t Reactor::Run()
@@ -63,7 +90,7 @@ Reactor::error_t Reactor::Run()
        
         if (-1 == select(maxSockId + 1, &readfds, &writefds, &exceptfds, NULL))
         {
-            SelectHandlerIMP(errno);
+            return (SelectHandlerIMP(errno));
         }
     
         for (int sockNum = 0; sockNum < maxSockId + 1; ++sockNum)
@@ -88,35 +115,34 @@ Reactor::error_t Reactor::Run()
 
 void Reactor::Stop()
 {
-    m_stop = 1;
+    m_stop = true;
 }
 
 void Reactor::InvokeHandlerIMP(Reactor::type_t type, int sockFd)
 {
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
 
-    it = std::find_if(type_vec[type].begin(), 
-                      type_vec[type].end(), 
-                      RemoveFromVector(sockFd));
+    it = std::find_if(fd_types[type].begin(), 
+                      fd_types[type].end(), 
+                      FdCompare(sockFd));
     it->second(sockFd);
 }
 
 void Reactor::UpdateFdSetsIMP(fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
 {
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
-    
-    for (it = type_vec[READ].begin(); it != type_vec[READ].end(); ++it)
-    {
-        FD_SET(it->first, readfds);
-    }
-    for (it = type_vec[WRITE].begin(); it != type_vec[WRITE].end(); ++it)
-    {
-        FD_SET(it->first, writefds);
-    }
-    for (it = type_vec[EXCEPT].begin(); it != type_vec[EXCEPT].end(); ++it)
-    {
-        FD_SET(it->first, exceptfds);
-    }
+
+    std::for_each(fd_types[READ].begin(), 
+                  fd_types[READ].end(), 
+                  FdSet(readfds));
+                  
+    std::for_each(fd_types[WRITE].begin(), 
+                  fd_types[WRITE].end(), 
+                  FdSet(writefds));
+
+    std::for_each(fd_types[EXCEPT].begin(), 
+                  fd_types[EXCEPT].end(), 
+                  FdSet(exceptfds));
 }
 
 int Reactor::GetMaxSocketIMP()
@@ -124,27 +150,17 @@ int Reactor::GetMaxSocketIMP()
     int maxSocket = 0;
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
 
-    for (it = type_vec[READ].begin(); it != type_vec[READ].end(); ++it)
-    {
-        if (maxSocket < it->first)
-        {
-            maxSocket = it->first;
-        }
-    }
-    for (it = type_vec[WRITE].begin(); it != type_vec[WRITE].end(); ++it)
-    {
-        if (maxSocket < it->first)
-        {
-            maxSocket = it->first;
-        }
-    }
-    for (it = type_vec[EXCEPT].begin(); it != type_vec[EXCEPT].end(); ++it)
-    {
-        if (maxSocket < it->first)
-        {
-            maxSocket = it->first;
-        }
-    }
+    std::for_each(fd_types[READ].begin(), 
+                  fd_types[READ].end(), 
+                  MaxSocket(&maxSocket));
+
+    std::for_each(fd_types[WRITE].begin(), 
+                  fd_types[WRITE].end(), 
+                  MaxSocket(&maxSocket));
+
+    std::for_each(fd_types[EXCEPT].begin(), 
+                  fd_types[EXCEPT].end(), 
+                  MaxSocket(&maxSocket));
 
     return maxSocket;
 }
@@ -173,16 +189,29 @@ Reactor::error_t Reactor::SelectHandlerIMP(int err)
 
 namespace
 {
-    RemoveFromVector::RemoveFromVector(int fd_)
+    FdCompare::FdCompare(int fd_)
         : m_fd(fd_)
     {}
 
-    RemoveFromVector::~RemoveFromVector()
+    FdCompare::~FdCompare()
     {}
 
-    bool RemoveFromVector::operator()(std::pair<int, boost::function<void(int)> > p)
+    bool FdCompare::operator()(std::pair<int, boost::function<void(int)> > p)
     {
         return (m_fd == p.first);
+    }
+
+    void FdSet::operator()(std::pair<int, boost::function<void(int)> > pr)
+    {
+        FD_SET(pr.first, m_set);
+    }
+
+    void MaxSocket::operator()(std::pair<int, boost::function<void(int)> > pr)
+    {
+        if (*m_num < pr.first)
+        {
+            *m_num = pr.first;
+        }
     }
 } // end of namespace
 } // end of namespace ilrd
