@@ -369,7 +369,7 @@ BitArr<N>::BitProxy::BitProxy(const BitProxy& other_)
 template <size_t N>
 BitArr<N>::BitProxy::operator bool() const
 {
-	size_t localIndex = 0;
+size_t localIndex = 0;
 	size_t localWord = 0;
 	CalculateLocalIndexAndWord(&localIndex, &localWord, m_index, s_words);
 	size_t num = m_arr->m_arr[localWord]; 
