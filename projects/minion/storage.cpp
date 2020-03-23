@@ -19,9 +19,7 @@ namespace ilrd
 
     void Storage::Write(size_t blockIndex_, const char buf_[s_BLOCK_SIZE])
     {
-        std::cout << "inside Storage::Write before memcpy\n";
         mempcpy(m_DATA[blockIndex_], buf_, s_BLOCK_SIZE);
-        std::cout << "inside Storage::Write after memcpy\n";
     }
 }
 

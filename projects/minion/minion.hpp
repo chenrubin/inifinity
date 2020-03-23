@@ -6,12 +6,14 @@
 #define __MINION_HPP__
 /*----------------------------------------------------------------------------*/
 #include <cstddef>			// size_t
+#include <boost/cstdint.hpp>  /* uint64_t */
 
 #include "storage.hpp"		// class Storage
 #include "reactor.hpp"		// class Reactor
 #include "udp_socket.hpp"	// class UdpSocket
 #include "MyUtils.hpp"		// class Uncopyable
-//#include "cpp_std.hpp"		// class NOEXCEPT
+
+
 namespace ilrd
 {
 /*----------------------------------------------------------------------------*/
@@ -27,16 +29,16 @@ public:
 
 private:
 	virtual void RecvRequestIMP(int fd_);
-	virtual void HandleRequestIMP(size_t uid, 
-								  size_t blockIndex, 
+	virtual void HandleRequestIMP(/*size_t*/uint64_t uid, 
+								  /*size_t*/uint64_t blockIndex, 
 								  unsigned char type, 
 								  char *buff);
 	void BuildBuffIMP(unsigned char type, 
-			   		  size_t uid,
+			   		  /*size_t*/uint64_t uid,
 			   		  char *databuff,
                		  char *buffToBuild);							  
 	void SendResponseIMP(unsigned char type, 
-						 size_t uid,
+						 /*size_t*/uint64_t uid,
 						 char *databuff, 
 						 struct sockaddr_in *addr);
 	static void Callback(Minion *minion);

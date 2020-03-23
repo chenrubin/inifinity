@@ -92,24 +92,19 @@ Reactor::error_t Reactor::Run()
         {
             return (SelectHandlerIMP(errno));
         }
-        /**/
-        std::cout << "after select\n";
-        /**/
+
         for (int sockNum = 0; sockNum < maxSockId + 1; ++sockNum)
         {
             if (FD_ISSET(sockNum, &readfds))
             {
-                std::cout << "invoke Read\n";
                 InvokeHandlerIMP(READ, sockNum);
             }
             if (FD_ISSET(sockNum, &writefds))
             {
-                std::cout << "invoke write\n";
                 InvokeHandlerIMP(WRITE, sockNum);
             }
             if (FD_ISSET(sockNum, &exceptfds))
             {
-                std::cout << "invoke execpt\n";
                 InvokeHandlerIMP(EXCEPT, sockNum);
             }
         }
@@ -126,13 +121,13 @@ void Reactor::Stop()
 void Reactor::InvokeHandlerIMP(Reactor::type_t type, int sockFd)
 {
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
-    std::cout << "inside InvokeHandlerIMP type = " << type << "\n";
+
     it = std::find_if(fd_types[type].begin(), 
                       fd_types[type].end(), 
                       FdCompare(sockFd));
+
     if (it != fd_types[type].end())
     {
-         std::cout << "invoke  it->second(sockFd);\n";
         it->second(sockFd);
     }                  
 }
