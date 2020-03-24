@@ -29,16 +29,16 @@ public:
 
 private:
 	virtual void RecvRequestIMP(int fd_);
-	virtual void HandleRequestIMP(/*size_t*/uint64_t uid, 
-								  /*size_t*/uint64_t blockIndex, 
+	virtual void HandleRequestIMP(uint64_t uid, 
+								  uint64_t blockIndex, 
 								  unsigned char type, 
 								  char *buff);
 	void BuildBuffIMP(unsigned char type, 
-			   		  /*size_t*/uint64_t uid,
+			   		  uint64_t uid,
 			   		  char *databuff,
                		  char *buffToBuild);							  
 	void SendResponseIMP(unsigned char type, 
-						 /*size_t*/uint64_t uid,
+						 uint64_t uid,
 						 char *databuff, 
 						 struct sockaddr_in *addr);
 	static void Callback(Minion *minion);
