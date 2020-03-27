@@ -20,14 +20,14 @@ namespace ilrd
 {
 namespace
 {
-void ParseMessageIMP(u_int64_t *uid, 
+/*void ParseMessageIMP(u_int64_t *uid, 
                      u_int64_t *blockIndex, 
                      unsigned char *type, 
-                     char *buff);
+                     char *buff);*/
 }
 
 Minion::Minion(unsigned short port_)
-    : m_socket(port_, INADDR_LOOPBACK, SO_REUSEADDR, false)
+    : m_socket(port_, INADDR_ANY, SO_REUSEADDR, false)
     , m_reactor()
     , m_storage()
 {
@@ -52,13 +52,13 @@ void Minion::Stop()
 
 void Minion::RecvRequestIMP(int fd_)
 {
-    char read_buff[BLOCK_SIZE];
+    char read_buff[m_storage->BLOCK_SIZE];
     struct sockaddr_in addr;
     socklen_t size = sizeof(addr);
-    ssize_t bytes = recvfrom(fd_, read_buff, BLOCK_SIZE, 0, (struct sockaddr *)&addr, &size);
+    ssize_t bytes = recvfrom(fd_, read_buff, m_storage->BLOCK_SIZE, 0, (struct sockaddr *)&addr, &size);
 
-    /*size_t*/u_int64_t uid = 0;
-    /*size_t*/u_int64_t blockIndex = 0;
+    u_int64_t uid = 0;
+    u_int64_t blockIndex = 0;
     unsigned char type = 0;
 
     if (0 < bytes)
@@ -80,8 +80,8 @@ void Minion::RecvRequestIMP(int fd_)
     
 }
 
-void Minion::HandleRequestIMP(/*size_t*/u_int64_t uid, 
-                              /*size_t*/u_int64_t blockIndex, 
+void Minion::HandleRequestIMP(u_int64_t uid, 
+                              u_int64_t blockIndex, 
                               unsigned char type, 
                               char *buff)
 {
@@ -96,11 +96,11 @@ void Minion::HandleRequestIMP(/*size_t*/u_int64_t uid,
 }
 
 void Minion::SendResponseIMP(unsigned char type, 
-						     /*size_t*/u_int64_t uid,
+						     u_int64_t uid,
 						     char *databuff, 
 						     struct sockaddr_in *addr)
 {
-    char buf_to_send[BLOCK_SIZE];
+    char buf_to_send[m_storage->BLOCK_SIZE];
     BuildBuffIMP(type, uid ,databuff, buf_to_send);
     size_t len = (1 == type) ? WRITE_RESPONSE_LENGTH : READ_RESPONSE_LENGTH; 
 
@@ -120,14 +120,14 @@ void Minion::SendResponseIMP(unsigned char type,
 }
 
 void Minion::BuildBuffIMP(unsigned char type, 
-			              /*size_t*/u_int64_t uid,
+			              u_int64_t uid,
 			              char *databuff,
                           char *buffToBuild)
 {
     bool status = true;
 
     buffToBuild[0] = type;
-    *(size_t *)(buffToBuild + 1) = uid;
+    *(uint64_t *)(buffToBuild + 1) = uid;
     buffToBuild[9] = status;
     if (0 == type)
     {
@@ -140,10 +140,10 @@ void Minion::Callback(Minion *minion)
     minion->RecvRequestIMP(minion->m_socket.GetFd());
 }
 
-namespace
-{
-void ParseMessageIMP(/*size_t*/u_int64_t *uid, 
-                     /*size_t*/u_int64_t *blockIndex, 
+/*namespace
+{*/
+void Minion::ParseMessageIMP(u_int64_t *uid, 
+                     u_int64_t *blockIndex, 
                      unsigned char *type, 
                      char *buff)
 {
@@ -156,7 +156,7 @@ void ParseMessageIMP(/*size_t*/u_int64_t *uid,
     *type = *buff;
     *uid = *((u_int64_t *)(buff + 1));
     *blockIndex = *((u_int64_t *)(buff + 9));
-}
+/*}*/
 
 } // end of namespace
     

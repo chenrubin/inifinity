@@ -6,6 +6,7 @@
 #include <stdexcept> /* std::runtime_error*/	
 
 #include "udp_socket.hpp"
+#include "MyUtils.hpp"
 
 namespace ilrd
 {
@@ -20,29 +21,20 @@ UdpSocket::UdpSocket(unsigned short port_, in_addr_t address_,
     , m_sockaddr(new sockaddr_in)
 {
     memset(m_sockaddr, 0, sizeof(*m_sockaddr));
-    InitServer();
+    InitServerIMP();
+    int status = 0;
 
     m_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (-1 == m_fd)
-    {
-        perror("socket: ");
-		throw std::runtime_error("socket failed");
-    }
-
-    if (-1 == bind(m_fd, (struct sockaddr *)m_sockaddr, sizeof(*m_sockaddr)))
-    {
-        perror("bind: ");
-		throw std::runtime_error("bind failed");
-    }
-
+    HandleErrorIfExists(m_fd, "socket");
+     
+    status = bind(m_fd, (struct sockaddr *)m_sockaddr, sizeof(*m_sockaddr));
+    HandleErrorIfExists(status, "bind");
+ 
     if (m_isBroadcast)
     {
         int broadcast = 1;
-        if (-1 == setsockopt(m_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
-        {
-            perror("setsockopt");
-            throw std::runtime_error("setsockopt failed");
-        }
+        status = setsockopt(m_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+        HandleErrorIfExists(status, "setsockopt");
     }
 }
 
@@ -61,8 +53,10 @@ int UdpSocket::GetFd()
     return m_fd;
 }
 
-void UdpSocket::InitServer()
+void UdpSocket::InitServerIMP()
 {
+    memset(m_sockaddr, 0, sizeof(*m_sockaddr));
+
     m_sockaddr->sin_family = AF_INET;
     m_sockaddr->sin_addr.s_addr = htonl(m_addr);
     m_sockaddr->sin_port = htons(m_port);

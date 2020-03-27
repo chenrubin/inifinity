@@ -24,7 +24,7 @@ public:
 	
 	// callback_ must be short, non blocking function
 	// callback_ might also call AddFd / RemoveFd / Stop
-	enum type_t { READ, WRITE, EXCEPT };
+	enum type_t { READ = 0, WRITE, EXCEPT };
 
 	// throw if push to vector fails
 	void AddFd(int fd_, type_t type_, boost::function<void(int)> callback_);	
@@ -54,6 +54,7 @@ private:
 	void UpdateFdSetsIMP(fd_set *read, fd_set *write, fd_set *except);
 	int GetMaxSocketIMP();
 	void InvokeHandlerIMP(Reactor::type_t type, int sockFd);
+	void RemoveAllMarkedElementsIMP();
 	error_t SelectHandlerIMP(int err);
 };
 /*----------------------------------------------------------------------------*/

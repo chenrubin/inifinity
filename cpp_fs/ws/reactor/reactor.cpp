@@ -12,6 +12,7 @@ namespace ilrd
 
 namespace
 {
+    void DummyCallback1IMP(int fd);
     class FdCompare
     { 
     public:      
@@ -67,48 +68,70 @@ void Reactor::AddFd(int fd_, type_t type_, boost::function<void(int)> callback_)
 void Reactor::RemoveFd(int fd_, type_t type_)
 {
     std::vector<std::pair<int, boost::function<void(int)> > >::iterator iter;
-    iter =  std::find_if(fd_types[type_].begin(), 
-                         fd_types[type_].end(), 
-                         FdCompare(fd_));
-    fd_types[type_].erase(iter);                    
+    iter = std::find_if(fd_types[type_].begin(), 
+                        fd_types[type_].end(), 
+                        FdCompare(fd_));
+    if (iter != fd_types[type_].end())
+    {
+        std::cout << "shoot me\n";
+    }
+    iter->second = DummyCallback1IMP;                  
+}
+
+void Reactor::RemoveAllMarkedElementsIMP()
+{
+    std::cout << "remove all\n";
+    for (int i = 0; i < NUM_OF_TYPES; ++i)
+    {
+        std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
+
+        for (it = fd_types[i].begin(); it != fd_types[i].end(); ++it)
+        {
+            if (it->second == DummyCallback1IMP)
+            {
+                it = fd_types[i].erase(it);
+                --it;
+            }
+        }
+    }
 }
 
 Reactor::error_t Reactor::Run()
 {
-    fd_set readfds;
-    fd_set writefds;
-    fd_set exceptfds;
-    int maxSockId = 0;
-
+    fd_set fdset_arr[NUM_OF_TYPES];
+   int maxSockId = 0;
+size_t counter = 1;
     while (!m_stop)
     {
+        
         maxSockId = GetMaxSocketIMP();
-        FD_ZERO(&readfds);
-        FD_ZERO(&writefds);
-        FD_ZERO(&exceptfds);
-        UpdateFdSetsIMP(&readfds, &writefds, &exceptfds);
+
+        FD_ZERO(&fdset_arr[0]);
+        FD_ZERO(&fdset_arr[1]);
+        FD_ZERO(&fdset_arr[2]);
+        UpdateFdSetsIMP(&fdset_arr[0], &fdset_arr[1], &fdset_arr[2]);
        
-        if (-1 == select(maxSockId + 1, &readfds, &writefds, &exceptfds, NULL))
+        if (-1 == select(maxSockId + 1, &fdset_arr[0], &fdset_arr[1], &fdset_arr[2], NULL))
         {
             return (SelectHandlerIMP(errno));
         }
-    
-        for (int sockNum = 0; sockNum < maxSockId + 1; ++sockNum)
+
+        for (int i = 0; i < NUM_OF_TYPES; ++i)
         {
-            if (FD_ISSET(sockNum, &readfds))
+            std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
+std::vector<std::pair<int, boost::function<void(int)> > >::iterator end = fd_types[i].end();
+            for (it = fd_types[i].begin(); it < end; ++it)
             {
-                InvokeHandlerIMP(READ, sockNum);
-            }
-            if (FD_ISSET(sockNum, &writefds))
-            {
-                InvokeHandlerIMP(WRITE, sockNum);
-            }
-            if (FD_ISSET(sockNum, &exceptfds))
-            {
-                InvokeHandlerIMP(EXCEPT, sockNum);
+                if (FD_ISSET(it->first, &fdset_arr[i]))
+                {
+                    it->second(it->first);
+                //    InvokeHandlerIMP((type_t)i, it->first);
+                }
             }
         }
-    }
+
+        RemoveAllMarkedElementsIMP();
+ }
    
     return SUCCESS;
 }
@@ -189,6 +212,11 @@ Reactor::error_t Reactor::SelectHandlerIMP(int err)
 
 namespace
 {
+    void DummyCallback1IMP(int fd)
+    {
+        std::cout << "Dummy callback\n";
+    }
+
     FdCompare::FdCompare(int fd_)
         : m_fd(fd_)
     {}

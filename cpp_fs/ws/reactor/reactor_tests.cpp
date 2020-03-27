@@ -53,7 +53,7 @@ int main()
 }
 
 void TestCtroDtor()
-{
+{	
     Reactor rctr;
 }
 
@@ -241,7 +241,8 @@ namespace
         ++counter;
         if (10 == counter)
         {
-            rctr.RemoveFd(socket, rctr.WRITE);
+  //          int h = 0;
+           rctr.RemoveFd(socket, rctr.WRITE);
             rctr.AddFd(STDOUT,rctr.WRITE, CallbackStdout2IMP);
         }
     }

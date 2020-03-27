@@ -25,7 +25,7 @@ private:
     int m_optname;
     struct sockaddr_in *m_sockaddr;
 
-    void InitServer();
+    void InitServerIMP();
 };
 } // end of namespace ilrd
 #endif

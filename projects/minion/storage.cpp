@@ -22,4 +22,3 @@ namespace ilrd
         mempcpy(m_DATA[blockIndex_], buf_, s_BLOCK_SIZE);
     }
 }
-

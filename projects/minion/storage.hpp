@@ -3,8 +3,8 @@
 
 #include "MyUtils.hpp"
 
-#define BLOCK_SIZE (4 * 1024 + 17)
-#define NUM_OF_BLOCKS 128
+//#define BLOCK_SIZE (4 * 1024 + 17)
+//#define NUM_OF_BLOCKS 128
 /*----------------------------------------------------------------------------*/
 namespace ilrd
 {
@@ -14,8 +14,11 @@ public:
 	explicit Storage();
 	~Storage();
 
-    static const size_t s_BLOCK_SIZE = BLOCK_SIZE;
-	static const size_t s_NUM_OF_BLOCKS = NUM_OF_BLOCKS;
+	const static size_t BLOCK_SIZE = (4 * 1024 + 17);
+	const static size_t NUM_OF_BLOCKS = 128;
+
+    static const size_t s_BLOCK_SIZE = Storage::BLOCK_SIZE;
+	static const size_t s_NUM_OF_BLOCKS = Storage::NUM_OF_BLOCKS;
 	
 	void Read(size_t blockIndex_, char buf_[BLOCK_SIZE]);
 	void Write(size_t blockIndex_, const char buf_[BLOCK_SIZE]);
