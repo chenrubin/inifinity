@@ -167,7 +167,7 @@ void TestPushPopSuper()
     for (i = 0; i < SUPER_NUM_OF_POP_THREADS; ++i)
     {
         thread_args[i].queue = myWaitQueue;
-        thread_args[i].element = 0;
+        thread_args[i].element = 700;
         thread_args[i].timeout = timeout;
     }
 

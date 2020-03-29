@@ -1,12 +1,14 @@
 // Waitable Queue - Header file
-// Last update: 26/03/2020
+// Last update: 29/03/2020
 // Author: RD 78-79
+// Reviewer: Tsisana
 /*----------------------------------------------------------------------------*/
 #ifndef __WAITABLE_QUEUE_HPP__ 
 #define __WAITABLE_QUEUE_HPP__
 /*----------------------------------------------------------------------------*/
 #include <boost/thread/thread.hpp> 	// boost::condition_variable
 #include <boost/thread/mutex.hpp> 	// boost::mutex
+#include <boost/thread/recursive_mutex.hpp> 	// boost_recursive_mutex
 #include <iostream> 	// boost::mutex
 
 #include <queue>    				// queue, priority_queue
@@ -25,7 +27,6 @@ public:
 
 	~WaitableQueue();
 
-	// TODO: check traits syntax 
 	void Push(typename Q::const_reference element_);
 	
 	// blocking until timeout
@@ -37,8 +38,8 @@ public:
 	bool IsEmpty() const;
 	
 private:
-	boost::mutex m_mutex;
-	boost::condition_variable m_cond;
+	mutable boost::recursive_mutex m_mutex;
+	boost::condition_variable_any m_cond;
 	Q m_queue;
 
 	typename Q::value_type PeekFuncIMP(std::queue<typename Q::value_type> &queue);
@@ -56,16 +57,17 @@ WaitableQueue<Q>::~WaitableQueue()
 template <typename Q>
 void WaitableQueue<Q>::Push(typename Q::const_reference element_)
 {
-	m_mutex.lock();
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
+
 	m_queue.push(element_);
-	m_mutex.unlock();
-	m_cond.notify_all();
+	m_cond.notify_one();
 }
 
 template <typename Q>
 void WaitableQueue<Q>::Pop(typename Q::reference element_)
-{
-	boost::mutex::scoped_lock lock(m_mutex);
+{ 
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
+	
 	if (IsEmpty())
 	{
 		m_cond.wait(lock);
@@ -79,9 +81,9 @@ template <typename Q>
 bool WaitableQueue<Q>::Pop(typename Q::reference element_, 
 						   boost::chrono::milliseconds timeout_)
 {
-	boost::mutex::scoped_lock lock(m_mutex);
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	boost::cv_status status = boost::cv_status::no_timeout;
-
+	
 	if (IsEmpty())
 	{
 		status =  m_cond.wait_for(lock, timeout_);
@@ -92,13 +94,15 @@ bool WaitableQueue<Q>::Pop(typename Q::reference element_,
 		element_ = PeekFuncIMP(m_queue);
 		m_queue.pop();
 	}
-
+	
 	return (status == boost::cv_status::timeout);
 }
 
 template <typename Q>
 bool WaitableQueue<Q>::IsEmpty() const
 {
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
+
 	return m_queue.empty();
 }
 
