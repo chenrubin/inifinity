@@ -6,10 +6,10 @@
 #ifndef __FACTORY_HPP__ 
 #define __FACTORY_HPP__
 /*----------------------------------------------------------------------------*/
-#include <boost/function.hpp>	/* boost::function */
-#include <map> 					/* std::map */
+#include <boost/function.hpp>	// boost::function
+#include <map> 					// std::map
 
-#include "MyUtils.hpp"		// class Uncopyable
+#include "MyUtils.hpp"			// class Uncopyable
 
 #define MAP_ITERATOR typename std::map<K, boost::function<boost::shared_ptr<T>(P)> >::iterator 
 #define FUNC boost::function<boost::shared_ptr<T>(P)>
@@ -19,7 +19,7 @@ namespace ilrd
 namespace factory
 {
 /*----------------------------------------------------------------------------*/
-template <typename T, typename K, typename P>	// T = base class
+template <typename T, typename K, typename P>
 class Factory : private Uncopyable
 {
 public:
