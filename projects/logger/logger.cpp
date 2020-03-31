@@ -22,7 +22,7 @@ namespace ilrd
         delete m_outputStream;
     }
     
-    void Logger::Log(Severity msgSeverity_, const std::string& msg_)
+    void Logger::Log(Severity msgSeverity_, const std::string& msg_) NOEXCEPT
     {
         if (msgSeverity_ >= m_minimalSeverity)
         {
@@ -30,7 +30,7 @@ namespace ilrd
         }
     }
 
-    void Logger::SetMinimalSeverity(Severity minimalSeverity_)
+    void Logger::SetMinimalSeverity(Severity minimalSeverity_) NOEXCEPT
     {
         m_minimalSeverity = minimalSeverity_;
     }

@@ -33,7 +33,7 @@ public:
 	*	Pops element from queue. waits until queue is not empty or until timeout
 	*	whichever comes first. No Exceptions
 	*/ 
-	bool Pop(typename Q::reference element_, boost::chrono::milliseconds timeout_); // wait_for can throw exception
+	bool Pop(typename Q::reference element_, boost::chrono::milliseconds timeout_) NOEXCEPT; // wait_for can throw exception
 	
 	// Pops element from queue. waits until queue is not empty. No Exceptions
 	void Pop(typename Q::reference element_) NOEXCEPT;
@@ -60,7 +60,7 @@ WaitableQueue<Q>::~WaitableQueue()
 {}
 
 template <typename Q>
-void WaitableQueue<Q>::Push(typename Q::const_reference element_)
+void WaitableQueue<Q>::Push(typename Q::const_reference element_) NOEXCEPT
 {
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 
@@ -69,7 +69,7 @@ void WaitableQueue<Q>::Push(typename Q::const_reference element_)
 }
 
 template <typename Q>
-void WaitableQueue<Q>::Pop(typename Q::reference element_)
+void WaitableQueue<Q>::Pop(typename Q::reference element_) NOEXCEPT
 { 
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	
@@ -80,7 +80,7 @@ void WaitableQueue<Q>::Pop(typename Q::reference element_)
 
 template <typename Q>
 bool WaitableQueue<Q>::Pop(typename Q::reference element_, 
-						   boost::chrono::milliseconds timeout_)
+						   boost::chrono::milliseconds timeout_) NOEXCEPT
 {
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	bool status = true;
