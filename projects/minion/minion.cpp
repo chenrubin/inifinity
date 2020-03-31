@@ -63,6 +63,7 @@ void Minion::RecvRequestIMP(int fd_)
 
     if (0 < bytes)
     {
+        LOG_DEBUG("Starting parse, handle and send response");
         ParseMessageIMP(&uid, &blockIndex, &type, read_buff);
         HandleRequestIMP(uid, blockIndex, type, read_buff);
         SendResponseIMP(type, uid, read_buff, &addr);
@@ -71,11 +72,13 @@ void Minion::RecvRequestIMP(int fd_)
     {
         m_reactor.RemoveFd(fd_, m_reactor.READ);
         throw std::runtime_error("socket closed");
+        LOG_ERROR("socket closed");    ;
     }
     else
     {
         perror("server recvfrom");
         throw std::runtime_error("recvfrom failed");
+        LOG_ERROR("server rcvfrom failed");    
     }
     
 }
@@ -88,10 +91,12 @@ void Minion::HandleRequestIMP(u_int64_t uid,
     if (0 == type) // read from storage into buffer
     {
         m_storage->Read(blockIndex, buff + DATA_OFFSET);
+        LOG_DEBUG("Read from storage");
     }
     else // write to storage
     {
         m_storage->Write(blockIndex, buff + DATA_OFFSET);
+        LOG_DEBUG("Write to storage");
     }
 }
 
@@ -108,7 +113,7 @@ void Minion::SendResponseIMP(unsigned char type,
     {
         std::reverse(buf_to_send + 1, buf_to_send + 9);
     }
-
+    LOG_DEBUG("About to send message");
     if (-1 == sendto(m_socket.GetFd(), buf_to_send, 
                      len, MSG_CONFIRM,
                      (struct sockaddr *)addr, 
@@ -116,6 +121,7 @@ void Minion::SendResponseIMP(unsigned char type,
     {
         perror("server sendto");
         throw std::runtime_error("sendto failed");
+        LOG_ERROR("sendto failed");
     }
 }
 
@@ -125,6 +131,7 @@ void Minion::BuildBuffIMP(unsigned char type,
                           char *buffToBuild)
 {
     bool status = true;
+    LOG_DEBUG("Building response buffer");
 
     buffToBuild[0] = type;
     *(uint64_t *)(buffToBuild + 1) = uid;
@@ -140,8 +147,6 @@ void Minion::Callback(Minion *minion)
     minion->RecvRequestIMP(minion->m_socket.GetFd());
 }
 
-/*namespace
-{*/
 void Minion::ParseMessageIMP(u_int64_t *uid, 
                      u_int64_t *blockIndex, 
                      unsigned char *type, 
@@ -156,10 +161,6 @@ void Minion::ParseMessageIMP(u_int64_t *uid,
     *type = *buff;
     *uid = *((u_int64_t *)(buff + 1));
     *blockIndex = *((u_int64_t *)(buff + 9));
-/*}*/
-
-} // end of namespace
-    
-
-
+    LOG_DEBUG("Parse message");
+}
 } // end of ilrd nemaspace

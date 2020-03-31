@@ -5,6 +5,12 @@
 #include <stdexcept> /* std::runtime_error*/
 #include <stdio.h> 	/* perror */	
 
+#if __cplusplus > 199711L
+#define NOEXCEPT noexcept
+#else 
+#define NOEXCEPT
+#endif
+
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"

@@ -12,6 +12,7 @@
 #include "reactor.hpp"		// class Reactor
 #include "udp_socket.hpp"	// class UdpSocket
 #include "MyUtils.hpp"		// class Uncopyable
+#include "logger.hpp"		// class logger
 
 
 namespace ilrd
