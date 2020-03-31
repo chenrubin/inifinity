@@ -107,12 +107,16 @@ bool WaitableQueue<Q>::IsEmpty() const
 template <typename Q>
 typename Q::value_type WaitableQueue<Q>::PeekFuncIMP(std::queue<typename Q::value_type> &queue)
 {
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
+
 	return queue.front();
 }
 
 template <typename Q>
 typename Q::value_type WaitableQueue<Q>::PeekFuncIMP(std::priority_queue<typename Q::value_type> &queue)
 {
+	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
+	
 	return queue.top();
 }
 
