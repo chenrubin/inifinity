@@ -12,9 +12,8 @@
 #include <queue>				/* queue */
 
 #include "singleton.hpp"
-#include "MyUtils.hpp"						// class Uncopyable
-//#include "cpp_std.hpp"						// NOEXCEPT
-#include "../waitable_queue/waitable_queue.hpp"
+#include "MyUtils.hpp"						// class Uncopyable, HandleErrors
+#include "waitable_queue.hpp"
 /*----------------------------------------------------------------------------*/
 #define LOG_DEBUG(msg) (Logger::GetLogger()->Log(Logger::DEBUG, msg))
 #define LOG_INFO(msg) (Logger::GetLogger()->Log(Logger::INFO, msg))
@@ -27,7 +26,8 @@ namespace ilrd
 class Logger : private Uncopyable
 {
 public:
-	static Logger* GetLogger() // throw (std::bad_aloc)
+	// throw (std::bad_aloc)
+	static Logger* GetLogger() 
 	{
 		return Singleton<Logger>::GetInstance();
 	}
@@ -46,14 +46,15 @@ private:
 	friend class Singleton<Logger>;
 	explicit Logger();
 
-	std::ofstream *InitStreamIMP(char *str);
+	char *GetStreamNameIMP();
 	void PopThreadRoutineIMP();
 
 	Severity m_minimalSeverity;
 	boost::atomic<bool> m_isThreadActivated;
 
-	// file name located under env variable LOGGER_FILE - logger.txt
-	std::ofstream* m_outputStream;
+	// The user must create an envioronment variable LOGGER_FILE with the name
+	// of the desired file
+	std::ofstream m_outputStream;
 	WaitableQueue<std::queue<std::string> > m_queue;
 	boost::thread m_pop_thread;
 };

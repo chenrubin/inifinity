@@ -10,9 +10,6 @@
 #include <map> 					// std::map
 
 #include "MyUtils.hpp"			// class Uncopyable
-
-#define MAP_ITERATOR typename std::map<K, boost::function<boost::shared_ptr<T>(P)> >::iterator 
-#define FUNC boost::function<boost::shared_ptr<T>(P)>
 /*----------------------------------------------------------------------------*/
 namespace ilrd
 {
@@ -25,6 +22,7 @@ class Factory : private Uncopyable
 public:
 	// If new key replaced an old one ,return value = false
 	// If new key was immediatly inserted return value = true
+	// throws bad::alloc
 	bool AddClass(const K& key_, 
 			boost::function<boost::shared_ptr<T>(P)> createFunc_);
 	
@@ -34,7 +32,12 @@ public:
 	// 2nd phase: unique_ptr c++11, 3rd? args...
 
 private:
-	mutable std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
+	/*mutable*/ std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
+
+	typedef typename 
+			std::map<K, boost::function<boost::shared_ptr<T>(P)> >::const_iterator
+			 												  		map_iterator_t;
+	typedef boost::function<boost::shared_ptr<T>(P)> func_t;
 };
 /*----------------------------------------------------------------------------*/
 class BadCreate : public std::runtime_error
@@ -50,11 +53,10 @@ public:
 };
 
 template <typename T, typename K, typename P>
-bool Factory<T,K,P>::AddClass(const K& key_, 
-			  		   boost::function<boost::shared_ptr<T>(P)> createFunc_)
+bool Factory<T,K,P>::AddClass(const K& key_, func_t createFunc_)
 {
-	std::pair<MAP_ITERATOR, bool> res;
-	res = m_keyFuncPairs.insert(std::pair<K, FUNC>(key_, createFunc_));
+	std::pair<map_iterator_t, bool> res;
+	res = m_keyFuncPairs.insert(std::pair<K, func_t>(key_, createFunc_));
 	if (res.second == false)
 	{
 		m_keyFuncPairs[key_] = createFunc_;
@@ -66,7 +68,7 @@ bool Factory<T,K,P>::AddClass(const K& key_,
 template <typename T, typename K, typename P>
 boost::shared_ptr<T> Factory<T,K,P>::Create(const K& key_, P param_) const
 {
-	MAP_ITERATOR iter;
+	map_iterator_t iter;
 	boost::shared_ptr<T> res;
 	iter = m_keyFuncPairs.find(key_);
 
@@ -85,15 +87,7 @@ boost::shared_ptr<T> Factory<T,K,P>::Create(const K& key_, P param_) const
 	}
 	
 	return res;
-}
-
-factory::BadCreate::BadCreate()
-	: std::runtime_error("Bad create")
-{}
-
-factory::BadKey::BadKey()
-	: std::logic_error("Bad key")
-{}	
+}	
 /*----------------------------------------------------------------------------*/
 } // namespace factory
 } // namespace ilrd
