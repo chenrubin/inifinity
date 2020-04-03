@@ -14,6 +14,15 @@
 #include "factory.hpp"
 #include "MyUtils.hpp"
 /*----------------------------------------------------------------------------*/
+/*
+Serializer takes a base class and convert it into a stream that can be then 
+sent to another station and then deserialized. This is similar to 
+Jason, XML...
+In order for this to work user must have operators >> and << inside its T
+class. These operators should be able to convert object to ostream and istream 
+to object respectively. This ostream/istream will be given by user 
+*/
+/*----------------------------------------------------------------------------*/
 namespace ilrd
 {
 /*----------------------------------------------------------------------------*/
@@ -21,27 +30,33 @@ template<typename T>
 class Serializer : private Uncopyable
 {
 public:
-    // Throws Bad_alloc
+    // Throws BadCreate
+    // Add derive class to the serializer (type U)
+    // returns false if it fails to add the class
     template<typename U>
     bool AddClass();
 
+    // turns object members into ostream supplied by user
+    // Have to be called after AddClass so class "recepie" will be known 
     void Serialize(const T& object_, std::ostream& ostream_) const NOEXCEPT;
 
-    // Throws Bad_alloc
+    // Throws BadCreate or BadKey
+    // Turns the istream su0pllied by user back to an object which is a 
+    // derived class of T
     boost::shared_ptr<T> Deserialize(std::istream& istream_) const;
 
 private:
-    factory::Factory<T, std::string, int> m_factory;
+    factory::Factory<T, std::string, std::istream&> m_factory;
     
     template<typename U>
-    static boost::shared_ptr<T> AddObjectIMP(int i);
+    static boost::shared_ptr<T> AddObjectIMP(std::istream& istream_);
 };
 
 template<typename T>
 void Serializer<T>::Serialize(const T& object_, std::ostream& ostream_) const
 {
     ostream_ << typeid(object_).name() << "\n";
-    object_.operator>>(ostream_);
+    ostream_ << object_;
 }
 
 template<typename T>
@@ -50,8 +65,7 @@ boost::shared_ptr<T> Serializer<T>::Deserialize(std::istream& istream_) const NO
     std::string object_name;
 
     istream_ >> object_name;
-    boost::shared_ptr<T> obj = m_factory.Create(object_name, 1);
-    *obj << istream_;
+    boost::shared_ptr<T> obj = m_factory.Create(object_name, istream_);
     
     return obj;
 }
@@ -67,9 +81,11 @@ bool Serializer<T>::AddClass()
 
 template <typename T>
 template <typename U>
-boost::shared_ptr<T> Serializer<T>::AddObjectIMP(int i)
+boost::shared_ptr<T> Serializer<T>::AddObjectIMP(std::istream& istream_)
 {
-    boost::shared_ptr<T> shared_ptr(new U());
+    T *obj = new U;
+    istream_ >> *obj;
+    boost::shared_ptr<T> shared_ptr(obj);
 
     return shared_ptr;
 }

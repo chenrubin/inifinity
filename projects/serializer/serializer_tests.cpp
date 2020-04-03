@@ -16,16 +16,17 @@ class Animal
 public:
     Animal(); 
     virtual ~Animal();
-    virtual std::string GetName();
-    virtual void SetName(std::string name_);
-    virtual size_t GetNumOfLegs();
-    virtual void SetNumOfLegs(size_t numOfLegs_);
-    virtual std::ostream &operator>>(std::ostream &ostream_) const; 
-    virtual std::istream &operator<<(std::istream &istream_);
+    virtual std::string GetName() = 0;
+    virtual void SetName(std::string name_) = 0;
+    virtual size_t GetNumOfLegs() = 0;
+    virtual void SetNumOfLegs(size_t numOfLegs_) = 0;
+    virtual void Output(std::ostream &ostream_) const = 0; 
+    virtual void Input(std::istream &istream_) = 0;
+
+    friend std::ostream &operator<<(std::ostream &ostream_, const Animal &this_);
+    friend std::istream &operator>>(std::istream &istream_, Animal &this_);
 
 private:
-    size_t m_numOfLegs;
-    std::string m_name;
 };
 
 Animal::Animal()
@@ -34,27 +35,37 @@ Animal::Animal()
 Animal::~Animal()
 {}
 
-std::string Animal::GetName()
+std::ostream &operator<<(std::ostream &ostream_, const Animal &this_)
 {
-    return m_name;
+    this_.Output(ostream_);
+
+    return ostream_;
 }
 
-void Animal::SetName(std::string name_)
+std::istream &operator>>(std::istream &istream_, Animal &this_)
 {
-    m_name = name_;
+    this_.Input(istream_);
+
+    return istream_;
 }
 
-size_t Animal::GetNumOfLegs()
+class Dog : public Animal
 {
-    return m_numOfLegs;
-}
+public:
+    virtual std::string GetName();
+    virtual void SetName(std::string name_);
+    virtual size_t GetNumOfLegs();
+    virtual void SetNumOfLegs(size_t numOfLegs_);
 
-void Animal::SetNumOfLegs(size_t numOfLegs_)
-{
-    m_numOfLegs = numOfLegs_;
-}
+    virtual void Output(std::ostream &ostream_) const; 
+    virtual void Input(std::istream &istream_);
+   
+private:
+    size_t m_numOfLegs;
+    std::string m_name;
+};
 
-std::istream &Animal::operator<<(std::istream &istream_)
+void Dog::Input(std::istream &istream_)
 {
     std::string str;
     istream_ >> str;
@@ -62,31 +73,85 @@ std::istream &Animal::operator<<(std::istream &istream_)
 
     istream_ >> str;
     SetName(str.c_str());
-
-    return istream_;
 }
 
-std::ostream &Animal::operator>>(std::ostream &ostream_) const
+void Dog::Output(std::ostream &ostream_) const
 {
     ostream_ << m_numOfLegs << "\n"; 
     ostream_ << m_name << "\n";
-
-    return ostream_;
 }
 
-class Dog : public Animal
+std::string Dog::GetName()
 {
-public:
-   
-private:
-};
+    return m_name;
+}
+
+void Dog::SetName(std::string name_)
+{
+    m_name = name_;
+}
+
+size_t Dog::GetNumOfLegs()
+{
+    return m_numOfLegs;
+}
+
+void Dog::SetNumOfLegs(size_t numOfLegs_)
+{
+    m_numOfLegs = numOfLegs_;
+}
 
 class Cat : public Animal
 {
 public:
+    virtual std::string GetName();
+    virtual void SetName(std::string name_);
+    virtual size_t GetNumOfLegs();
+    virtual void SetNumOfLegs(size_t numOfLegs_);
+
+    virtual void Output(std::ostream &ostream_) const; 
+    virtual void Input(std::istream &istream_);
    
 private:
+    size_t m_numOfLegs;
+    std::string m_name;
 };
+
+void Cat::Input(std::istream &istream_)
+{
+    std::string str;
+    istream_ >> str;
+    m_numOfLegs = std::atoi(str.c_str());
+
+    istream_ >> str;
+    SetName(str.c_str());
+}
+
+void Cat::Output(std::ostream &ostream_) const
+{
+    ostream_ << m_numOfLegs << "\n"; 
+    ostream_ << m_name << "\n";
+}
+
+std::string Cat::GetName()
+{
+    return m_name;
+}
+
+void Cat::SetName(std::string name_)
+{
+    m_name = name_;
+}
+
+size_t Cat::GetNumOfLegs()
+{
+    return m_numOfLegs;
+}
+
+void Cat::SetNumOfLegs(size_t numOfLegs_)
+{
+    m_numOfLegs = numOfLegs_;
+}
 
 void TestAddSerDes();
 

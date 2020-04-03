@@ -39,16 +39,13 @@ public:
 	void Pop(typename Q::reference element_) NOEXCEPT;
 
 	// returns whether queue is empty or not. No Exceptions
-	bool IsEmpty() const; // throws according to lock
+	// throws according to lock
+	bool IsEmpty() const; 
 	
 private:
 	mutable boost::recursive_mutex m_mutex;
 	boost::condition_variable_any m_cond;
 	Q m_queue;
-
-	// add another queue template for custom made queue
-	typename Q::value_type PeekFuncIMP(std::queue<typename Q::value_type> &queue);
-	typename Q::value_type PeekFuncIMP(std::priority_queue<typename Q::value_type> &queue);
 };
 
 template <typename Q>
@@ -74,7 +71,7 @@ void WaitableQueue<Q>::Pop(typename Q::reference element_) NOEXCEPT
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	
 	m_cond.wait(lock, !boost::bind(&WaitableQueue::IsEmpty, this));
-	element_ = PeekFuncIMP(m_queue);
+	element_ = m_queue.front();
 	m_queue.pop();
 }
 
@@ -89,7 +86,7 @@ bool WaitableQueue<Q>::Pop(typename Q::reference element_,
 
 	if (status == true)
 	{
-		element_ = PeekFuncIMP(m_queue);
+		element_ = m_queue.front();
 		m_queue.pop();
 	}
 	
@@ -103,23 +100,6 @@ bool WaitableQueue<Q>::IsEmpty() const
 
 	return m_queue.empty();
 }
-
-template <typename Q>
-typename Q::value_type WaitableQueue<Q>::PeekFuncIMP(std::queue<typename Q::value_type> &queue)
-{
-	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
-
-	return queue.front();
-}
-
-template <typename Q>
-typename Q::value_type WaitableQueue<Q>::PeekFuncIMP(std::priority_queue<typename Q::value_type> &queue)
-{
-	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
-	
-	return queue.top();
-}
-
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd
 /*----------------------------------------------------------------------------*/
