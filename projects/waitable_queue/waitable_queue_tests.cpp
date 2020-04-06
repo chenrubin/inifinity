@@ -28,9 +28,30 @@ struct ThreadArgsSuper
     size_t arr_size;
 };
 
+class CompareFunc
+{
+public:
+    bool operator()(int num1, int num2) const;
+};
+
+class MyQueue : private std::priority_queue<int, std::vector<int>, CompareFunc>
+{
+public:
+    typedef int& reference;
+    typedef const int& const_reference;
+    using std::priority_queue<int, std::vector<int>, CompareFunc>::push;
+    using std::priority_queue<int, std::vector<int>, CompareFunc>::pop;
+    using std::priority_queue<int, std::vector<int>, CompareFunc>::empty;
+    
+    int front();
+
+private:
+};
+
 void TestPushPop();
 void TestPushPopWTimer();
 void TestPushPopSuper();
+void TestPushPQ();
 
 void *ThreadPushRoutineIMP(void *param);
 void *ThreadPopRoutineIMP(void *param);
@@ -43,6 +64,7 @@ int main()
     TestPushPop();
     TestPushPopWTimer();
     TestPushPopSuper(); 
+    TestPushPQ();
 
     return 0;
 }
@@ -208,6 +230,33 @@ void TestPushPopSuper()
     std::cout << "\n\n";
 }
 
+void TestPushPQ()
+{
+    WaitableQueue<MyQueue> *myWaitQueue = new WaitableQueue<MyQueue>;
+    int arr[] = {5,0,-6,25,19};
+
+    for (int i = 0; i < 5; ++i)
+    {
+        myWaitQueue->Push(arr[i]);
+    }
+
+    int element;
+    myWaitQueue->Pop(element);
+    PRINTTESTRESULTS("TestPushPQ",1, 25 == element);
+    myWaitQueue->Pop(element);
+    PRINTTESTRESULTS("TestPushPQ",1, 19 == element);
+    myWaitQueue->Pop(element);
+    PRINTTESTRESULTS("TestPushPQ",1, 5 == element);
+    myWaitQueue->Pop(element);
+    PRINTTESTRESULTS("TestPushPQ",1, 0 == element);
+    myWaitQueue->Pop(element);
+    PRINTTESTRESULTS("TestPushPQ",1, -6 == element);
+
+    delete myWaitQueue;
+
+    std::cout << "\n\n";
+}
+
 void *ThreadPushRoutineIMP(void *param)
 {
     ARGS->queue->Push(ARGS->element);
@@ -249,4 +298,14 @@ void *ThreadPopWTimerRoutineIMP(void *param)
     ARGS->queue->Pop(ARGS->element, ARGS->timeout);
 
     return (&(ARGS->element));
+}
+
+bool CompareFunc::operator()(int num1, int num2) const
+{
+    return (num1 < num2);
+}
+
+int MyQueue::front()
+{
+    return this->top();
 }
