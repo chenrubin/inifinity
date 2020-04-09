@@ -37,15 +37,24 @@ public:
     // memory leek is possible
     void Stop(boost::chrono::milliseconds endTime_);
 
-
+    // Set number of threads in thread pool. Can be changed in run_time
     void SetThreadsNum(size_t numOfThreads_);
+
+    // Get number of threads in thread pool
     size_t GetThreadsNum() const;
 
 private:
+    enum Extended_prio_t
+    {
+        EXT_OF_PRIORITIES = NUM_OF_PRIORITIES,
+        BAD_APPLE = 100,
+        Max_EXT_ENUM = 200
+    };
+
     class Task
     {
     public:
-        Task(boost::function<void(void)> func_, Priority_t priority_);
+        Task(boost::function<void(void)> func_, Extended_prio_t priority_);
         void InvokeFunction();
         static void BadApple(ThreadPool *this_);
 
@@ -55,21 +64,9 @@ private:
             bool operator()(Task task1_, Task task2_);
         };
 
-  /*      Class ExEnum()
-        {
-        public:    
-            ExEnum();
-            ~ExEnum();
-
-        private:
-            int m_enum;        
-        }
-    */
     private:
         boost::function<void(void)> m_func;
         int m_priority;
-
-     //   int ConvertPriority()
     };
 
     class MyQueue : private std::priority_queue<Task, 
@@ -91,12 +88,13 @@ private:
     void ThreadRoutineIMP();
     bool IsSizeMatchIMP(size_t size);
     void EmptyEntireQueueIMP();
+    void AddTaskIMP(boost::function<void(void)> func, 
+                    Extended_prio_t priority_);
 
     WaitableQueue<MyQueue> m_queue;
     boost::atomic<bool> m_IsRunning;
     std::map<boost::thread::id, boost::shared_ptr<boost::thread> > m_idThreadContainer;
-    mutable boost::recursive_mutex m_mutex;
-    //mutable boost::mutex m_mutex;
+    mutable boost::mutex m_mutex;
     boost::mutex m_mutex_pool;
     boost::condition_variable_any m_cond;
 };

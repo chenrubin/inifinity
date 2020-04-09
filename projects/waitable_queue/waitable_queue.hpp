@@ -10,7 +10,8 @@
 #include <boost/chrono.hpp>						// boost::chrono::milliseconds
 #include <boost/thread/condition_variable.hpp>	// boost::condition_variable_any
 #include <boost/bind.hpp>						// boost::bind()
-#include <queue>								
+#include <queue>		
+//#include <iostream>
 
 #include "MyUtils.hpp"				// class Uncopyable
 
@@ -27,16 +28,16 @@ public:
 	~WaitableQueue();
 
 	// pushes element int queue. No Exceptions
-	void Push(typename Q::const_reference element_) NOEXCEPT;
+	void Push(typename Q::const_reference element_);
 	
 	/*
 	*	Pops element from queue. waits until queue is not empty or until timeout
 	*	whichever comes first. No Exceptions
 	*/ 
-	bool Pop(typename Q::reference element_, boost::chrono::milliseconds timeout_) NOEXCEPT; // wait_for can throw exception
+	bool Pop(typename Q::reference element_, boost::chrono::milliseconds timeout_); // wait_for can throw exception
 	
 	// Pops element from queue. waits until queue is not empty. No Exceptions
-	void Pop(typename Q::reference element_) NOEXCEPT;
+	void Pop(typename Q::reference element_);
 
 	// returns whether queue is empty or not. No Exceptions
 	// throws according to lock
@@ -54,10 +55,12 @@ WaitableQueue<Q>::WaitableQueue()
 
 template <typename Q>
 WaitableQueue<Q>::~WaitableQueue()
-{}
+{
+	std::cout << "inside waitable Dtor\n";
+}
 
 template <typename Q>
-void WaitableQueue<Q>::Push(typename Q::const_reference element_) NOEXCEPT
+void WaitableQueue<Q>::Push(typename Q::const_reference element_)
 {
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 
@@ -66,7 +69,7 @@ void WaitableQueue<Q>::Push(typename Q::const_reference element_) NOEXCEPT
 }
 
 template <typename Q>
-void WaitableQueue<Q>::Pop(typename Q::reference element_) NOEXCEPT
+void WaitableQueue<Q>::Pop(typename Q::reference element_)
 { 
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	
@@ -77,7 +80,7 @@ void WaitableQueue<Q>::Pop(typename Q::reference element_) NOEXCEPT
 
 template <typename Q>
 bool WaitableQueue<Q>::Pop(typename Q::reference element_, 
-						   boost::chrono::milliseconds timeout_) NOEXCEPT
+						   boost::chrono::milliseconds timeout_)
 {
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	bool status = true;
