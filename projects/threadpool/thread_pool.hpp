@@ -27,22 +27,30 @@ public:
         NUM_OF_PRIORITIES
     };
 
-    explicit ThreadPool(size_t numOfThreads_ /* = default optimum number of threads from boost */);
+    // throw bad_alloc
+    explicit ThreadPool(size_t numOfThreads_ = 
+                        static_cast<size_t>(boost::thread::hardware_concurrency()));
+
+    // throw (boost::thread_interrupted) 
     ~ThreadPool();
 
     // throw bad_alloc
+    // Add tasks to threadpool, a function with its priority
     void AddTask(boost::function<void(void)> func, Priority_t priority_);
 
     // It is the user's responsibilty to choose an endTime long enough in order 
-    // for the current tasks to be over. Otherwise behavior is undifined and 
+    // for the current tasks to be over. Otherwise behavior is undefined and 
     // memory leek is possible
+    // user must not set timeout to less than 10 miliseconds
+    // throw (boost::thread_interrupted)
     void Stop(boost::chrono::milliseconds endTime_);
 
+    // throw bad_alloc
     // Set number of threads in thread pool. Can be changed in run_time
     void SetThreadsNum(size_t numOfThreads_);
 
     // Get number of threads in thread pool
-    size_t GetThreadsNum() const;
+    size_t GetThreadsNum() const NOEXCEPT;
 
 private:
     enum Extended_prio_t
@@ -57,29 +65,31 @@ private:
     public:
         Task(boost::function<void(void)> func_, Extended_prio_t priority_);
         void InvokeFunction();
-        static void BadApple(ThreadPool *this_);
-
-        class CompareFunc
-        {
-        public:
-            bool operator()(Task task1_, Task task2_);
-        };
+        //static void BadApple(ThreadPool *this_);
+        int GetPriority() const;
 
     private:
         boost::function<void(void)> m_func;
         int m_priority;
     };
 
+    class CompareFunc
+    {
+    public:
+        bool operator()(const Task &task1_, const Task &task2_);
+    };
+
     class MyQueue : private std::priority_queue<Task, 
                                                 std::vector<Task>, 
-                                                Task::CompareFunc>
+                                                CompareFunc>
     {
     public:
         typedef Task& reference;
         typedef const Task& const_reference;
-        using std::priority_queue<Task, std::vector<Task>, Task::CompareFunc>::push;
-        using std::priority_queue<Task, std::vector<Task>, Task::CompareFunc>::pop;
-        using std::priority_queue<Task, std::vector<Task>, Task::CompareFunc>::empty;
+        typedef std::priority_queue<Task, std::vector<Task>, CompareFunc> queue_t;
+        using queue_t::push;
+        using queue_t::pop;
+        using queue_t::empty;
 
         Task front();
     };    
@@ -91,12 +101,15 @@ private:
     void EmptyEntireQueueIMP();
     void AddTaskIMP(boost::function<void(void)> func, 
                     Extended_prio_t priority_);
+    /*static*/ void BadApple();                
 
+    const boost::chrono::milliseconds popTimeout;
+    const boost::chrono::milliseconds stopTimeout;
     WaitableQueue<MyQueue> m_queue;
     boost::atomic<bool> m_IsRunning;
     std::map<boost::thread::id, boost::shared_ptr<boost::thread> > m_idThreadContainer;
-    mutable boost::mutex m_mutex;
-    boost::mutex m_mutex_pool;
+    mutable boost::mutex m_containerMutex;
+    boost::mutex m_threadsMutex;
     boost::condition_variable_any m_cond;
 };
 

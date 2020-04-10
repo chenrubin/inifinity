@@ -15,10 +15,12 @@ namespace ilrd
 ThreadPool functions
 ------------------------------------------------------------------------------*/
 ThreadPool::ThreadPool(size_t numOfThreads_)
-    : m_queue()
+    : popTimeout(10)
+    , stopTimeout(60)
+    , m_queue()
     , m_IsRunning(true)
     , m_idThreadContainer()
-    , m_mutex()
+    , m_containerMutex()
     , m_cond()
 {
     IncreaseThreadNumIMP(numOfThreads_);
@@ -26,7 +28,7 @@ ThreadPool::ThreadPool(size_t numOfThreads_)
 
 ThreadPool::~ThreadPool()
 {    
-    boost::chrono::milliseconds mili(60);
+    boost::chrono::milliseconds mili(stopTimeout);
     Stop(mili);
 }
 
@@ -37,7 +39,7 @@ void ThreadPool::AddTask(boost::function<void(void)> func, Priority_t priority_)
 
 void ThreadPool::SetThreadsNum(size_t numOfThreads_)
 {
-    boost::unique_lock<boost::mutex> lock(m_mutex_pool);
+    boost::unique_lock<boost::mutex> lock(m_threadsMutex);
     size_t size = GetThreadsNum();
 
     if (numOfThreads_ >= size)
@@ -50,9 +52,10 @@ void ThreadPool::SetThreadsNum(size_t numOfThreads_)
     }
 }
 
-size_t ThreadPool::GetThreadsNum() const
+size_t ThreadPool::GetThreadsNum() const NOEXCEPT
 {
-    boost::unique_lock<boost::mutex> lock(m_mutex);
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
+
     return m_idThreadContainer.size();
 }
 
@@ -63,7 +66,7 @@ void ThreadPool::Stop(boost::chrono::milliseconds endTime_)
 
     std::map<boost::thread::id, boost::shared_ptr<boost::thread> >::iterator iter;
 
-    boost::unique_lock<boost::mutex> lock2(m_mutex);
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
     for (iter = m_idThreadContainer.begin(); 
          iter != m_idThreadContainer.end(); 
          ++iter)
@@ -72,13 +75,9 @@ void ThreadPool::Stop(boost::chrono::milliseconds endTime_)
     }
 }
 
-void ThreadPool::EmptyEntireQueueIMP()
+bool ThreadPool::CompareFunc::operator()(const Task &task1_, const Task &task2_)
 {
-    Task task(boost::bind(Task::BadApple, this), static_cast<Extended_prio_t>(LOW));
-    while (!m_queue.IsEmpty())
-    {
-        m_queue.Pop(task);
-    }
+    return (task1_.GetPriority() > task2_.GetPriority()) ? false : true;
 }
 
 void ThreadPool::DecreaseThreadNumIMP(size_t num)
@@ -87,10 +86,10 @@ void ThreadPool::DecreaseThreadNumIMP(size_t num)
     
     for (size_t i = 0; i < num; ++i)
     {
-        AddTaskIMP(boost::bind(Task::BadApple, this), BAD_APPLE);
+        AddTaskIMP(boost::bind(&ThreadPool::BadApple, this),  BAD_APPLE);
     }
 
-    boost::unique_lock<boost::mutex> lock(m_mutex);
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
     m_cond.wait(lock, boost::bind(&ThreadPool::IsSizeMatchIMP, this, size - num));
 }
 
@@ -104,33 +103,31 @@ void ThreadPool::IncreaseThreadNumIMP(size_t num)
     for (size_t i = 0; i < num; ++i)
     {
         boost::shared_ptr<boost::thread> thread_shared_ptr
-        (new boost::thread(boost::bind(&ThreadPool::ThreadRoutineIMP, this)));
+            (new boost::thread(boost::bind(&ThreadPool::ThreadRoutineIMP, this)));
 
-         m_idThreadContainer[thread_shared_ptr->get_id()] = thread_shared_ptr;
+        boost::unique_lock<boost::mutex> lock(m_containerMutex);
+        m_idThreadContainer[thread_shared_ptr->get_id()] = thread_shared_ptr;
     }
 }
 
 void ThreadPool::AddTaskIMP(boost::function<void(void)> func, 
                             Extended_prio_t priority_)
 {
-    Task task(func, priority_);
-    m_queue.Push(task);
+    m_queue.Push(Task(func, priority_));
 }
 
 void ThreadPool::ThreadRoutineIMP()
 {
-    Priority_t prio = LOW;
-    boost::function<void(void)> func;
-    boost::chrono::milliseconds timeout(10);
+    boost::function<void(void)> dummy_func;
 
     if (0 != pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL))
     {
         std::perror("pthread_setcanceltype");
     }
-    while (true == m_IsRunning.load())
+    while (m_IsRunning.load())
     {
-        Task task(func, static_cast<Extended_prio_t>(prio));
-        if (m_queue.Pop(task, timeout))
+        Task task(dummy_func, static_cast<Extended_prio_t>(LOW));
+        if (m_queue.Pop(task, boost::chrono::milliseconds(popTimeout)))
         {
             task.InvokeFunction();
         }
@@ -150,30 +147,28 @@ void ThreadPool::Task::InvokeFunction()
     m_func();
 }
 
-void ThreadPool::Task::BadApple(ThreadPool *this_)
+void ThreadPool::BadApple()
 {
-     boost::unique_lock<boost::mutex> lock(this_->m_mutex);
+     boost::unique_lock<boost::mutex> lock(m_containerMutex);
      boost::shared_ptr<boost::thread> temp_ptr = 
-     this_->m_idThreadContainer[boost::this_thread::get_id()];
+            m_idThreadContainer[boost::this_thread::get_id()];
 
-     this_->m_idThreadContainer.erase(boost::this_thread::get_id());
-     this_->m_cond.notify_one();
+     m_idThreadContainer.erase(boost::this_thread::get_id());
+     m_cond.notify_one();
      temp_ptr->interrupt();
     
     boost::this_thread::interruption_point();
 }
-/*-----------------------------------------------------------------------------
-Task compare functions
-------------------------------------------------------------------------------*/
-bool ThreadPool::Task::CompareFunc::operator()(Task task1_, Task task2_)
+
+int ThreadPool::Task::GetPriority() const
 {
-    return (task1_.m_priority > task2_.m_priority) ? false : true;
+    return m_priority;
 }
 /*-----------------------------------------------------------------------------
 MyQueue - Wrapper for waitable queue
 ------------------------------------------------------------------------------*/
 ThreadPool::Task ThreadPool::MyQueue::front()
 {
-    return this->top();
+    return top();
 }
 } // end of namespace ilrd
