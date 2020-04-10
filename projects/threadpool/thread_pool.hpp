@@ -1,6 +1,7 @@
 // Thread Pool - Header file
-// Last update: 2/4/2020
-// Author: 
+// Last update: 9/4/2020
+// Author: chen
+// Reviewer: Tsisana
 /*----------------------------------------------------------------------------*/
 #ifndef __THREAD_POOL_HPP__ 
 #define __THREAD_POOL_HPP__
