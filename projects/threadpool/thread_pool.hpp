@@ -16,6 +16,18 @@
 namespace ilrd
 {
 /*----------------------------------------------------------------------------*/
+/* ThreadPool class desiged for decrease the time of the creation and destroying
+ * threads in a program. With threadPool, one can create number of threads in 
+ * the beginning of the program and add tasks for them in runtime. The number of
+ * threads can also changed in runtime. Every added task should have priority 
+ * rate from type Priority_t. When ThreadPool not used anymore, the user should
+ * call the function Stop, Closing the program without it is unspecified and 
+ * could cause problems like memory-leaks and runtime-errors. */
+
+/* compile with:
+ * -lboost_chrono
+ * -lboost_thread
+ * -lboost_system */
 class ThreadPool: private Uncopyable
 {
 public:
