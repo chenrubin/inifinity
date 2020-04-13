@@ -15,8 +15,8 @@ class DriverProxy
 {
 public:
 	DriverProxy(Reactor *reactor_,
-			/*const*/ boost::function<void(const RequestPacketRead&)> onRead_, 
-            /*const*/ boost::function<void(const RequestPacketWrite&)> onWrite_);
+			boost::function<void(const RequestPacketRead&)> onRead_, 
+            boost::function<void(const RequestPacketWrite&)> onWrite_);
 	~DriverProxy();
 
 	void ReplyRead(const ReplyPacketRead& packet_);
@@ -24,13 +24,20 @@ public:
 
 private:
 	void OnRequestIMP(int fd_);
+
+	// once a key is pressed reactor stops
 	void ReactorStopTaskIMP(int fd_);
+	// Creates nbd fd for the device path
+	int InitilizeNbdFdIMP();
+	void NbdConnectionInitializerIMP(int fd, int sock);
 
     Reactor *m_reactor;
-	/*const*/ boost::function<void(const RequestPacketRead&)> m_onRead;
-	/*const*/ boost::function<void(const RequestPacketWrite&)> m_onWrite;
-	boost::thread m_thread;
-	int m_sock_pair[2];
+	boost::function<void(const RequestPacketRead&)> m_onRead;
+	boost::function<void(const RequestPacketWrite&)> m_onWrite;
+	boost::thread m_thread_run;
+	boost::thread m_thread_nbd;
+	int m_sockPair[2];
+	int m_nbdFd;
 };
 //------------------------------------------------------------------------------
 } // namespace ilrd
