@@ -28,8 +28,7 @@ ThreadPool::ThreadPool(size_t numOfThreads_)
 
 ThreadPool::~ThreadPool()
 {    
-    boost::chrono::milliseconds mili(stopTimeout);
-    Stop(mili);
+    Stop(stopTimeout);
 }
 
 void ThreadPool::AddTask(boost::function<void(void)> func, Priority_t priority_)
@@ -86,7 +85,7 @@ void ThreadPool::DecreaseThreadNumIMP(size_t num)
     
     for (size_t i = 0; i < num; ++i)
     {
-        AddTaskIMP(boost::bind(&ThreadPool::BadApple, this),  BAD_APPLE);
+        AddTaskIMP(boost::bind(&ThreadPool::BadAppleIMP, this),  BAD_APPLE);
     }
 
     boost::unique_lock<boost::mutex> lock(m_containerMutex);
@@ -127,11 +126,24 @@ void ThreadPool::ThreadRoutineIMP()
     while (m_IsRunning.load())
     {
         Task task(dummy_func, static_cast<Extended_prio_t>(LOW));
-        if (m_queue.Pop(task, boost::chrono::milliseconds(popTimeout)))
+        if (m_queue.Pop(task, popTimeout))
         {
             task.InvokeFunction();
         }
     }
+}
+
+void ThreadPool::BadAppleIMP()
+{
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
+    boost::shared_ptr<boost::thread> temp_ptr = 
+            m_idThreadContainer[boost::this_thread::get_id()];
+
+    m_idThreadContainer.erase(boost::this_thread::get_id());
+    m_cond.notify_one();
+    temp_ptr->interrupt();
+    
+    boost::this_thread::interruption_point();
 }
 /*-----------------------------------------------------------------------------
 Task functions
@@ -145,19 +157,6 @@ ThreadPool::Task::Task(boost::function<void(void)> func_,
 void ThreadPool::Task::InvokeFunction()
 {
     m_func();
-}
-
-void ThreadPool::BadApple()
-{
-     boost::unique_lock<boost::mutex> lock(m_containerMutex);
-     boost::shared_ptr<boost::thread> temp_ptr = 
-            m_idThreadContainer[boost::this_thread::get_id()];
-
-     m_idThreadContainer.erase(boost::this_thread::get_id());
-     m_cond.notify_one();
-     temp_ptr->interrupt();
-    
-    boost::this_thread::interruption_point();
 }
 
 int ThreadPool::Task::GetPriority() const

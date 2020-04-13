@@ -65,7 +65,6 @@ private:
     public:
         Task(boost::function<void(void)> func_, Extended_prio_t priority_);
         void InvokeFunction();
-        //static void BadApple(ThreadPool *this_);
         int GetPriority() const;
 
     private:
@@ -79,14 +78,13 @@ private:
         bool operator()(const Task &task1_, const Task &task2_);
     };
 
-    class MyQueue : private std::priority_queue<Task, 
-                                                std::vector<Task>, 
-                                                CompareFunc>
+    typedef std::priority_queue<Task, std::vector<Task>, CompareFunc> queue_t;
+    class MyQueue : private queue_t
     {
     public:
         typedef Task& reference;
         typedef const Task& const_reference;
-        typedef std::priority_queue<Task, std::vector<Task>, CompareFunc> queue_t;
+        
         using queue_t::push;
         using queue_t::pop;
         using queue_t::empty;
@@ -101,7 +99,7 @@ private:
     void EmptyEntireQueueIMP();
     void AddTaskIMP(boost::function<void(void)> func, 
                     Extended_prio_t priority_);
-    /*static*/ void BadApple();                
+    void BadAppleIMP();                
 
     const boost::chrono::milliseconds popTimeout;
     const boost::chrono::milliseconds stopTimeout;

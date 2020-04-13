@@ -80,7 +80,7 @@ void Reactor::RemoveFd(int fd_, type_t type_)
 
 void Reactor::RemoveAllMarkedElementsIMP()
 {
-    std::cout << "remove all\n";
+ //   std::cout << "remove all\n";
     for (int i = 0; i < NUM_OF_TYPES; ++i)
     {
         std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
@@ -89,6 +89,7 @@ void Reactor::RemoveAllMarkedElementsIMP()
         {
             if (it->second == DummyCallback1IMP)
             {
+                std::cout << "inside if about to erase\n";
                 it = fd_types[i].erase(it);
                 --it;
             }
@@ -99,11 +100,11 @@ void Reactor::RemoveAllMarkedElementsIMP()
 Reactor::error_t Reactor::Run()
 {
     fd_set fdset_arr[NUM_OF_TYPES];
-   int maxSockId = 0;
-size_t counter = 1;
+    int maxSockId = 0;
+
     while (!m_stop)
     {
-        
+ //       std::cout << "inside wile m_stop = " << m_stop << "\n";
         maxSockId = GetMaxSocketIMP();
 
         FD_ZERO(&fdset_arr[0]);
@@ -118,27 +119,30 @@ size_t counter = 1;
 
         for (int i = 0; i < NUM_OF_TYPES; ++i)
         {
-            std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
-std::vector<std::pair<int, boost::function<void(int)> > >::iterator end = fd_types[i].end();
+            std::vector<std::pair<int, boost::function<void(int)> > >::
+                                                                iterator it;
+            std::vector<std::pair<int, boost::function<void(int)> > >::
+                                        iterator end = fd_types[i].end();
             for (it = fd_types[i].begin(); it < end; ++it)
             {
                 if (FD_ISSET(it->first, &fdset_arr[i]))
                 {
                     it->second(it->first);
-                //    InvokeHandlerIMP((type_t)i, it->first);
                 }
             }
         }
 
         RemoveAllMarkedElementsIMP();
- }
+    }
    
     return SUCCESS;
 }
 
 void Reactor::Stop()
 {
+    std::cout << "inside stop before changing flag , m_stop = " << m_stop << "\n";
     m_stop = true;
+    std::cout << "inside stop after changing flag , m_stop = " << m_stop << "\n";
 }
 
 void Reactor::InvokeHandlerIMP(Reactor::type_t type, int sockFd)
