@@ -80,7 +80,6 @@ void Reactor::RemoveFd(int fd_, type_t type_)
 
 void Reactor::RemoveAllMarkedElementsIMP()
 {
- //   std::cout << "remove all\n";
     for (int i = 0; i < NUM_OF_TYPES; ++i)
     {
         std::vector<std::pair<int, boost::function<void(int)> > >::iterator it;
@@ -104,19 +103,18 @@ Reactor::error_t Reactor::Run()
 
     while (!m_stop)
     {
- //       std::cout << "inside wile m_stop = " << m_stop << "\n";
         maxSockId = GetMaxSocketIMP();
 
         FD_ZERO(&fdset_arr[0]);
         FD_ZERO(&fdset_arr[1]);
         FD_ZERO(&fdset_arr[2]);
         UpdateFdSetsIMP(&fdset_arr[0], &fdset_arr[1], &fdset_arr[2]);
-       
+        std::cout << "before select\n";
         if (-1 == select(maxSockId + 1, &fdset_arr[0], &fdset_arr[1], &fdset_arr[2], NULL))
         {
             return (SelectHandlerIMP(errno));
         }
-
+        std::cout << "after select\n";
         for (int i = 0; i < NUM_OF_TYPES; ++i)
         {
             std::vector<std::pair<int, boost::function<void(int)> > >::
@@ -128,6 +126,9 @@ Reactor::error_t Reactor::Run()
                 if (FD_ISSET(it->first, &fdset_arr[i]))
                 {
                     it->second(it->first);
+                    /* added recently but sure about it */ 
+                    RemoveFd(it->first, static_cast<type_t>(i));
+                    /**/
                 }
             }
         }

@@ -2,7 +2,8 @@
 #define __DRIVER_PROXY__
 
 #include <boost/function.hpp>			// boost::function
-#include <boost/thread.hpp>			// boost::thread
+#include <boost/thread.hpp>				// boost::thread
+#include <linux/nbd.h>          		// nbd_request, nbd_reply
 
 #include "../../cpp_fs/ws/reactor/reactor.hpp" 					// for class Reactor
 #include "proxy_packet.hpp" 			// for ReplyPacket, RequestPacket
@@ -23,13 +24,31 @@ public:
 	void ReplyWrite(const ReplyPacketWrite& packet_);
 
 private:
+	// When proxy recieves nbd request packet it determines whether it is 
+	// read or write. According to the type it creates the appropriate
+	// request to the master 
+	// throw bad_alloc
 	void OnRequestIMP(int fd_);
 
 	// once a key is pressed reactor stops
 	void ReactorStopTaskIMP(int fd_);
 	// Creates nbd fd for the device path
-	int InitilizeNbdFdIMP();
+	int CreateNbdFdIMP();
+	// Creates nbd clocking connection
 	void NbdConnectionInitializerIMP(int fd, int sock);
+	void CreateRequestPacketWriteIMP(int fd, RequestPacketWrite *packet, 
+								  	 const nbd_request *nbdPacket);
+	void CreateRequestPacketReadIMP(RequestPacketRead *packet, 
+								 	const nbd_request *nbdPacket);
+	void CreateReplyPacketWriteIMP(struct nbd_reply *nbdReply, 
+								   const ReplyPacketWrite *packet_);
+	void CreateReplyPacketReadIMP(struct nbd_reply *nbdReply, 
+								  const ReplyPacketRead *packet_);
+	// Insert data ('len' length) from buff into src 
+	// one char at a time							 
+	void InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
+									   size_t len, 
+									   char *buff);
 
     Reactor *m_reactor;
 	boost::function<void(const RequestPacketRead&)> m_onRead;
@@ -59,7 +78,7 @@ private:
 
 // nbd-proxy protocol
 /*
-struct nbd_request {
+struct nbd_request { // this packet is sent from nbd to proxy
 	__be32 magic;
 	__be32 type;	// == READ || == WRITE
 	char handle[8];
@@ -67,7 +86,7 @@ struct nbd_request {
 	__be32 len;
 } __attribute__((packed));
 
-struct nbd_reply {
+struct nbd_reply { // this packet is sent from proxy to nbd
 	__be32 magic;
 	__be32 error;		// 0 = ok, else error
 	char handle[8];		// handle you got from request
