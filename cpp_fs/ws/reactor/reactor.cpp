@@ -103,12 +103,16 @@ Reactor::error_t Reactor::Run()
 
     while (!m_stop)
     {
+        std::cout << "start of while in reactor\n";
         maxSockId = GetMaxSocketIMP();
 
         FD_ZERO(&fdset_arr[0]);
         FD_ZERO(&fdset_arr[1]);
         FD_ZERO(&fdset_arr[2]);
         UpdateFdSetsIMP(&fdset_arr[0], &fdset_arr[1], &fdset_arr[2]);
+        static size_t counter = 0;
+        ++counter;
+        std::cout << "counter = " << counter << "\n";
         std::cout << "before select\n";
         if (-1 == select(maxSockId + 1, &fdset_arr[0], &fdset_arr[1], &fdset_arr[2], NULL))
         {
@@ -126,14 +130,15 @@ Reactor::error_t Reactor::Run()
                 if (FD_ISSET(it->first, &fdset_arr[i]))
                 {
                     it->second(it->first);
-                    /* added recently but sure about it */ 
-                    RemoveFd(it->first, static_cast<type_t>(i));
+                    /* added recently but not sure about it */ 
+                    //RemoveFd(it->first, static_cast<type_t>(i));
                     /**/
                 }
             }
         }
-
+        std::cout << "before remove all elements\n";
         RemoveAllMarkedElementsIMP();
+        std::cout << "after remove all elements\n";
     }
    
     return SUCCESS;

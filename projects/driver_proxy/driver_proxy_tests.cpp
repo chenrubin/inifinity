@@ -2,6 +2,8 @@
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <iostream>
+#include <functional>           /* placeholders */
+	
 
 #include "reactor.hpp"
 #include "driver_proxy.hpp"
@@ -18,24 +20,23 @@ Reactor rctr;
 class Master
 {
 public:
-    explicit Master(Reactor *reactor_/*, DriverProxy *proxy_*/);
+    explicit Master(Reactor *reactor_);
     ~Master();
 
-    static void onRead(const RequestPacketRead& packet_);
-    static void onWrite(const RequestPacketRead& packet_);
+    void onRead(const RequestPacketRead& packet_);
+    void onWrite(const RequestPacketWrite& packet_);
 
 private:
     Reactor *m_reactor;
-    static DriverProxy *m_proxy;
-    static char m_buffer[BLOCK_SIZE];
+    DriverProxy m_proxy;
+    char m_buffer[BLOCK_SIZE * 128];
 };
 
-Master::Master(Reactor *reactor_/*, DriverProxy *proxy_*/)
+Master::Master(Reactor *reactor_)
     : m_reactor(reactor_)
- //   , m_proxy(proxy_)
-//    , m_buffer("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    , m_proxy(m_reactor, boost::bind(&Master::onRead, this, _1), boost::bind(&Master::onWrite, this, _1))
 {
-    m_proxy(m_reactor, onRead, onWrite);
+   strcpy(m_buffer, "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }
 
 Master::~Master()
@@ -51,8 +52,8 @@ int main()
 void TestCtorDtor()
 {
 //    rctr.AddFd(60, rctr.WRITE, Callback);
-    DriverProxy dp(&rctr, Master::onRead, Master::onWrite);
-    Master master(&rctr, &dp);
+ //   DriverProxy dp(&rctr, Master::onRead, Master::onWrite);
+    Master master(&rctr);
 }
 
 void Callback(int fd)
@@ -63,21 +64,33 @@ void Callback(int fd)
 void Master::onRead(const RequestPacketRead& pk)
 {
     std::cout << "onRead function\n";
-    assert(pk.offset < BLOCK_SIZE);
-    assert(pk.len < BLOCK_SIZE - pk.offset);
 
     struct ReplyPacketRead packet;
 
     packet.uid = pk.uid;
     packet.len = pk.len;
     packet.status = 0;
+    std::cout << "offset = " << pk.offset << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    std::cout << "len = " << pk.len << "\n";
+    std::copy(m_buffer + pk.offset, m_buffer + pk.offset + pk.len, back_inserter(packet.data));
+    std::vector<char>::iterator iter;
+    std::cout << "vector size = " << packet.data.size() << "\n";
+    std::cout << "buffer = " << m_buffer << "\n";
 
-    std::copy(packet.data.begin(), packet.data.end(), m_buffer + pk.offset); 
-
-    m_proxy->ReplyRead(packet);
+    m_proxy.ReplyRead(packet);
+    std::cout << "end of onRead after m_proxy.ReplyRead(packet);\n";
 }
 
 void Master::onWrite(const RequestPacketWrite& pk)
 {
     std::cout << "onWrite function\n";
+
+     struct ReplyPacketWrite packet;
+
+     packet.uid = pk.uid;
+     packet.len = pk.len;
+     packet.status = 0;
+
+     m_proxy.ReplyWrite(packet);
+      std::cout << "end of onWrite function\n";
 }
