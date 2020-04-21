@@ -3,6 +3,8 @@
 #include <sys/socket.h>
 #include <iostream>
 #include <functional>           /* placeholders */
+
+#include "logger.hpp"
 	
 
 #include "reactor.hpp"
@@ -11,9 +13,6 @@
 #define BLOCK_SIZE 4096
 
 using namespace ilrd;
-//void onRead(const RequestPacketRead& pk);
-//void onWrite(const RequestPacketWrite& pk);
-void Callback(int fd);
 
 Reactor rctr;
 
@@ -36,7 +35,8 @@ Master::Master(Reactor *reactor_)
     : m_reactor(reactor_)
     , m_proxy(m_reactor, boost::bind(&Master::onRead, this, _1), boost::bind(&Master::onWrite, this, _1))
 {
-   strcpy(m_buffer, "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    memset(m_buffer, 0, BLOCK_SIZE * 128);
+    strcpy(m_buffer, "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }
 
 Master::~Master()
@@ -51,14 +51,10 @@ int main()
 
 void TestCtorDtor()
 {
-//    rctr.AddFd(60, rctr.WRITE, Callback);
- //   DriverProxy dp(&rctr, Master::onRead, Master::onWrite);
+    //int status = setenv("LOGGER_FILE", "/home/chenr/git/projects/driver_proxy/logger.txt", 1);
+    //std::cout << "status !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!= " << status << "\n";
+    //LOG_DEBUG("Inside OnRequestIMP");
     Master master(&rctr);
-}
-
-void Callback(int fd)
-{
-    std::cout << "callback\n";
 }
 
 void Master::onRead(const RequestPacketRead& pk)
@@ -70,12 +66,13 @@ void Master::onRead(const RequestPacketRead& pk)
     packet.uid = pk.uid;
     packet.len = pk.len;
     packet.status = 0;
+    std::cout << "buffer size = " << sizeof(m_buffer) << "\n";
     std::cout << "offset = " << pk.offset << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     std::cout << "len = " << pk.len << "\n";
     std::copy(m_buffer + pk.offset, m_buffer + pk.offset + pk.len, back_inserter(packet.data));
     std::vector<char>::iterator iter;
     std::cout << "vector size = " << packet.data.size() << "\n";
-    std::cout << "buffer = " << m_buffer << "\n";
+//    std::cout << "buffer = " << m_buffer << "\n";
 
     m_proxy.ReplyRead(packet);
     std::cout << "end of onRead after m_proxy.ReplyRead(packet);\n";
@@ -85,12 +82,12 @@ void Master::onWrite(const RequestPacketWrite& pk)
 {
     std::cout << "onWrite function\n";
 
-     struct ReplyPacketWrite packet;
+    struct ReplyPacketWrite packet;
 
-     packet.uid = pk.uid;
-     packet.len = pk.len;
-     packet.status = 0;
+    packet.uid = pk.uid;
+    packet.len = pk.len;
+    packet.status = 0;
 
-     m_proxy.ReplyWrite(packet);
-      std::cout << "end of onWrite function\n";
+    m_proxy.ReplyWrite(packet);
+    std::cout << "end of onWrite function\n";
 }

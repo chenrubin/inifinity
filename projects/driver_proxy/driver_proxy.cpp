@@ -6,6 +6,7 @@
 
 #include "driver_proxy.hpp"
 #include "MyUtils.hpp"          // HandleErrorIfExists
+#include "logger.hpp"           // //LOG_DEBUG...
 
 #define STDIN (0)
 
@@ -31,24 +32,12 @@ DriverProxy::DriverProxy(Reactor *reactor_,
     , m_sockPair()
     , m_nbdFd(CreateNbdFdIMP())
 {
-
+    setenv("LOGGER_FILE", "/home/chenr/git/projects/driver_proxy/logger.txt", 1);
     HandleErrorIfExists(0 == socketpair(AF_UNIX, SOCK_STREAM, 0, m_sockPair) ? 
                         0 : -1, "create socket pair");
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_BLKSIZE, 4096), 
-                        "Failed to set blockSize");
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_SIZE_BLOCKS, 128), 
-                        "Failed to set num of blocks");
-    m_reactor->AddFd(m_sockPair[0], 
-                     m_reactor->READ ,
-                     boost::bind(&DriverProxy::OnRequestIMP, this, m_sockPair[0]));
-    /* m_reactor->AddFd(m_sockPair[0], 
-                     m_reactor->WRITE ,
-                     boost::bind(&DriverProxy::OnRequestIMP, this, m_sockPair[0]));                 
-      */              
- /*   m_reactor->AddFd(STDIN, 
-                     m_reactor->READ ,
-                     boost::bind(&DriverProxy::ReactorStopTaskIMP, this, STDIN));*/
-    //m_thread = boost::thread(boost::bind(&Reactor::Run, m_reactor)); 
+    ConfigureNbdSizeIMP();
+    AddFdsToReactorIMP();                   
+
     m_thread_nbd = boost::thread(&DriverProxy::NbdConnectionInitializerIMP, 
                                  this, 
                                  m_nbdFd, 
@@ -58,7 +47,6 @@ DriverProxy::DriverProxy(Reactor *reactor_,
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 DriverProxy::~DriverProxy()
 {
-    m_reactor = NULL;
     m_thread_run.join();
     m_thread_nbd.join();
     close(m_sockPair[0]);
@@ -68,29 +56,33 @@ DriverProxy::~DriverProxy()
 void DriverProxy::ReplyRead(const ReplyPacketRead& packet_)
 {
     struct nbd_reply nbdReply;
-    std::cout << "inside reply read\n";
+    //LOG_DEBUG("inside reply read");
 
     CreateReplyPacketReadIMP(&nbdReply, &packet_);
     WriteAllIMP(m_sockPair[0], (char *)&nbdReply, sizeof(nbdReply));
+#if NDEBUG
     std::cout << "inside reply read vectro size = " << packet_.data.size() << "\n";
-    WriteAllIMP(m_sockPair[0], (char *)&packet_.data[0], packet_.data.size());
-    std::cout << "After reply read\n";
+#endif
+    std::cout << "before writeall packet.len = " << packet_.len << "\n";
+    WriteAllIMP(m_sockPair[0], (char *)&packet_.data[0], packet_.len);
+    //LOG_DEBUG("end of reply read");
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::ReplyWrite(const ReplyPacketWrite& packet_)
 {
     struct nbd_reply nbdReply;
-    std::cout << "inside reply write\n";
+    //LOG_DEBUG("inside ReplyWrite");
 
     CreateReplyPacketWriteIMP(&nbdReply, &packet_);
     WriteAllIMP(m_sockPair[0], (char *)&nbdReply, sizeof(nbdReply));
-    std::cout << "end of ReplyWrite\n";
+
+    //LOG_DEBUG("end of ReplyWrite");
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::CreateReplyPacketReadIMP(struct nbd_reply *nbdReply, 
 								          const ReplyPacketRead *packet_)
 {
-    std::cout << "inside CreateReplyPacketReadIMP\n";
+    //LOG_DEBUG("inside CreateReplyPacketReadIMP");
     nbdReply->magic = htonl(NBD_REPLY_MAGIC);
     nbdReply->error = packet_->status;
     ReverseEndianessIMP2(&nbdReply->error);
@@ -100,7 +92,7 @@ void DriverProxy::CreateReplyPacketReadIMP(struct nbd_reply *nbdReply,
 void DriverProxy::CreateReplyPacketWriteIMP(struct nbd_reply *nbdReply, 
 								            const ReplyPacketWrite *packet_)
 {
-    std::cout << "inside CreateReplyPacketWritreIMP\n";
+    //LOG_DEBUG("inside CreateReplyPacketWritreIMP");
     nbdReply->magic = htonl(NBD_REPLY_MAGIC);
     nbdReply->error = packet_->status;
     ReverseEndianessIMP2(&nbdReply->error);
@@ -110,89 +102,52 @@ void DriverProxy::CreateReplyPacketWriteIMP(struct nbd_reply *nbdReply,
 void DriverProxy::OnRequestIMP(int fd_)
 {
     size_t bytes_read = 0;
-    std::cout << "OnRequestIMP\n";
+    std::cout << "std::cout inside OnRequestIMP before logger\n";
+    LOG_DEBUG("Inside OnRequestIMP");
+    std::cout << "std::cout inside OnRequestIMP After logger\n";
     struct nbd_request nbdRequest;
 
- //   while ((bytes_read = read(fd_, &nbdRequest, sizeof(nbdRequest))) > 0)
-   std::cout << "fd = " << fd_ << "\n";
-    int moshe = read(fd_, &nbdRequest, sizeof(nbdRequest));
- /*   std::cout << "moshe = " << moshe << "\n";
-    if (moshe == -1)
-    {
-        perror("moshe error");
-    }
-*/
-    {
-        std::cout << "bytes_read = " << bytes_read << "\n";
-     /*   HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
+    read(fd_, &nbdRequest, sizeof(nbdRequest));
+    HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
                             0 : -1, "Request magic number is illegal");
-        std::cout << "Inside while of onRequest\n";
-        int type = htonl(nbdRequest.type);
-        std::cout << "type = " << type << "\n";
-        switch (type)
-        {
-            case NBD_CMD_WRITE:
-            {
-                std::cout << "Inside NBD_CMD_WRITE\n";
-                RequestPacketWrite reqWrite;
-                CreateRequestPacketWriteIMP(fd_, &reqWrite, &nbdRequest);
-                m_onWrite(reqWrite);
-                std::cout << "Inside NBD_CMD_WRITE before bvreak\n";
-                break;
-            }
-            default:
-            {
-                std::cout << "Inside default\n";
-                RequestPacketRead reqRead;
-                CreateRequestPacketReadIMP(&reqRead, &nbdRequest);
-                m_onRead(reqRead);
-                std::cout << "Inside default before break\n";
-                break;
-            }
-        }*/
+    int type = htonl(nbdRequest.type);
 
-        
-    }
-    std::cout << "after while of onRequest\n";
-/**/
-     HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
-                            0 : -1, "Request magic number is illegal");
-        std::cout << "Inside while of onRequest\n";
-        int type = htonl(nbdRequest.type);
-        std::cout << "type = " << type << "\n";
-        switch (type)
+    switch (type)
+    {
+        case NBD_CMD_WRITE:
         {
-            case NBD_CMD_WRITE:
-            {
-                std::cout << "Inside NBD_CMD_WRITE\n";
-                RequestPacketWrite reqWrite;
-                CreateRequestPacketWriteIMP(fd_, &reqWrite, &nbdRequest);
-                m_onWrite(reqWrite);
-                std::cout << "Inside NBD_CMD_WRITE before bvreak\n";
-                break;
-            }
-            case NBD_CMD_READ:
-            {
-                std::cout << "Inside NBD_CMD_READ\n";
-                RequestPacketRead reqRead;
-                CreateRequestPacketReadIMP(&reqRead, &nbdRequest);
-                m_onRead(reqRead);
-                std::cout << "Inside default before break\n";
-                break;
-            }
+            //LOG_DEBUG("Inside NBD_CMD_WRITE");
+            RequestPacketWrite reqWrite;
+            CreateRequestPacketWriteIMP(fd_, &reqWrite, &nbdRequest);
+            m_onWrite(reqWrite);
+            break;
         }
-        std::cout << "outside switch case\n";
-  /**/      
+        case NBD_CMD_READ:
+        {
+            //LOG_DEBUG("Inside NBD_CMD_READ");
+            RequestPacketRead reqRead;
+            CreateRequestPacketReadIMP(&reqRead, &nbdRequest);
+            m_onRead(reqRead);
+            break;
+        }
+        case NBD_CMD_DISC:
+        {
+            //LOG_DEBUG("Inside NBD_CMD_DISC");
+            m_reactor->RemoveFd(m_sockPair[0], m_reactor->READ);
+            close(m_sockPair[0]);
+            break;
+        }
+    } 
 
     HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
-    std::cout << "afterhandlke errorrsz\n";
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::CreateRequestPacketReadIMP(RequestPacketRead *packet, 
                                              const nbd_request *nbdPacket)
 {
+    //LOG_DEBUG("Inside CreateRequestPacketReadIMP");
     memcpy(&packet->uid, &nbdPacket->handle, sizeof(uint64_t));
-    packet->offset = nbdPacket->from; // need to convert from to offset char char
+    packet->offset = nbdPacket->from;
     ReverseEndianessIMP1(&packet->offset);
     packet->len = htonl(nbdPacket->len);
 }
@@ -201,59 +156,48 @@ void DriverProxy::CreateRequestPacketWriteIMP(int fd,
                                               RequestPacketWrite *packet,
                                               const nbd_request *nbdPacket)
 {
-    std::cout << "Inside CreateRequestPacketWriteIMP\n";
+    //LOG_DEBUG("Inside CreateRequestPacketWriteIMP");
     size_t bytes_read = 0;
-
     memcpy(&packet->uid, &nbdPacket->handle, sizeof(uint64_t));
-    packet->offset = nbdPacket->from; // need to convert from to offset char char
+    packet->offset = nbdPacket->from;
     ReverseEndianessIMP1(&packet->offset);
     packet->len = htonl(nbdPacket->len);
 
-    char *buff = new char[nbdPacket->len];
+    char *buff = new char[packet->len];
     boost::shared_ptr<char> buff_ptr(buff);
 
-    //while ((bytes_read = read(fd, buff_ptr.get(), packet->len)) > 0)
     read(fd, buff_ptr.get(), packet->len);
-    {
-        InsertDataChunkToReqPacketIMP(&packet->data, bytes_read, buff_ptr.get());
-    }
+    InsertDataChunkToReqPacketIMP(&packet->data, bytes_read, buff_ptr.get());
     
     HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
-    std::cout << "end f CreateRequestPacketWriteIMP\n";
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
 									            size_t len, 
 									            char *buff)
 {
-    std::cout << "Inside InsertDataChunkToReqPacketIMP\n";
+    //LOG_DEBUG("Inside InsertDataChunkToReqPacketIMP");
     for (size_t i = 0; i < len; ++i)
     {
         src->push_back(buff[i]);
     }
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/*void DriverProxy::PopDataChunkFromRepPacketIMP(char *buff, 
-                                               size_t len, 
-                                               std::vector<char> *src)
+void DriverProxy::DisconnectSystemIMP(int fd_)
 {
-    for (size_t i = 0; i < len; ++i)
-    {
-
-        src->push_back(buff[i]);
-    }
-}*/
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void DriverProxy::ReactorStopTaskIMP(int fd_)
-{
-    std::cout << "inside ReactorStopTaskIMP\n";
-    char buff[10];
+    //LOG_DEBUG("inside DisconnectSystemIMP");
+    char buff[20];
     fgets(buff, sizeof(buff), stdin);
     if (0 == strcmp(buff, "stop\n"))
     {
-        std::cout << "Inside strcmp\n";
+        //LOG_DEBUG("inside stop");
         m_reactor->Stop();
-        std::cout << "Inside strcmp after stop\n";
+    }
+    else if (0 == strcmp(buff, "disconnect\n"))
+    {
+        //LOG_DEBUG("inside disconnect");
+        HandleErrorIfExists(ioctl(m_nbdFd, NBD_DISCONNECT), 
+                                  "Failed to Disconnect from nbd");
     }
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -269,8 +213,29 @@ void DriverProxy::NbdConnectionInitializerIMP(int fd, int sock)
 {
     HandleErrorIfExists(ioctl(fd, NBD_SET_SOCK, sock), "nbd set socket failed");
     HandleErrorIfExists(ioctl(fd, NBD_DO_IT), "nbd do it failed");
+
+    HandleErrorIfExists(ioctl(fd, NBD_CLEAR_QUE), "failed to Clear queue"); 
+    HandleErrorIfExists(ioctl(fd, NBD_CLEAR_SOCK), "failed to clear sock"); 
+}
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void DriverProxy::AddFdsToReactorIMP()
+{
+    m_reactor->AddFd(m_sockPair[0], 
+                     m_reactor->READ ,
+                     boost::bind(&DriverProxy::OnRequestIMP, this, m_sockPair[0]));
+            
+    m_reactor->AddFd(STDIN, 
+                     m_reactor->READ ,
+                     boost::bind(&DriverProxy::DisconnectSystemIMP, this, STDIN));
 }
 
+void DriverProxy::ConfigureNbdSizeIMP()
+{
+    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_BLKSIZE, 4096), 
+                              "Failed to set blockSize");
+    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_SIZE_BLOCKS, 128), 
+                        "Failed to set num of blocks");
+}
 /******************************************************************************
             Auxilary functions outside of class DriverProxy
 ******************************************************************************/
@@ -279,6 +244,7 @@ void WriteAllIMP(int fd, char *buff, size_t count)
     size_t bytes_written = 0;
     while (count > 0)
     {
+    //    std::cout << "buf = " << buff << "\n";
         bytes_written = write(fd, buff, count);
         HandleErrorIfExists(bytes_written, "Failed to write to buffer");
         buff += bytes_written;

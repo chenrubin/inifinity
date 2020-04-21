@@ -103,6 +103,7 @@ Reactor::error_t Reactor::Run()
 
     while (!m_stop)
     {
+        std::cout << "m_stop = " << m_stop << "\n";
         std::cout << "start of while in reactor\n";
         maxSockId = GetMaxSocketIMP();
 
@@ -127,9 +128,12 @@ Reactor::error_t Reactor::Run()
                                         iterator end = fd_types[i].end();
             for (it = fd_types[i].begin(); it < end; ++it)
             {
+                std::cout << "inside for\n";
                 if (FD_ISSET(it->first, &fdset_arr[i]))
                 {
+                    std::cout << "inside if before\n";
                     it->second(it->first);
+                    std::cout << "inside if after\n";
                     /* added recently but not sure about it */ 
                     //RemoveFd(it->first, static_cast<type_t>(i));
                     /**/

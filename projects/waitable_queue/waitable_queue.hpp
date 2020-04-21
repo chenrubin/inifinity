@@ -51,7 +51,9 @@ private:
 
 template <typename Q>
 WaitableQueue<Q>::WaitableQueue()
-{}
+{
+	std::cout << "Inside Waitable queueu ctor\n";
+}
 
 template <typename Q>
 WaitableQueue<Q>::~WaitableQueue()

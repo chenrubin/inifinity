@@ -20,6 +20,8 @@ public:
             boost::function<void(const RequestPacketWrite&)> onWrite_);
 	~DriverProxy();
 
+	// recieves reply packet from master, converts it to reply packet to nbd
+	// ands sends it to nbd
 	void ReplyRead(const ReplyPacketRead& packet_);
 	void ReplyWrite(const ReplyPacketWrite& packet_);
 
@@ -31,15 +33,19 @@ private:
 	void OnRequestIMP(int fd_);
 
 	// once a key is pressed reactor stops
-	void ReactorStopTaskIMP(int fd_);
+	void DisconnectSystemIMP(int fd_);
 	// Creates nbd fd for the device path
 	int CreateNbdFdIMP();
 	// Creates nbd clocking connection
 	void NbdConnectionInitializerIMP(int fd, int sock);
+
+	// Proxy creates reply packet write before sending it to master
 	void CreateRequestPacketWriteIMP(int fd, RequestPacketWrite *packet, 
 								  	 const nbd_request *nbdPacket);
 	void CreateRequestPacketReadIMP(RequestPacketRead *packet, 
 								 	const nbd_request *nbdPacket);
+
+	// MAster creates reply packet before sending it to proxy								 
 	void CreateReplyPacketWriteIMP(struct nbd_reply *nbdReply, 
 								   const ReplyPacketWrite *packet_);
 	void CreateReplyPacketReadIMP(struct nbd_reply *nbdReply, 
@@ -49,6 +55,10 @@ private:
 	void InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
 									   size_t len, 
 									   char *buff);
+	// Add onRequestIMP and DisconnectSystemIMP to Reactor
+	void AddFdsToReactorIMP();
+	// Configure blovk size and num of blocks in nbd 
+	void ConfigureNbdSizeIMP();						   
 
     Reactor *m_reactor;
 	boost::function<void(const RequestPacketRead&)> m_onRead;
