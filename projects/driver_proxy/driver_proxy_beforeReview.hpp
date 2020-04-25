@@ -37,19 +37,11 @@ private:
 	// Creates nbd fd for the device path
 	int CreateNbdFdIMP();
 	// Creates nbd clocking connection
-	void NbdConnectionInitializerIMP();
-
-	// Create request packet without the data part
-	template <typename T>
-	void CreateRequestPacket(T *packet, 
-                             const nbd_request *nbdPacket);
+	void NbdConnectionInitializerIMP(int fd, int sock);
 
 	// Proxy creates reply packet write before sending it to master
 	void CreateRequestPacketWriteIMP(int fd, RequestPacketWrite *packet, 
 								  	 const nbd_request *nbdPacket);
-	
-	// Proxy creates reply packet read before sending it to master
-	// This function actullay calls CreateRequestPacket
 	void CreateRequestPacketReadIMP(RequestPacketRead *packet, 
 								 	const nbd_request *nbdPacket);
 
@@ -60,9 +52,9 @@ private:
 								  const ReplyPacketRead *packet_);
 	// Insert data ('len' length) from buff into src 
 	// one char at a time							 
-/*	void InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
+	void InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
 									   size_t len, 
-									   char *buff);*/
+									   char *buff);
 	// Add onRequestIMP and DisconnectSystemIMP to Reactor
 	void AddFdsToReactorIMP();
 	// Configure blovk size and num of blocks in nbd 
@@ -71,6 +63,7 @@ private:
     Reactor *m_reactor;
 	boost::function<void(const RequestPacketRead&)> m_onRead;
 	boost::function<void(const RequestPacketWrite&)> m_onWrite;
+	boost::thread m_thread_run;
 	boost::thread m_thread_nbd;
 	int m_sockPair[2];
 	int m_nbdFd;

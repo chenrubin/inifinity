@@ -73,9 +73,11 @@ void WaitableQueue<Q>::Push(typename Q::const_reference element_)
 template <typename Q>
 void WaitableQueue<Q>::Pop(typename Q::reference element_)
 { 
+//	std::cout << "inside pop\n";
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
-	
+//	std::cout << "before cond.wait\n";
 	m_cond.wait(lock, !boost::bind(&WaitableQueue::IsEmpty, this));
+//	std::cout << "after cond.wait\n";
 	element_ = m_queue.front();
 	m_queue.pop();
 }
@@ -84,6 +86,7 @@ template <typename Q>
 bool WaitableQueue<Q>::Pop(typename Q::reference element_, 
 						   boost::chrono::milliseconds timeout_)
 {
+//	std::cout << "inside pop\n";
 	boost::unique_lock<boost::recursive_mutex> lock(m_mutex);
 	bool status = true;
 	

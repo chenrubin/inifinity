@@ -1,4 +1,13 @@
 
+/**************************************
+ *     Author: chen
+ *     Reviewer: Dvir
+ *     Timer
+ *     Date: 21.4.2020            
+ * ************************************/
+#ifndef __TIMER_HPP__ 
+#define __TIMER_HPP__
+
 #include <boost/chrono.hpp>     // boost::chrono::milliseconds
 #include <boost/function.hpp>   // boost::function
 #include <queue>                // std::priority_queue
@@ -17,6 +26,9 @@ namespace ilrd
 class Timer: private Uncopyable
 {
 public:
+    // create timer object, reactor should be running when
+	// creating the timer.
+	// throw std::runtime_error or std::bad_alloc.
     explicit Timer(Reactor *reactor_);
     ~Timer();
 
@@ -54,10 +66,10 @@ private:
                        boost::chrono::milliseconds tolerance);
 
     // Calculate absolute time of time_                   
-    void CalculateAbsoluteTime(/*itimerspec*/boost::chrono::system_clock::time_point *itspec, 
+    void CalculateAbsoluteTime(boost::chrono::system_clock::time_point *itspec, 
                                boost::chrono::milliseconds time_);
     void ConvertChronoToiTimerspec(boost::chrono::system_clock::time_point time,
                                    itimerspec *itspec);                           
 };
-
 }   // namespace ilrd
+#endif // __TIMER_HPP__

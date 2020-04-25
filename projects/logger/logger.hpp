@@ -49,13 +49,13 @@ private:
 	char *GetStreamNameIMP();
 	void PopThreadRoutineIMP();
 
+	WaitableQueue<std::queue<std::string> > m_queue;
 	Severity m_minimalSeverity;
 	boost::atomic<bool> m_isThreadActivated;
 
 	// The user must create an envioronment variable LOGGER_FILE with the name
 	// of the desired file
 	std::ofstream m_outputStream;
-	WaitableQueue<std::queue<std::string> > m_queue;
 	boost::thread m_pop_thread;
 };
 /*----------------------------------------------------------------------------*/

@@ -9,21 +9,14 @@
 #include "logger.hpp"           // //LOG_DEBUG...
 
 #define STDIN (0)
-#define BLOCK_SIZE 4096
-#define NUM_OF_BLOCKS 128
-#define PATH_LEN 100
-
-namespace
-{
-template <typename T>    
-void ReverseEndianessIMP(T *num1);
-void swapIMP(char *num1, char *num2);
-void InitiateLogger(); 
-}
 
 namespace ilrd
 {
 void WriteAllIMP(int fd, char *buff, size_t count);
+void ReverseEndianessIMP1(uint64_t *num1);
+void ReverseEndianessIMP2(unsigned int *num1);
+void swapIMP(char *num1, char *num2);
+
 
 typedef boost::function<void(const RequestPacketRead&)> read_func_t;
 typedef boost::function<void(const RequestPacketWrite&)> write_func_t;
@@ -34,24 +27,30 @@ DriverProxy::DriverProxy(Reactor *reactor_,
     : m_reactor(reactor_)
     , m_onRead(onRead_)
     , m_onWrite(onWrite_)
+    , m_thread_run()
     , m_thread_nbd()
     , m_sockPair()
     , m_nbdFd(CreateNbdFdIMP())
 {
-    InitiateLogger();
-    LOG_DEBUG("inside Proxy Ctor");
-    HandleErrorIfExists(socketpair(AF_UNIX, SOCK_STREAM, 0, m_sockPair),
-                        "create socket pair");
+    setenv("LOGGER_FILE", "/home/chenr/git/projects/driver_proxy/logger.txt", 1);
+    //LOG_DEBUG("inside Proxy Ctor");
+    HandleErrorIfExists(0 == socketpair(AF_UNIX, SOCK_STREAM, 0, m_sockPair) ? 
+                        0 : -1, "create socket pair");
     ConfigureNbdSizeIMP();
-    AddFdsToReactorIMP();
+    AddFdsToReactorIMP();                   
 
     m_thread_nbd = boost::thread(&DriverProxy::NbdConnectionInitializerIMP, 
-                                 this);
+                                 this, 
+                                 m_nbdFd, 
+                                 m_sockPair[1]);
+    m_thread_run = boost::thread(&Reactor::Run, m_reactor);
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 DriverProxy::~DriverProxy()
 {
+    m_thread_run.join();
     m_thread_nbd.join();
+    close(m_sockPair[0]);
     close(m_sockPair[1]);
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -87,7 +86,7 @@ void DriverProxy::CreateReplyPacketReadIMP(struct nbd_reply *nbdReply,
     //LOG_DEBUG("inside CreateReplyPacketReadIMP");
     nbdReply->magic = htonl(NBD_REPLY_MAGIC);
     nbdReply->error = packet_->status;
-    ReverseEndianessIMP(&nbdReply->error);
+    ReverseEndianessIMP2(&nbdReply->error);
     memcpy(&nbdReply->handle, &packet_->uid, sizeof(nbdReply->handle));
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -97,7 +96,7 @@ void DriverProxy::CreateReplyPacketWriteIMP(struct nbd_reply *nbdReply,
     //LOG_DEBUG("inside CreateReplyPacketWritreIMP");
     nbdReply->magic = htonl(NBD_REPLY_MAGIC);
     nbdReply->error = packet_->status;
-    ReverseEndianessIMP(&nbdReply->error);
+    ReverseEndianessIMP2(&nbdReply->error);
     memcpy(&nbdReply->handle, &packet_->uid, sizeof(nbdReply->handle));
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -109,9 +108,7 @@ void DriverProxy::OnRequestIMP(int fd_)
     std::cout << "std::cout inside OnRequestIMP After logger\n";
     struct nbd_request nbdRequest;
 
-    bytes_read = read(fd_, &nbdRequest, sizeof(nbdRequest));
-
-    HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
+    read(fd_, &nbdRequest, sizeof(nbdRequest));
     HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
                             0 : -1, "Request magic number is illegal");
     int type = htonl(nbdRequest.type);
@@ -142,13 +139,18 @@ void DriverProxy::OnRequestIMP(int fd_)
             break;
         }
     } 
+
+    HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::CreateRequestPacketReadIMP(RequestPacketRead *packet, 
                                              const nbd_request *nbdPacket)
 {
     //LOG_DEBUG("Inside CreateRequestPacketReadIMP");
-    CreateRequestPacket(packet, nbdPacket);
+    memcpy(&packet->uid, &nbdPacket->handle, sizeof(uint64_t));
+    packet->offset = nbdPacket->from;
+    ReverseEndianessIMP1(&packet->offset);
+    packet->len = htonl(nbdPacket->len);
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::CreateRequestPacketWriteIMP(int fd, 
@@ -157,32 +159,36 @@ void DriverProxy::CreateRequestPacketWriteIMP(int fd,
 {
     //LOG_DEBUG("Inside CreateRequestPacketWriteIMP");
     size_t bytes_read = 0;
-    CreateRequestPacket(packet, nbdPacket);
+    memcpy(&packet->uid, &nbdPacket->handle, sizeof(uint64_t));
+    packet->offset = nbdPacket->from;
+    ReverseEndianessIMP1(&packet->offset);
+    packet->len = htonl(nbdPacket->len);
 
     char *buff = new char[packet->len];
     boost::shared_ptr<char> buff_ptr(buff);
 
-    bytes_read = read(fd, &packet->data[0], packet->len);
-    packet->data.resize(packet->len);
-
+    read(fd, buff_ptr.get(), packet->len);
+    InsertDataChunkToReqPacketIMP(&packet->data, bytes_read, buff_ptr.get());
+    
     HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-template <typename T>
-void DriverProxy::CreateRequestPacket(T *packet, 
-                                      const nbd_request *nbdPacket)
+void DriverProxy::InsertDataChunkToReqPacketIMP(std::vector<char> *src, 
+									            size_t len, 
+									            char *buff)
 {
-    memcpy(&packet->uid, &nbdPacket->handle, sizeof(uint64_t));
-    packet->offset = nbdPacket->from;
-    ReverseEndianessIMP(&packet->offset);
-    packet->len = htonl(nbdPacket->len);
+    //LOG_DEBUG("Inside InsertDataChunkToReqPacketIMP");
+    for (size_t i = 0; i < len; ++i)
+    {
+        src->push_back(buff[i]);
+    }
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::DisconnectSystemIMP(int fd_)
 {
     //LOG_DEBUG("inside DisconnectSystemIMP");
     char buff[20];
-    std::fgets(buff, sizeof(buff), stdin);
+    fgets(buff, sizeof(buff), stdin);
     if (0 == strcmp(buff, "stop\n"))
     {
         //LOG_DEBUG("inside stop");
@@ -204,15 +210,13 @@ int DriverProxy::CreateNbdFdIMP()
     return nbd;
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void DriverProxy::NbdConnectionInitializerIMP(/*int fd, int sock*/)
+void DriverProxy::NbdConnectionInitializerIMP(int fd, int sock)
 {
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_SOCK, m_sockPair[1]), 
-                        "nbd set socket failed");
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_DO_IT), "nbd do it failed");
+    HandleErrorIfExists(ioctl(fd, NBD_SET_SOCK, sock), "nbd set socket failed");
+    HandleErrorIfExists(ioctl(fd, NBD_DO_IT), "nbd do it failed");
 
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_CLEAR_QUE), "failed to Clear queue"); 
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_CLEAR_SOCK), "failed to clear sock");
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_FLAGS, 0), "failed to set flags");
+    HandleErrorIfExists(ioctl(fd, NBD_CLEAR_QUE), "failed to Clear queue"); 
+    HandleErrorIfExists(ioctl(fd, NBD_CLEAR_SOCK), "failed to clear sock"); 
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void DriverProxy::AddFdsToReactorIMP()
@@ -228,9 +232,9 @@ void DriverProxy::AddFdsToReactorIMP()
 
 void DriverProxy::ConfigureNbdSizeIMP()
 {
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_BLKSIZE, BLOCK_SIZE), 
+    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_BLKSIZE, 4096), 
                               "Failed to set blockSize");
-    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_SIZE_BLOCKS, NUM_OF_BLOCKS), 
+    HandleErrorIfExists(ioctl(m_nbdFd, NBD_SET_SIZE_BLOCKS, 128), 
                         "Failed to set num of blocks");
 }
 /******************************************************************************
@@ -248,24 +252,20 @@ void WriteAllIMP(int fd, char *buff, size_t count)
         count -= bytes_written;
     }
 }
-} // end of namespace ilrd
-namespace
+
+void ReverseEndianessIMP1(uint64_t *num1)
 {
-void InitiateLogger()
-{
-    char buf[PATH_LEN];
-    std::string str = getcwd(buf, PATH_LEN);
-    str += "/logger.txt"; 
-    setenv("LOGGER_FILE", str.c_str(), 1);
+    for (size_t i = 0; i < 4; ++i)
+    {
+        swapIMP((char *)num1 + i, (char *)num1 + 7 - i);
+    }
 }
 
-template <typename T> 
-void ReverseEndianessIMP(T *num1)
+void ReverseEndianessIMP2(unsigned int *num1)
 {
-    size_t byteSize = sizeof(T);
-    for (size_t i = 0; i < (byteSize / 2); ++i)
+    for (size_t i = 0; i < 2; ++i)
     {
-        swapIMP((char *)num1 + i, (char *)num1 + byteSize - 1 - i);
+        swapIMP((char *)num1 + i, (char *)num1 + 3 - i);
     }
 }
 
@@ -275,4 +275,5 @@ void swapIMP(char *num1, char *num2)
     *num1 = *num2;
     *num2 = temp;
 }
-} // end of namespace
+
+} // end of namespace ilrd

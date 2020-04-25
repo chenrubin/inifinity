@@ -1,7 +1,7 @@
 
 #include <sys/types.h>          /* See NOTES */
-#include <sys/socket.h>
-#include <iostream>
+#include <sys/socket.h>         
+#include <iostream>             
 #include <functional>           /* placeholders */
 
 #include "logger.hpp"
@@ -28,19 +28,23 @@ public:
 private:
     Reactor *m_reactor;
     DriverProxy m_proxy;
+    boost::thread m_reactorRun;
     char m_buffer[BLOCK_SIZE * 128];
 };
 
 Master::Master(Reactor *reactor_)
     : m_reactor(reactor_)
     , m_proxy(m_reactor, boost::bind(&Master::onRead, this, _1), boost::bind(&Master::onWrite, this, _1))
+    , m_reactorRun(boost::bind(&Reactor::Run, m_reactor))
 {
     memset(m_buffer, 0, BLOCK_SIZE * 128);
     strcpy(m_buffer, "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }
 
 Master::~Master()
-{}
+{
+    m_reactorRun.join();
+}
 
 void TestCtorDtor();
 
@@ -51,10 +55,11 @@ int main()
 
 void TestCtorDtor()
 {
-    //int status = setenv("LOGGER_FILE", "/home/chenr/git/projects/driver_proxy/logger.txt", 1);
+ //   int status = setenv("LOGGER_FILE", "/home/chenr/git/projects/driver_proxy/logger.txt", 1);
     //std::cout << "status !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!= " << status << "\n";
-    //LOG_DEBUG("Inside OnRequestIMP");
+    
     Master master(&rctr);
+//    LOG_DEBUG("Inside OnRequestIMP");
 }
 
 void Master::onRead(const RequestPacketRead& pk)

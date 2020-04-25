@@ -12,10 +12,11 @@
 
 #include "MyUtils.hpp"              // class Uncopyable
 #include "waitable_queue.hpp"       // class WaitableQueue
+/*----------------------------------------------------------------------------*/
 namespace ilrd
 {
 /*----------------------------------------------------------------------------*/
-/* ThreadPool class designed for decrease the time of the creation and destroying
+/* ThreadPool class desiged for decrease the time of the creation and destroying
  * threads in a program. With threadPool, one can create number of threads in 
  * the beginning of the program and add tasks for them in runtime. The number of
  * threads can also changed in runtime. Every added task should have priority 
@@ -40,7 +41,7 @@ public:
 
     // throw bad_alloc
     explicit ThreadPool(size_t numOfThreads_ = 
-                        boost::thread::hardware_concurrency());
+                        static_cast<size_t>(boost::thread::hardware_concurrency()));
 
     // throw (boost::thread_interrupted) 
     ~ThreadPool();
@@ -75,14 +76,12 @@ private:
     {
     public:
         Task(boost::function<void(void)> func_, Extended_prio_t priority_);
-        void InvokeFunction(bool *isTerminated);
+        void InvokeFunction();
         int GetPriority() const;
 
     private:
         boost::function<void(void)> m_func;
         int m_priority;
-
-        void Wrapper(bool *isTerminated);
     };
 
     class CompareFunc
@@ -112,16 +111,13 @@ private:
     void EmptyEntireQueueIMP();
     void AddTaskIMP(boost::function<void(void)> func, 
                     Extended_prio_t priority_);
-    void BadAppleIMP();
-    void UpdateNumOfThreadsIMP(size_t num);
+    void BadAppleIMP();                
 
     const boost::chrono::milliseconds popTimeout;
     const boost::chrono::milliseconds stopTimeout;
     WaitableQueue<MyQueue> m_queue;
     boost::atomic<bool> m_IsRunning;
     std::map<boost::thread::id, boost::shared_ptr<boost::thread> > m_idThreadContainer;
-    std::map<boost::thread::id, boost::shared_ptr<boost::thread> > m_FinishedThreads;
-    boost::atomic<size_t> m_numOfThreads;
     mutable boost::mutex m_containerMutex;
     boost::mutex m_threadsMutex;
     boost::condition_variable_any m_cond;
