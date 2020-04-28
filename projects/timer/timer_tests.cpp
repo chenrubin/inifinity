@@ -28,8 +28,8 @@ typedef boost::chrono::milliseconds milli_t;
 int main()
 {   //  run either tests 2 or 3
  /*1*/   TestCtorDtor();
- /*2*/ //  TestScheduleActionRegular(); 
- /*3*/   TestScheduleActionOpposite();
+ /*2*/   TestScheduleActionRegular(); 
+ /*3*/ //  TestScheduleActionOpposite();
 
     return 0;
 }

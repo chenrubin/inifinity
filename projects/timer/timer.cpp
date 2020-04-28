@@ -9,6 +9,7 @@
 #include <boost/bind.hpp>        // boost::bind
 
 #include "timer.hpp"
+#define NANO_IN_SEC (1000000000)
 
 #define TICKS_COMPARE_TOLERANCE (1000)
 
@@ -42,15 +43,6 @@ void Timer::ScheduleAction(boost::chrono::milliseconds time_,
     }
 }
 
-void Timer::SetTime()
-{
-    itimerspec itspec;
-
-    ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
-    HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
-                                                                    "settime");
-}
-
 void Timer::ConvertChronoToiTimerspec(systemClock_t::time_point time_,
                                       itimerspec *itspec)
 {
@@ -59,8 +51,8 @@ void Timer::ConvertChronoToiTimerspec(systemClock_t::time_point time_,
                                        (time_ - systemClock_t::now());
     long temp = nano.count();
 
-    itspec->it_value.tv_sec = temp / 1000000000; // static const
-    itspec->it_value.tv_nsec = temp % 1000000000;
+    itspec->it_value.tv_sec = temp / NANO_IN_SEC;
+    itspec->it_value.tv_nsec = temp % NANO_IN_SEC;
     itspec->it_interval.tv_nsec = 0;
     itspec->it_interval.tv_sec = 0;
 }
@@ -70,9 +62,6 @@ void Timer::MyCallbackIMP(int fd_)
     uint64_t temp;
     HandleErrorIfExists(read(fd_, &temp, sizeof(temp)), "read failed");
     assert(1 == temp);
-
-    systemClock_t::time_point now = systemClock_t::now();
-    std::cout << "time = " << now << "\n";
 
     m_queue.top().second();
     m_queue.pop();
@@ -98,5 +87,14 @@ void Timer::CalculateAbsoluteTime(systemClock_t::time_point *current_time,
 {
     *current_time = systemClock_t::now();
     *current_time += time_;
+}
+
+void Timer::SetTime()
+{
+    itimerspec itspec;
+
+    ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
+    HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
+                                                                    "settime");
 }
 }
