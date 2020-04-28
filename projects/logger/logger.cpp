@@ -16,12 +16,12 @@ Logger::Logger()
 {
     m_outputStream.open(GetStreamNameIMP());
     m_pop_thread = boost::thread(&Logger::PopThreadRoutineIMP, this);
-    std::cout << "logger inside Ctor\n";
+ //   std::cout << "logger inside Ctor\n";
 }
 
 Logger::~Logger()
 {
-    std::cout << "logger inside ~Logger\n";
+//    std::cout << "logger inside ~Logger\n";
     m_isThreadActivated.store(false, boost::memory_order_release);
     m_pop_thread.join();
     m_outputStream.close();
@@ -29,7 +29,7 @@ Logger::~Logger()
 
 void Logger::Log(Severity msgSeverity_, const std::string& msg_) NOEXCEPT
 {
-    std::cout << "logger inside Log\n";
+  //  std::cout << "logger inside Log\n";
     if (msgSeverity_ >= m_minimalSeverity)
     {
         m_queue.Push(msg_);
@@ -39,7 +39,7 @@ void Logger::Log(Severity msgSeverity_, const std::string& msg_) NOEXCEPT
 void Logger::SetMinimalSeverity(Severity minimalSeverity_) NOEXCEPT
 {
     m_minimalSeverity = minimalSeverity_;
-    std::cout << "logger inside set minimal severity\n";
+//    std::cout << "logger inside set minimal severity\n";
 }
 
 char *Logger::GetStreamNameIMP()
@@ -53,7 +53,7 @@ char *Logger::GetStreamNameIMP()
 
 void Logger::PopThreadRoutineIMP()
 {
-    std::cout << "logger inside pop thread routinme\n";
+//    std::cout << "logger inside pop thread routinme\n";
     m_isThreadActivated.store(true);
     while (m_isThreadActivated.load(boost::memory_order_acquire))
     {
@@ -65,7 +65,7 @@ void Logger::PopThreadRoutineIMP()
 
         if (status == true)
         {
-            std::cout << "inside status == true\n";
+    //        std::cout << "inside status == true\n";
             m_outputStream << str << std::endl;
         }
       //  std::cout << "WTF2\n";

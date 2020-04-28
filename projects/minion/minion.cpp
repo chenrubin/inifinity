@@ -52,7 +52,7 @@ void Minion::Stop()
 
 void Minion::RecvRequestIMP(int fd_)
 {
-    char read_buff[m_storage->BLOCK_SIZE];
+    char *read_buff = new char[m_storage->BLOCK_SIZE];
     struct sockaddr_in addr;
     socklen_t size = sizeof(addr);
     ssize_t bytes = recvfrom(fd_, read_buff, m_storage->BLOCK_SIZE, 0, (struct sockaddr *)&addr, &size);
@@ -81,7 +81,9 @@ void Minion::RecvRequestIMP(int fd_)
         throw std::runtime_error("recvfrom failed");
         LOG_ERROR("server rcvfrom failed");    
     }
-    
+    // why delete result in double free?
+    // where else do I delete this buffer?
+    //delete[] read_buff;
 }
 
 void Minion::HandleRequestIMP(u_int64_t uid, 
@@ -92,8 +94,8 @@ void Minion::HandleRequestIMP(u_int64_t uid,
     if (0 == type) // read from storage into buffer
     {
         std::cout << "!!!Read from storage!!!\n";
-        std::cout << "!!!blockIndex = \n" << blockIndex << std::endl;
-        std::cout << "!!!buff + DATA_OFFSET = \n" << buff + DATA_OFFSET << std::endl;
+        std::cout << "!!!blockIndex = " << blockIndex << std::endl;
+    //    std::cout << "!!!buff + DATA_OFFSET = " << buff + DATA_OFFSET << std::endl;
         m_storage->Read(blockIndex, buff + DATA_OFFSET);
         
         LOG_DEBUG("Read from storage");
@@ -121,6 +123,7 @@ void Minion::SendResponseIMP(unsigned char type,
     }
     std::cout << "About to send message\n";
     LOG_DEBUG("About to send message");
+    
     if (-1 == sendto(m_socket.GetFd(), buf_to_send, 
                      len, MSG_CONFIRM,
                      (struct sockaddr *)addr, 

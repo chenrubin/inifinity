@@ -7,7 +7,9 @@ namespace ilrd
 {
     Storage::Storage()
         : m_DATA()
-    {}
+    {
+        memset(m_DATA, 0, s_NUM_OF_BLOCKS * BLOCK_SIZE);
+    }
 
     Storage::~Storage()
     {}

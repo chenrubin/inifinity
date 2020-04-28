@@ -27,7 +27,7 @@ void TestCommunicationWriteAndRead()
 
     master.onWrite(reqPackWrite);
 
-    RequestPacketRead reqPackRead;
+    RequestPacketRead reqPackRead; // proxy to master
     reqPackRead.len = 20;
     reqPackRead.offset = 0;
     reqPackRead.uid = 123;

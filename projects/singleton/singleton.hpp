@@ -40,30 +40,30 @@ void Singleton<T>::ExitHandler()
 template <typename T>
 T *Singleton<T>::GetInstance()
 {
-    std::cout << "Inside Singleton GetInsytance\n";
+ //   std::cout << "Inside Singleton GetInsytance\n";
     if (0 == s_instance.load(boost::memory_order_acquire))
     {
-        std::cout << "Inside Singleton GetInsytance outer if\n";
+   //     std::cout << "Inside Singleton GetInsytance outer if\n";
         bool initFalse = false;
         if (s_init.compare_exchange_strong(initFalse, true, boost::memory_order_release, boost::memory_order_acquire))
         {
-            std::cout << "Inside Singleton GetInsytance inner if\n";
+   //         std::cout << "Inside Singleton GetInsytance inner if\n";
             s_init.store(true, boost::memory_order_release);
-            std::cout << "Inside Singleton GetInsytance inner if after store!!\n";
+     //       std::cout << "Inside Singleton GetInsytance inner if after store!!\n";
             T* temp = new T; // WTF
-            std::cout << "Inside Singleton GetInsytance inner if after temp = new\n";
+       //     std::cout << "Inside Singleton GetInsytance inner if after temp = new\n";
             s_instance.store(temp, boost::memory_order_release);
-            std::cout << "Inside Singleton GetInsytance inner if store of temp\n";
+         //   std::cout << "Inside Singleton GetInsytance inner if store of temp\n";
             int result = std::atexit(Singleton::ExitHandler);
             if (0 != result)
             {
                 perror("Registration failed: ");
             }
         }
-        std::cout << "Inside Singleton GetInsytance after inner if\n";
+ //       std::cout << "Inside Singleton GetInsytance after inner if\n";
         while (0 == s_instance.load(boost::memory_order_acquire));
     }
-    std::cout << "Inside Singleton GetInsytance after outer if\n";
+ //   std::cout << "Inside Singleton GetInsytance after outer if\n";
     return s_instance.load(boost::memory_order_acquire);
 }
 
