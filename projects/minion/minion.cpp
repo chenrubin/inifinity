@@ -63,6 +63,7 @@ void Minion::RecvRequestIMP(int fd_)
 
     if (0 < bytes)
     {
+        std::cout << "Starting parse, handle and send response";
         LOG_DEBUG("Starting parse, handle and send response");
         ParseMessageIMP(&uid, &blockIndex, &type, read_buff);
         HandleRequestIMP(uid, blockIndex, type, read_buff);
@@ -90,12 +91,17 @@ void Minion::HandleRequestIMP(u_int64_t uid,
 {
     if (0 == type) // read from storage into buffer
     {
+        std::cout << "!!!Read from storage!!!\n";
+        std::cout << "!!!blockIndex = \n" << blockIndex << std::endl;
+        std::cout << "!!!buff + DATA_OFFSET = \n" << buff + DATA_OFFSET << std::endl;
         m_storage->Read(blockIndex, buff + DATA_OFFSET);
+        
         LOG_DEBUG("Read from storage");
     }
     else // write to storage
     {
         m_storage->Write(blockIndex, buff + DATA_OFFSET);
+        std::cout << "Write to storage\n";
         LOG_DEBUG("Write to storage");
     }
 }
@@ -113,6 +119,7 @@ void Minion::SendResponseIMP(unsigned char type,
     {
         std::reverse(buf_to_send + 1, buf_to_send + 9);
     }
+    std::cout << "About to send message\n";
     LOG_DEBUG("About to send message");
     if (-1 == sendto(m_socket.GetFd(), buf_to_send, 
                      len, MSG_CONFIRM,
@@ -131,6 +138,7 @@ void Minion::BuildBuffIMP(unsigned char type,
                           char *buffToBuild)
 {
     bool status = true;
+    std::cout << "Building response buffer\n";
     LOG_DEBUG("Building response buffer");
 
     buffToBuild[0] = type;
@@ -161,6 +169,7 @@ void Minion::ParseMessageIMP(u_int64_t *uid,
     *type = *buff;
     *uid = *((u_int64_t *)(buff + 1));
     *blockIndex = *((u_int64_t *)(buff + 9));
+    std::cout << "Parse message\n";
     LOG_DEBUG("Parse message");
 }
 } // end of ilrd nemaspace

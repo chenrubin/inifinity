@@ -18,9 +18,9 @@ Timer::Timer(Reactor *reactor_)
     : m_reactor(reactor_)
     , m_timerFd(timerfd_create(CLOCK_MONOTONIC, 0))
 {
-    HandleErrorIfExists(m_timerFd, "bad create\n");
-    m_reactor->AddFd(m_timerFd, m_reactor->READ, 
-                     boost::bind(&Timer::MyCallbackIMP, this, m_timerFd));
+    HandleErrorIfExists(m_timerFd.GetFd(), "bad create\n");
+    m_reactor->AddFd(m_timerFd.GetFd(), m_reactor->READ, 
+                     boost::bind(&Timer::MyCallbackIMP, this, m_timerFd.GetFd()));
 
 }
 
@@ -30,7 +30,7 @@ Timer::~Timer()
 void Timer::ScheduleAction(boost::chrono::milliseconds time_,
                            boost::function<void()> task_)
 {
-    boost::chrono::system_clock::time_point absolute_time;
+    systemClock_t::time_point absolute_time;
     CalculateAbsoluteTime(&absolute_time, time_);
     timeFuncPair_t new_pair = std::make_pair(absolute_time, task_);
 
@@ -38,22 +38,28 @@ void Timer::ScheduleAction(boost::chrono::milliseconds time_,
     if (IsSameTimeIMP(absolute_time, m_queue.top().first, 
                       boost::chrono::milliseconds(TICKS_COMPARE_TOLERANCE)))
     {
-        itimerspec itspec;
-
-        ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
-        HandleErrorIfExists(timerfd_settime(m_timerFd, 0, &itspec, NULL),"settime3");
+        SetTime();
     }
 }
 
-void Timer::ConvertChronoToiTimerspec(boost::chrono::system_clock::time_point time_,
+void Timer::SetTime()
+{
+    itimerspec itspec;
+
+    ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
+    HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
+                                                                    "settime");
+}
+
+void Timer::ConvertChronoToiTimerspec(systemClock_t::time_point time_,
                                       itimerspec *itspec)
 {
     boost::chrono::nanoseconds nano = 
            boost::chrono::duration_cast<boost::chrono::nanoseconds>
-                                       (time_ - boost::chrono::system_clock::now());
+                                       (time_ - systemClock_t::now());
     long temp = nano.count();
 
-    itspec->it_value.tv_sec = temp / 1000000000;
+    itspec->it_value.tv_sec = temp / 1000000000; // static const
     itspec->it_value.tv_nsec = temp % 1000000000;
     itspec->it_interval.tv_nsec = 0;
     itspec->it_interval.tv_sec = 0;
@@ -62,9 +68,10 @@ void Timer::ConvertChronoToiTimerspec(boost::chrono::system_clock::time_point ti
 void Timer::MyCallbackIMP(int fd_)
 {
     uint64_t temp;
-    read(fd_, &temp, sizeof(temp));
+    HandleErrorIfExists(read(fd_, &temp, sizeof(temp)), "read failed");
+    assert(1 == temp);
 
-    boost::chrono::system_clock::time_point now = boost::chrono::system_clock::now();
+    systemClock_t::time_point now = systemClock_t::now();
     std::cout << "time = " << now << "\n";
 
     m_queue.top().second();
@@ -72,30 +79,24 @@ void Timer::MyCallbackIMP(int fd_)
 
     if (!m_queue.empty())
     {
-        itimerspec itspec;
-        ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
-        HandleErrorIfExists(timerfd_settime(m_timerFd, 0, &itspec, NULL), "settime1");
+      SetTime();
     }
 }
 
-bool Timer::IsSameTimeIMP(boost::chrono::system_clock::time_point time1, 
-                          boost::chrono::system_clock::time_point time2, 
+bool Timer::IsSameTimeIMP(systemClock_t::time_point time1, 
+                          systemClock_t::time_point time2, 
                           boost::chrono::milliseconds tolerance)
 {
-    boost::chrono::milliseconds diff = boost::chrono::duration_cast<boost::chrono::milliseconds>(time1 - time2);
+    boost::chrono::milliseconds diff = 
+        boost::chrono::duration_cast<boost::chrono::milliseconds>(time1 - time2);
     
     return (abs(diff.count()) < tolerance.count());
 }
 
-bool Timer::CompareFunc::operator()(const timeFuncPair_t& time1, const timeFuncPair_t& time2)
-{
-    return (time1.first > time2.first);
-}
-
-void Timer::CalculateAbsoluteTime(boost::chrono::system_clock::time_point *current_time, 
+void Timer::CalculateAbsoluteTime(systemClock_t::time_point *current_time, 
                                   boost::chrono::milliseconds time_)
 {
-    *current_time = boost::chrono::system_clock::now();
+    *current_time = systemClock_t::now();
     *current_time += time_;
 }
 }

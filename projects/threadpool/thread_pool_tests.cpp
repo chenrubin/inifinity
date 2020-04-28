@@ -1,6 +1,7 @@
 #include <iostream>         /* cout */
 
-#include "thread_pool.hpp"
+//#include "thread_pool.hpp"
+#include "thread_pool_old.hpp"
 #include "MyUtils.hpp"      /* test result */
 
 using namespace ilrd;
@@ -26,14 +27,14 @@ boost::mutex mutex;
 
 int main()
 {
- /*   TestAddTaskAndStop();
+    TestAddTaskAndStop();
     TestDecreaseThreads();
- */   TestIncreaseAndDecreaseThreads();
- /*  TestCrazy();
- /*   TestStop();
+    TestIncreaseAndDecreaseThreads();
+   TestCrazy();
+    TestStop();
     TestCtor();
     TestEndlesslyThread();
-*/
+
     return 0;
 }
 

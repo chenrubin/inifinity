@@ -14,7 +14,8 @@
 #include <sys/timerfd.h>        // timerFd_create, timerFd_settime
 
 #include "reactor.hpp"          // class Reactor
-#include "MyUtils.hpp"            // class Uncopyable
+#include "MyUtils.hpp"          // class Uncopyable
+#include "timerfd.hpp"          // RAII timerFD
 
 /*
     user uses timer in order to schedule in advance callbacks.
@@ -37,7 +38,8 @@ public:
                         boost::function<void()> task_);
 
 private:
-    typedef std::pair<boost::chrono::system_clock::time_point, 
+    typedef boost::chrono::system_clock systemClock_t;
+    typedef std::pair<systemClock_t::time_point, 
                         boost::function<void()> > timeFuncPair_t;
     class CompareFunc
     {
@@ -45,13 +47,6 @@ private:
         bool operator()(const timeFuncPair_t &time1, 
                         const timeFuncPair_t &time2);
     };
-
-    std::priority_queue<timeFuncPair_t, 
-                        std::vector<timeFuncPair_t>,
-                        CompareFunc> m_queue;
-
-    Reactor *m_reactor;
-    int m_timerFd;
 
     void MyCallbackIMP(int fd_);
 
@@ -61,15 +56,28 @@ private:
     
     // Compare between two time duration with respect to tolerance
     // Function compares cpu ticks                         
-    bool IsSameTimeIMP(boost::chrono::system_clock::time_point time1, 
-                       boost::chrono::system_clock::time_point time2,
+    bool IsSameTimeIMP(systemClock_t::time_point time1, 
+                       systemClock_t::time_point time2,
                        boost::chrono::milliseconds tolerance);
 
     // Calculate absolute time of time_                   
-    void CalculateAbsoluteTime(boost::chrono::system_clock::time_point *itspec, 
+    void CalculateAbsoluteTime(systemClock_t::time_point *itspec, 
                                boost::chrono::milliseconds time_);
-    void ConvertChronoToiTimerspec(boost::chrono::system_clock::time_point time,
-                                   itimerspec *itspec);                           
+    void ConvertChronoToiTimerspec(systemClock_t::time_point time,
+                                   itimerspec *itspec);
+    void SetTime();                               
+
+    std::priority_queue<timeFuncPair_t, 
+                        std::vector<timeFuncPair_t>,
+                        CompareFunc> m_queue;
+
+    Reactor *m_reactor;
+    TimerFD m_timerFd;
 };
+
+inline bool Timer::CompareFunc::operator()(const timeFuncPair_t& time1, const timeFuncPair_t& time2)
+{
+    return (time1.first > time2.first);
+}
 }   // namespace ilrd
 #endif // __TIMER_HPP__

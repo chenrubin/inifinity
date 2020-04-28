@@ -7,7 +7,8 @@
 #include <boost/shared_ptr.hpp>     /* boost::shared_ptr */
 #include <cstdio>                   /* perror*/
 
-#include "thread_pool.hpp"
+//#include "thread_pool.hpp"
+#include "thread_pool_old.hpp"
 
 namespace ilrd
 {
