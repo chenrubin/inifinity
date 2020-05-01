@@ -117,6 +117,7 @@ Reactor::error_t Reactor::Run()
         std::cout << "before select\n";
         if (-1 == select(maxSockId + 1, &fdset_arr[0], &fdset_arr[1], &fdset_arr[2], NULL))
         {
+            std::cout << "select return -1\n";
             return (SelectHandlerIMP(errno));
         }
         std::cout << "after select\n";
@@ -134,9 +135,6 @@ Reactor::error_t Reactor::Run()
                     std::cout << "inside if before\n";
                     it->second(it->first);
                     std::cout << "inside if after\n";
-                    /* added recently but not sure about it */ 
-                    //RemoveFd(it->first, static_cast<type_t>(i));
-                    /**/
                 }
             }
         }

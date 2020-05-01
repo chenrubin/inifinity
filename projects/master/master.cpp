@@ -1,6 +1,7 @@
 #include <arpa/inet.h>          // htonl
 //#define _BSD_SOURCE
 #include <endian.h>             // htobe64
+#include <errno.h>
 
 #include "master.hpp"
 #include "MyUtils.hpp"       // HandleErrorIfExists
@@ -21,6 +22,19 @@ Master::Master(Reactor *reactor_)
     , m_minionSockAddr()
     , m_requests()
 {
+/*    try
+    {
+        m_reactorRun = boost::thread(boost::bind(&Reactor::Run, m_reactor));
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "Inside catch\n";
+        std::cerr << e.what() << '\n';
+        perror("perror failed");
+    }
+  */  
+    AddMinion("192.168.1.20");
+    //AddMinion("127.0.0.1");
  //   m_reactor->AddFd(m_socket, Reactor::READ, )
 }
 
@@ -40,12 +54,10 @@ void Master::onRead(const RequestPacketRead& pk)
     CreateReadRequestPacket(&reqPack, &pk);
     m_requests[pk.uid] = pk.len;
     size_t minionIndex = LocateMinionIndexByOffset(pk.offset);
+    socklen_t size = sizeof(m_minionSockAddr[minionIndex]);
 
-    socklen_t size = sizeof(&m_minionSockAddr[minionIndex]);
-    
-    std::cout << sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
-                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size) << "\n";
-    sleep(2);
+    HandleErrorIfExists(sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
+                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size), "sendto failed");
 
     struct ReplyPacket repPack;
     memset(&repPack, 0, sizeof(repPack));
@@ -58,8 +70,7 @@ void Master::onRead(const RequestPacketRead& pk)
     std::cout << "repPack.data = " << repPack.data << std::endl;
 
     ReplyPacketRead repPacketToProxy;
-    CreateReplyPacket(&repPacketToProxy, &repPack);
-
+    CreateReplyPacketRead(&repPacketToProxy, &repPack);
     m_proxy.ReplyRead(repPacketToProxy);
 }
 
@@ -70,29 +81,31 @@ void Master::onWrite(const RequestPacketWrite& pk)
     struct RequestPacket reqPack;
 
     CreateWriteRequestPacket(&reqPack, &pk);
-
+    std::cout << "After CreateWriteRequestPacket\n";
     m_requests[pk.uid] = pk.len;
     size_t minionIndex = LocateMinionIndexByOffset(pk.offset);
-
-    socklen_t size = sizeof(&m_minionSockAddr[minionIndex]);
-    
-    std::cout << sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
-                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size) << "\n";
-    sleep(2);
+    socklen_t size = sizeof(m_minionSockAddr[minionIndex]);
+    std::cout << "before handleerrors\n";
+    HandleErrorIfExists(sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
+                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size), "Failed to send");
+    std::cout << "after sendto handleerrors\n";             
 
     struct ReplyPacket repPack;
+    std::cout << "struct ReplyPacket repPack\n";
     memset(&repPack, 0, sizeof(repPack));
+    std::cout << "After memset\n";
+    std::cout << "inside onwrite before recvfrom\n";
     HandleErrorIfExists(recvfrom(m_socket.GetFd(), &repPack, sizeof(repPack), 0, 
              (struct sockaddr *)&m_minionSockAddr[minionIndex], &size), "Failed recvfrom");
-
-    std::cout << "repPack.status = " << repPack.status << std::endl;
-    std::cout << "repPack.type = " << repPack.type << std::endl;
+    std::cout << "inside onwrite after recvfrom\n";
+    std::cout << "repPack.status = " << static_cast<int>(repPack.status) << std::endl;
+    std::cout << "repPack.type = " << static_cast<int>(repPack.type) << std::endl;
     std::cout << "repPack.uid = " << repPack.uid << std::endl;
     std::cout << "repPack.data = " << repPack.data << std::endl; 
 
-    ReplyPacketRead repPacketToProxy;
-    CreateReplyPacket(&repPacketToProxy, &repPack);                 
-
+    ReplyPacketWrite repPacketToProxy;
+    CreateReplyPacketWrite(&repPacketToProxy, &repPack);
+    m_proxy.ReplyWrite(repPacketToProxy);
 }
 
 size_t Master::LocateMinionIndexByOffset(uint64_t offset)
@@ -102,7 +115,7 @@ size_t Master::LocateMinionIndexByOffset(uint64_t offset)
 
 size_t Master::LocateLocalBlockIndexByOffset(uint64_t offset)
 {
-    return offset % ((s_NUM_OF_BLOCKS * BLOCK_SIZE));
+    return ((offset % ((s_NUM_OF_BLOCKS * BLOCK_SIZE))) / BLOCK_SIZE);
 }
 
 void Master::CreateReadRequestPacket(RequestPacket *reqPack, 
@@ -119,24 +132,44 @@ void Master::CreateWriteRequestPacket(RequestPacket *reqPack,
     reqPack->type = 1;
     reqPack->uid = htobe64(pkFromProxy->uid);
     reqPack->blockIndex = htobe64(LocateLocalBlockIndexByOffset(pkFromProxy->offset));
+    std::cout << "Inside CreateWriteRequestPacket before copy data from vector\n";
     std::copy(pkFromProxy->data.begin(), pkFromProxy->data.end(), reqPack->data);
+    std::cout << "After copy\n";
 }
 
-template <typename PacketType>
-void Master::CreateReplyPacket(PacketType *repPack, 
-                               ReplyPacket *ResponseFromMinion)
+void Master::CreateReplyPacketRead(ReplyPacketRead *repPack, 
+                                   ReplyPacket *ResponseFromMinion)
 {
+    CreateReplyPacketExceptForData(repPack, ResponseFromMinion);
+    CopyReadDataIntoPacket(repPack, ResponseFromMinion);
+}
+
+void Master::CreateReplyPacketWrite(ReplyPacketWrite *repPack, 
+                                    ReplyPacket *ResponseFromMinion)
+{
+    CreateReplyPacketExceptForData(repPack, ResponseFromMinion);
+}
+
+template <typename packetType>
+void Master::CreateReplyPacketExceptForData(packetType *repPack, 
+                                            ReplyPacket *ResponseFromMinion)
+{
+    std::cout << "!!!!!!!!!!!!!!Inside CreateReplyPacketExceptForData\n";
     repPack->uid = be64toh(ResponseFromMinion->uid);
     repPack->status = ResponseFromMinion->status;
-    repPack->len = be64toh(m_requests[repPack->len]);
+    std::cout << "status = " << static_cast<int>(repPack->status) << "\n";
+    repPack->len = m_requests[repPack->uid];
+    std::cout << "len = " << repPack->len << "\n";
+}                                    
 
-    if (0 == ResponseFromMinion->type) // read
-    {
-        std::copy(ResponseFromMinion->data, 
-                  ResponseFromMinion->data + repPack->len, 
-                  std::back_inserter(repPack->data));
-    }
-}                                  
+void Master::CopyReadDataIntoPacket(ReplyPacketRead *repPacketToProxy,
+                                    ReplyPacket *ResponseFromMinion)
+{
+    std::cout << "Inside CopyReadDataIntoPacket\n";
+    std::copy(ResponseFromMinion->data, 
+              ResponseFromMinion->data + repPacketToProxy->len, 
+              std::back_inserter(repPacketToProxy->data));
+}
 
 void Master::AddMinion(std::string ipAddress)
 {

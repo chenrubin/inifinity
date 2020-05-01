@@ -121,8 +121,10 @@ Dispatcher<MSG>::Dispatcher()
 template <typename MSG>
 Dispatcher<MSG>::~Dispatcher()
 {
-    std::for_each(m_callbacks.begin(), m_callbacks.end(), 
-                  boost::bind(&Dispatcher<MSG>::NullingDispatcher, this, _1));
+    for (size_t i = 0; i < m_callbacks.size(); ++i)
+    {
+        NullingDispatcher(m_callbacks[i]);
+    }
 }
 
 template <typename MSG>
@@ -150,11 +152,27 @@ void Dispatcher<MSG>::Register(BaseCallback<MSG>* baseCallback_)
 template <typename MSG>
 void Dispatcher<MSG>::Notify(const MSG& message_)
 {
-    typename std::vector<BaseCallback<MSG>* >::iterator iter;
+    for (size_t i = 0; i < m_callbacks.size(); ++i)
+    {
+        BaseCallback<MSG> *next_BaseCallback = 0;
+
+        if ((i + 1) < m_callbacks.size())
+        {
+            next_BaseCallback = m_callbacks[i + 1];
+        }
+        
+        m_callbacks[i]->Notify(message_);
+
+        if (next_BaseCallback == m_callbacks[i])
+        {
+            --i;
+        }
+    }
+/*    typename std::vector<BaseCallback<MSG>* >::iterator iter;
     for (iter = m_callbacks.begin(); iter != m_callbacks.end(); ++iter)
 	{
 		(*iter)->Notify(message_);
-	}
+	}*/
 }
 
 template <typename MSG>

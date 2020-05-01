@@ -5,10 +5,12 @@
 using namespace ilrd;
 
 void TestCommunicationWriteAndRead();
+void TestMasterWithProxy();
 
 int main()
 {
-    TestCommunicationWriteAndRead();
+    //TestCommunicationWriteAndRead();
+    TestMasterWithProxy();
 
     return 0;
 }
@@ -33,4 +35,10 @@ void TestCommunicationWriteAndRead()
     reqPackRead.uid = 123;
 
     master.onRead(reqPackRead);
+}
+
+void TestMasterWithProxy()
+{
+    Reactor Reactor;
+    Master master(&Reactor);
 }

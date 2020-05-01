@@ -16,6 +16,8 @@ namespace ilrd
 
     void Storage::Read(size_t blockIndex_, char buf_[s_BLOCK_SIZE])
     {
+        std::cout << "s_BLOCK_SIZE = " << s_BLOCK_SIZE << "\n";
+        std::cout << "blockIndex = " << blockIndex_ << "\n";
         mempcpy(buf_, m_DATA[blockIndex_], s_BLOCK_SIZE);
     }
 

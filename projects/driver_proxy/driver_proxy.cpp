@@ -120,6 +120,7 @@ void DriverProxy::OnRequestIMP(int fd_)
     {
         case NBD_CMD_WRITE:
         {
+            std::cout << "Inside NBD_CMD_WRITE\n";
             //LOG_DEBUG("Inside NBD_CMD_WRITE");
             RequestPacketWrite reqWrite;
             CreateRequestPacketWriteIMP(fd_, &reqWrite, &nbdRequest);
@@ -128,6 +129,7 @@ void DriverProxy::OnRequestIMP(int fd_)
         }
         case NBD_CMD_READ:
         {
+            std::cout << "Inside NBD_CMD_READ\n";
             //LOG_DEBUG("Inside NBD_CMD_READ");
             RequestPacketRead reqRead;
             CreateRequestPacketReadIMP(&reqRead, &nbdRequest);
@@ -161,7 +163,8 @@ void DriverProxy::CreateRequestPacketWriteIMP(int fd,
 
     char *buff = new char[packet->len];
     boost::shared_ptr<char> buff_ptr(buff);
-
+    
+    packet->data.resize(packet->len);
     bytes_read = read(fd, &packet->data[0], packet->len);
     packet->data.resize(packet->len);
 

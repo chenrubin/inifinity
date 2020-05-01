@@ -32,11 +32,20 @@ private:
                                  RequestPacketRead const *pkFromProxy);
     void CreateWriteRequestPacket(RequestPacket *reqPack, 
                                   RequestPacketWrite const *pkFromProxy);
-    template <typename packetType>                              
-    void CreateReplyPacket(packetType *repPack, 
-                           ReplyPacket *ResponseFromMinion);                              
+
+    void CreateReplyPacketRead(ReplyPacketRead *repPack, 
+                               ReplyPacket *ResponseFromMinion);
+    void CreateReplyPacketWrite(ReplyPacketWrite *repPack, 
+                                ReplyPacket *ResponseFromMinion);
+    template <typename packetType>
+    void CreateReplyPacketExceptForData(packetType *repPack, 
+                                        ReplyPacket *ResponseFromMinion);
+    
+    void CopyReadDataIntoPacket(ReplyPacketRead *repPacketToProxy,
+                                ReplyPacket *ResponseFromMinion);
+    
     // ipAddress should be written as "x.x.x.x" where  0=< x <= 254
-    void AddMinion(std::string ipAddress);                             
+    void AddMinion(std::string ipAddress);                                
 
     Reactor *m_reactor;
     DriverProxy m_proxy;
