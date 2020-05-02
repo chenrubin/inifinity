@@ -6,11 +6,13 @@
 #ifndef __DISPATCHER_HPP__ 
 #define __DISPATCHER_HPP__ 
 /*----------------------------------------------------------------------------*/
-#include <algorithm>            // std::find
-#include <vector>               // std:vector
-#include <boost/bind.hpp>       // boost::bind
+#include <algorithm>                // std::find
+#include <vector>                   // std:vector
+#include <boost/bind.hpp>           // boost::bind
+#include <boost/function.hpp>       // boost::function
+#include <stack>                    // std::stack
 
-#include "MyUtils.hpp"          // uncopyable
+#include "MyUtils.hpp"              // uncopyable
 
 namespace ilrd
 /*----------------------------------------------------------------------------*/
@@ -59,7 +61,17 @@ private:
     // Throws whatever user's notifyDeath may throw  
     void NullingDispatcher(BaseCallback<MSG>* baseCallback_);
 
-    std::vector<BaseCallback<MSG>* > m_callbacks;
+    // Instead of erasing in Unregister we mark the callback as erased
+    // and switch its functions to stubs because they will actually be 
+    // erased only in the next notify round and we don't want them to be invoked
+    // in the current round
+/*    boost::function<void(const int &num)> m_StubObsNotify;
+    boost::function<void()> m_StubObsBeforeDeath;*/
+    void StubObsNotify(const int &num);
+    void StubObsBeforeDeath();
+
+    std::vector<std::pair<BaseCallback<MSG>*, bool> > m_callbacks;
+    std::stack<std::pair<BaseCallback<MSG>*, bool> > m_erasedCallbacks;
 };
 /*----------------------------------------------------------------------------*/
 template<typename MSG>
@@ -103,7 +115,7 @@ private:
 
     // invoke observer m_death inside
     // Can throw whatever esceptions occur in user's function
-    virtual void NotifyDispatcherDeath();    
+    virtual void NotifyDispatcherDeath();
 
     OBSV* m_observer;
     obsNotify_t m_notify;
@@ -116,6 +128,7 @@ private:
 template <typename MSG>
 Dispatcher<MSG>::Dispatcher()
     : m_callbacks()
+    , m_erasedCallbacks()
 {}
 
 template <typename MSG>
@@ -123,7 +136,10 @@ Dispatcher<MSG>::~Dispatcher()
 {
     for (size_t i = 0; i < m_callbacks.size(); ++i)
     {
-        NullingDispatcher(m_callbacks[i]);
+        if (true == m_callbacks[i].second)
+        {
+            NullingDispatcher(m_callbacks[i].first);
+        }
     }
 }
 
@@ -145,48 +161,54 @@ void Dispatcher<MSG>::Register(BaseCallback<MSG>* baseCallback_)
     else if (0 == belongDispatcher)
     {
         baseCallback_->m_dispatcher = this;
-	    m_callbacks.push_back(baseCallback_);
+        std::pair<BaseCallback<MSG>*, bool> pair = 
+                  std::make_pair(baseCallback_, true);
+	    m_callbacks.push_back(pair);
     }
 }
 
 template <typename MSG>
 void Dispatcher<MSG>::Notify(const MSG& message_)
 {
-    for (size_t i = 0; i < m_callbacks.size(); ++i)
+    typename std::vector<std::pair<BaseCallback<MSG>*, bool> >::iterator iter;
+    while (!m_erasedCallbacks.empty())
     {
-        BaseCallback<MSG> *next_BaseCallback = 0;
-
-        if ((i + 1) < m_callbacks.size())
-        {
-            next_BaseCallback = m_callbacks[i + 1];
-        }
-        
-        m_callbacks[i]->Notify(message_);
-
-        if (next_BaseCallback == m_callbacks[i])
-        {
-            --i;
-        }
+        iter = std::find(m_callbacks.begin(), m_callbacks.end(), 
+                                              m_erasedCallbacks.top());
+        m_callbacks.erase(iter);                                      
+        m_erasedCallbacks.pop();
     }
-/*    typename std::vector<BaseCallback<MSG>* >::iterator iter;
+
     for (iter = m_callbacks.begin(); iter != m_callbacks.end(); ++iter)
 	{
-		(*iter)->Notify(message_);
-	}*/
+        if (true == iter->second)
+        {
+            iter->first->Notify(message_);
+        }
+	}
 }
 
 template <typename MSG>
 void Dispatcher<MSG>::Unregister(BaseCallback<MSG>* baseCallback_)
 {
-    typename std::vector<BaseCallback<MSG>* >::iterator iter;
-
-    iter = std::find(m_callbacks.begin(), m_callbacks.end(), baseCallback_);
+    typename std::vector<std::pair<BaseCallback<MSG>*, bool> >::iterator iter;
+    std::pair<BaseCallback<MSG>*, bool> pair = std::make_pair(baseCallback_, true);
+    iter = std::find(m_callbacks.begin(), m_callbacks.end(), pair);
     if (iter != m_callbacks.end())
     {
-	    m_callbacks.erase(iter);
+        iter->second = false;
+        m_erasedCallbacks.push(*iter);
     }
     
 }
+
+template <typename MSG>
+void Dispatcher<MSG>::StubObsNotify(const int &num)
+{}
+
+template <typename MSG>
+void Dispatcher<MSG>::StubObsBeforeDeath()
+{}
 /******************************************************************************
  *          BaseCAllback methods
 ******************************************************************************/
@@ -229,9 +251,9 @@ void ObserverCallback<MSG, OBSV>::Notify(const MSG& message_)
 template <typename MSG, typename OBSV>
 void ObserverCallback<MSG, OBSV>::NotifyDispatcherDeath()
 {
-    if (NULL != m_death)
+    if (0 != m_death)
     {
-       (m_observer->*m_death)();
+        (m_observer->*m_death)();
     }
 }
 /*----------------------------------------------------------------------------*/

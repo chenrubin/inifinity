@@ -26,10 +26,14 @@ private:
 
 Observer_ac::Observer_ac()
     : m_obsCallback(this, &Observer_ac::ObsPrintTemprature1, &Observer_ac::ObsGoodBye1)
-{}
+{
+    std::cout << "observer Ctor\n";
+}
 
 Observer_ac::~Observer_ac()
-{}
+{
+    std::cout << "observer Dtor\n";
+}
 
 ObserverCallback<double, Observer_ac>* Observer_ac::GetCallback()
 {
@@ -102,7 +106,9 @@ private:
 
 Subject_therm::Subject_therm()
     : m_dispatcher()
-{}
+{
+    std::cout << "Subject Ctor\n";
+}
 
 Subject_therm::~Subject_therm()
 {
