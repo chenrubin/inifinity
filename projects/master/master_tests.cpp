@@ -4,7 +4,7 @@
 
 using namespace ilrd;
 
-void TestCommunicationWriteAndRead();
+//void TestCommunicationWriteAndRead();
 void TestMasterWithProxy();
 
 int main()
@@ -14,7 +14,7 @@ int main()
 
     return 0;
 }
-
+/*
 void TestCommunicationWriteAndRead()
 {
     Reactor Reactor;
@@ -36,9 +36,14 @@ void TestCommunicationWriteAndRead()
 
     master.onRead(reqPackRead);
 }
-
+*/
 void TestMasterWithProxy()
 {
+    std::vector<std::pair<unsigned short, std::string> > myPairs;
+    std::pair<unsigned short, std::string> pair1 = std::make_pair(12345, "127.0.0.1");
+
+    myPairs.push_back(pair1);
+
     Reactor Reactor;
-    Master master(&Reactor);
+    Master master(&Reactor, myPairs);
 }

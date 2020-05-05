@@ -9,23 +9,26 @@
 
 namespace ilrd
 {
-class UdpSocket
+class UdpSocket : private Uncopyable
 {
 public:    
-    explicit UdpSocket(unsigned short port_, std::string address_, bool isBind);
+    explicit UdpSocket(unsigned short port_, in_addr_t address,
+                       int optname_,bool isBroadcast);
+    explicit UdpSocket(unsigned short port_, char *address,
+                       int optname_,bool isBroadcast);                       
     ~UdpSocket();
-    UdpSocket(const UdpSocket &other_);
-
     int GetFd();
     struct sockaddr_in GetSockAddr();
 
 private:
-    struct sockaddr_in InitServerIMP();
-
     unsigned short m_port;
-    std::string m_addr;
+    unsigned long m_addr;
     int m_fd;
-    struct sockaddr_in m_sockaddr;
+    bool m_isBroadcast;
+    int m_optname;
+    struct sockaddr_in *m_sockaddr;
+
+    void InitServerIMP();
 };
 } // end of namespace ilrd
 #endif

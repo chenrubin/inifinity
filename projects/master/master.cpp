@@ -8,34 +8,41 @@
 
 #define BLOCK_SIZE (4096)
 #define s_NUM_OF_BLOCKS (128)
-#define MASTER_PORT (11111)
-#define MINION_PORT (12345)
+//#define MASTER_PORT (11111)
+//#define MINION_PORT (12345)
 
 namespace ilrd
 {
-
-Master::Master(Reactor *reactor_)
+Master::Master(Reactor *reactor_, 
+               std::vector<std::pair<unsigned short, std::string> > &ipPortPairs_)
     : m_reactor(reactor_)
     , m_proxy(m_reactor, boost::bind(&Master::onRead, this, _1), boost::bind(&Master::onWrite, this, _1))
     , m_reactorRun(boost::bind(&Reactor::Run, m_reactor))
-    , m_socket(MASTER_PORT, INADDR_ANY, SO_REUSEADDR, false)
-    , m_minionSockAddr()
+    , m_minionFds()
+    , m_minionSock()
     , m_requests()
 {
-/*    try
+ //   std::cout << "pairs size = " << ipPortPairs_.size() << "\n";
+    for (size_t i = 0; i < ipPortPairs_.size(); ++i)
     {
-        m_reactorRun = boost::thread(boost::bind(&Reactor::Run, m_reactor));
+        std::cout << "Start of Ctor\n";
+        std::cout << "ipPortPairs_[/*i*/0].first = " << ipPortPairs_[/*i*/0].first << "\n";
+        std::cout << "ipPortPairs_[/*i*/0].second = " << ipPortPairs_[/*i*/0].second << "\n";
+        UdpSocket *sock = new UdpSocket(ipPortPairs_[i].first, ipPortPairs_[i].second ,false); // dont forget to delete
+        
+        std::cout << "After udpSock\n";
+
+        std::cout << "About to push back\n";
+        m_minionSock.push_back(sock);
+        std::cout << "push back\n";
+        std::cout << "before sock.GetFd\n";
+
+        std::cout << "about tp o,ap\n";
+        m_minionFds[sock->GetFd()] = i;
+        std::cout << "before adddFd\n";
+        m_reactor->AddFd(sock->GetFd(), Reactor::READ, boost::bind(&Master::MyCallback, this, _1));
+        std::cout << "after adddFd\n";
     }
-    catch(const std::exception& e)
-    {
-        std::cout << "Inside catch\n";
-        std::cerr << e.what() << '\n';
-        perror("perror failed");
-    }
-  */  
-    AddMinion("192.168.1.20");
-    //AddMinion("127.0.0.1");
- //   m_reactor->AddFd(m_socket, Reactor::READ, )
 }
 
 Master::~Master()
@@ -54,11 +61,12 @@ void Master::onRead(const RequestPacketRead& pk)
     CreateReadRequestPacket(&reqPack, &pk);
     m_requests[pk.uid] = pk.len;
     size_t minionIndex = LocateMinionIndexByOffset(pk.offset);
-    socklen_t size = sizeof(m_minionSockAddr[minionIndex]);
-
-    HandleErrorIfExists(sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
-                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size), "sendto failed");
-
+    socklen_t size = sizeof(m_minionSock[minionIndex]->GetSockAddr());
+    int sock_fd = m_minionSock[minionIndex]->GetFd();
+    sockaddr_in sockAddress = m_minionSock[minionIndex]->GetSockAddr();
+    HandleErrorIfExists(sendto(sock_fd, &reqPack, sizeof(reqPack), 0,
+                 (struct sockaddr *)&sockAddress, size), "sendto failed");
+/*
     struct ReplyPacket repPack;
     memset(&repPack, 0, sizeof(repPack));
     HandleErrorIfExists(recvfrom(m_socket.GetFd(), &repPack, sizeof(repPack), 0, 
@@ -72,6 +80,7 @@ void Master::onRead(const RequestPacketRead& pk)
     ReplyPacketRead repPacketToProxy;
     CreateReplyPacketRead(&repPacketToProxy, &repPack);
     m_proxy.ReplyRead(repPacketToProxy);
+*/    
 }
 
 void Master::onWrite(const RequestPacketWrite& pk)
@@ -84,12 +93,14 @@ void Master::onWrite(const RequestPacketWrite& pk)
     std::cout << "After CreateWriteRequestPacket\n";
     m_requests[pk.uid] = pk.len;
     size_t minionIndex = LocateMinionIndexByOffset(pk.offset);
-    socklen_t size = sizeof(m_minionSockAddr[minionIndex]);
+    socklen_t size = sizeof(m_minionSock[minionIndex]->GetSockAddr());
+    int sock_fd = m_minionSock[minionIndex]->GetFd();
     std::cout << "before handleerrors\n";
-    HandleErrorIfExists(sendto(m_socket.GetFd(), &reqPack, sizeof(reqPack), 0,
-                 (struct sockaddr *)&m_minionSockAddr[minionIndex], size), "Failed to send");
-    std::cout << "after sendto handleerrors\n";             
-
+    sockaddr_in sockAddress = m_minionSock[minionIndex]->GetSockAddr();
+    HandleErrorIfExists(sendto(sock_fd, &reqPack, sizeof(reqPack), 0,
+                 (struct sockaddr *)&sockAddress, size), "Failed to send");
+    std::cout << "after sendto handleerrors\n";
+/*
     struct ReplyPacket repPack;
     std::cout << "struct ReplyPacket repPack\n";
     memset(&repPack, 0, sizeof(repPack));
@@ -101,11 +112,45 @@ void Master::onWrite(const RequestPacketWrite& pk)
     std::cout << "repPack.status = " << static_cast<int>(repPack.status) << std::endl;
     std::cout << "repPack.type = " << static_cast<int>(repPack.type) << std::endl;
     std::cout << "repPack.uid = " << repPack.uid << std::endl;
-    std::cout << "repPack.data = " << repPack.data << std::endl; 
+    std::cout << "repPack.data = " << repPack.data << std::endl;
 
     ReplyPacketWrite repPacketToProxy;
     CreateReplyPacketWrite(&repPacketToProxy, &repPack);
     m_proxy.ReplyWrite(repPacketToProxy);
+*/    
+}
+
+void Master::MyCallback(int fd_)
+{
+    struct ReplyPacket repPack;
+    memset(&repPack, 0, sizeof(repPack));
+    size_t minionIndex = m_minionFds[fd_];
+    std::cout << "inside MyCallback Minion index = " << minionIndex << "\n";
+    socklen_t size = sizeof(m_minionSock[minionIndex]->GetSockAddr());
+    sockaddr_in sockAddress = m_minionSock[minionIndex]->GetSockAddr();
+    HandleErrorIfExists(recvfrom(fd_, &repPack, sizeof(repPack), 0, 
+             (struct sockaddr *)&sockAddress, &size), "Failed recvfrom");
+
+    std::cout << "repPack.status = " << static_cast<int>(repPack.status) << std::endl;
+    std::cout << "repPack.type = " << static_cast<int>(repPack.type) << std::endl;
+    std::cout << "repPack.uid = " << repPack.uid << std::endl;
+    std::cout << "repPack.data = " << repPack.data << std::endl;
+
+    if (repPack.type == 0)
+    {
+        ReplyPacketRead repPacketToProxy;
+        CreateReplyPacketRead(&repPacketToProxy, &repPack);
+        std::cout << "Inside MyCallback After CreateReplyPacketRead\n";
+        m_proxy.ReplyRead(repPacketToProxy);
+        std::cout << "Inside MyCallback After m_proxy.ReplyRead(repPacketToProxy);\n";
+    }
+    else
+    {
+        ReplyPacketWrite repPacketToProxy;
+        CreateReplyPacketWrite(&repPacketToProxy, &repPack);
+        m_proxy.ReplyWrite(repPacketToProxy);
+    }
+    
 }
 
 size_t Master::LocateMinionIndexByOffset(uint64_t offset)
@@ -142,6 +187,7 @@ void Master::CreateReplyPacketRead(ReplyPacketRead *repPack,
 {
     CreateReplyPacketExceptForData(repPack, ResponseFromMinion);
     CopyReadDataIntoPacket(repPack, ResponseFromMinion);
+    std::cout << "Inside end of CreateReplyPacketRead\n";
 }
 
 void Master::CreateReplyPacketWrite(ReplyPacketWrite *repPack, 
@@ -169,8 +215,9 @@ void Master::CopyReadDataIntoPacket(ReplyPacketRead *repPacketToProxy,
     std::copy(ResponseFromMinion->data, 
               ResponseFromMinion->data + repPacketToProxy->len, 
               std::back_inserter(repPacketToProxy->data));
+    std::cout << "Inside end of  CopyReadDataIntoPacket\n";          
 }
-
+/*
 void Master::AddMinion(std::string ipAddress)
 {
     sockaddr_in minionAddr;
@@ -180,5 +227,5 @@ void Master::AddMinion(std::string ipAddress)
     minionAddr.sin_port = htons(MINION_PORT);
 
     m_minionSockAddr.push_back(minionAddr);
-}
+}*/
 } // end of namespace ilrd

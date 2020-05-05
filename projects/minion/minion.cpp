@@ -19,7 +19,7 @@
 namespace ilrd
 {
 Minion::Minion(unsigned short port_)
-    : m_socket(port_, INADDR_ANY, SO_REUSEADDR, false)
+    : m_socket(port_, /*"192.168.1.12"*/"127.0.0.1", true)//m_socket(port_, INADDR_ANY, SO_REUSEADDR, false)
     , m_reactor()
     , m_storage()
 {
@@ -153,7 +153,7 @@ void Minion::BuildBuffIMP(unsigned char type,
 
 void Minion::Callback(Minion *minion)
 {
-    std::cout << "Avout to invoke minion->RecvRequestIMP\n";
+    std::cout << "About to invoke minion->RecvRequestIMP\n";
     minion->RecvRequestIMP(minion->m_socket.GetFd());
 }
 

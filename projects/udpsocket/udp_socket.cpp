@@ -11,41 +11,45 @@
 namespace ilrd
 {
 
-UdpSocket::UdpSocket(unsigned short port_, in_addr_t address_,
-                     int optname_,bool isBroadcast_)
+UdpSocket::UdpSocket(unsigned short port_, std::string address_, bool isBind)
     : m_port(port_)
     , m_addr(address_)
     , m_fd(-1)
-    , m_isBroadcast(isBroadcast_)
-    , m_optname(optname_)
-    , m_sockaddr(new sockaddr_in)
+    , m_sockaddr(InitServerIMP())
 {
-    memset(m_sockaddr, 0, sizeof(*m_sockaddr));
-    InitServerIMP();
-    int status = 0;
+    std::cout << "size = " << sizeof(m_sockaddr) << "\n";
+    
 
     m_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     HandleErrorIfExists(m_fd, "socket");
-     
-    status = bind(m_fd, (struct sockaddr *)m_sockaddr, sizeof(*m_sockaddr));
-    HandleErrorIfExists(status, "bind");
- 
-    if (m_isBroadcast)
+
+    if (isBind)
     {
-        int broadcast = 1;
-        status = setsockopt(m_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
-        HandleErrorIfExists(status, "setsockopt");
+        HandleErrorIfExists(bind(m_fd, (struct sockaddr *)&m_sockaddr, 
+                                        sizeof(m_sockaddr)), "bind");
     }
 }
 
 UdpSocket::~UdpSocket()
 {
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!Inside UdpSocket Dtor!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     if (-1 != m_fd)
     {
         close(m_fd);
     }
-    
-    delete m_sockaddr;
+}
+
+UdpSocket::UdpSocket(const UdpSocket &other_)
+{
+    std::cout << "inside socket CCtor before port\n";
+    this->m_port = other_.m_port;
+    std::cout << "inside socket CCtor before m_addr\n";
+    this->m_addr = other_.m_addr;
+    std::cout << "inside socket CCtor before m_fd\n";
+    this->m_fd = other_.m_fd;
+    std::cout << "inside socket CCtor before sockaddr\n";
+    this->m_sockaddr = other_.m_sockaddr;
+    std::cout << "inside socket CCtor end\n";
 }
 
 int UdpSocket::GetFd()
@@ -53,12 +57,22 @@ int UdpSocket::GetFd()
     return m_fd;
 }
 
-void UdpSocket::InitServerIMP()
+struct sockaddr_in UdpSocket::InitServerIMP()
 {
-    memset(m_sockaddr, 0, sizeof(*m_sockaddr));
+    std::cout << "Inside initServer\n";
+    std::cout << "sizeof(m_sockaddr) = " << sizeof(m_sockaddr) << "\n";
+    struct sockaddr_in sockaddr;
+ //   memset(&m_sockaddr, 0, sizeof(m_sockaddr));
 
-    m_sockaddr->sin_family = AF_INET;
-    m_sockaddr->sin_addr.s_addr = htonl(m_addr);
-    m_sockaddr->sin_port = htons(m_port);
+    sockaddr.sin_family = AF_INET;
+    sockaddr.sin_addr.s_addr = inet_addr(m_addr.c_str());
+    sockaddr.sin_port = htons(m_port);
+
+    return sockaddr;
 }
-} // end of namespace ilrd 
+
+struct sockaddr_in UdpSocket::GetSockAddr()
+{
+    return m_sockaddr;
+}
+} // end of namespace ilrd

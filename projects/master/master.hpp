@@ -6,7 +6,7 @@
 #include "reactor.hpp"                  // class Reactor
 #include "driver_proxy.hpp"             // class driver_procy
 #include "udp_socket.hpp"	            // class UdpSocket
-#include "../minion/packet/packet.hpp"                   // class packet.hpp
+#include "packet.hpp"                   // class packet.hpp
 #include "proxy_packet.hpp"             // RequestPacketRead, RequestPacketWrite
 
 namespace ilrd
@@ -14,7 +14,8 @@ namespace ilrd
 class Master
 {
 public:
-    explicit Master(Reactor *reactor_);
+    explicit Master(Reactor *reactor_, 
+                    std::vector<std::pair<unsigned short, std::string> > &ipPortPairs_);
     ~Master();
 
     // When read action is wanted master recieves RequestPacketRead
@@ -45,15 +46,15 @@ private:
                                 ReplyPacket *ResponseFromMinion);
     
     // ipAddress should be written as "x.x.x.x" where  0=< x <= 254
-    void AddMinion(std::string ipAddress);                                
+ //   void AddMinion(std::string ipAddress);
+    void MyCallback(int fd_);
 
     Reactor *m_reactor;
     DriverProxy m_proxy;
     boost::thread m_reactorRun;
-    UdpSocket m_socket;
-    std::vector<sockaddr_in> m_minionSockAddr;
-    std::map<uint64_t, uint64_t> m_requests;
-    
+    std::map<int, size_t> m_minionFds; // pairs of fd and minion index ?
+    std::vector<UdpSocket *> m_minionSock; // sockets for each minion 
+    std::map<uint64_t, uint64_t> m_requests; // uid and len for each request
 };
 } // end of namespace ilrd
 

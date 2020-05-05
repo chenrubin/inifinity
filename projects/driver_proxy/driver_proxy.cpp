@@ -39,7 +39,7 @@ DriverProxy::DriverProxy(Reactor *reactor_,
     , m_nbdFd(CreateNbdFdIMP())
 {
     InitiateLogger();
-    LOG_DEBUG("inside Proxy Ctor");
+    //LOG_DEBUG("inside Proxy Ctor");
     HandleErrorIfExists(socketpair(AF_UNIX, SOCK_STREAM, 0, m_sockPair),
                         "create socket pair");
     ConfigureNbdSizeIMP();
@@ -59,7 +59,7 @@ void DriverProxy::ReplyRead(const ReplyPacketRead& packet_)
 {
     struct nbd_reply nbdReply;
     //LOG_DEBUG("inside reply read");
-
+    std::cout << "inside ReplyRead\n";
     CreateReplyPacketReadIMP(&nbdReply, &packet_);
     WriteAllIMP(m_sockPair[0], (char *)&nbdReply, sizeof(nbdReply));
 #if NDEBUG
@@ -84,6 +84,7 @@ void DriverProxy::ReplyWrite(const ReplyPacketWrite& packet_)
 void DriverProxy::CreateReplyPacketReadIMP(struct nbd_reply *nbdReply, 
 								          const ReplyPacketRead *packet_)
 {
+    std::cout << "inside CreateReplyPacketReadIMP\n";
     //LOG_DEBUG("inside CreateReplyPacketReadIMP");
     nbdReply->magic = htonl(NBD_REPLY_MAGIC);
     nbdReply->error = packet_->status;
@@ -241,15 +242,22 @@ void DriverProxy::ConfigureNbdSizeIMP()
 ******************************************************************************/
 void WriteAllIMP(int fd, char *buff, size_t count)
 {
-    size_t bytes_written = 0;
+    std::cout << "inside WriteAllIMP\n";
+    ssize_t bytes_written = 0;
+    std::cout << "count = " << count << "\n";
     while (count > 0)
     {
-    //    std::cout << "buf = " << buff << "\n";
+        std::cout << "Inside While count\n";
+        std::cout << "about to write to fd " << fd << "\n";
+        std::cout << "fcntl = " << fcntl(fd, F_GETFD) << "\n";
         bytes_written = write(fd, buff, count);
+
+        std::cout << "Inside While count after write\n";
         HandleErrorIfExists(bytes_written, "Failed to write to buffer");
         buff += bytes_written;
         count -= bytes_written;
     }
+    std::cout << "End of WriteAllIMP\n";
 }
 } // end of namespace ilrd
 namespace
