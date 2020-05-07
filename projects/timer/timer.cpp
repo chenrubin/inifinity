@@ -11,7 +11,7 @@
 #include "timer.hpp"
 #define NANO_IN_SEC (1000000000)
 
-#define TICKS_COMPARE_TOLERANCE (1000)
+#define TICKS_COMPARE_TOLERANCE (10)
 
 namespace ilrd
 {
@@ -52,7 +52,8 @@ void Timer::ConvertChronoToiTimerspec(systemClock_t::time_point time_,
     long temp = nano.count();
 
     itspec->it_value.tv_sec = temp / NANO_IN_SEC;
-    itspec->it_value.tv_nsec = temp % NANO_IN_SEC;
+    temp = temp % NANO_IN_SEC;
+    itspec->it_value.tv_nsec = temp < 0 ? 0 : temp;
     itspec->it_interval.tv_nsec = 0;
     itspec->it_interval.tv_sec = 0;
 }
@@ -94,6 +95,11 @@ void Timer::SetTime()
     itimerspec itspec;
 
     ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
+    std::cout << "timerFd = " << m_timerFd.GetFd() << "\n";
+    std::cout << "itspec.it_interval.tv_nsec = " << itspec.it_interval.tv_nsec << "\n";
+    std::cout << "itspec.it_interval.tv_sec = " << itspec.it_interval.tv_sec << "\n";
+    std::cout << "itspec.it_value.tv_nsec = " << itspec.it_value.tv_nsec << "\n";
+    std::cout << "itspec.it_value.tv_sec = " << itspec.it_value.tv_sec << "\n";
     HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
                                                                     "settime");
 }

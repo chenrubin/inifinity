@@ -10,7 +10,7 @@
 
 #define STDIN (0)
 #define BLOCK_SIZE 4096
-#define NUM_OF_BLOCKS 128
+#define NUM_OF_BLOCKS /*128*/64
 #define PATH_LEN 100
 
 namespace
@@ -112,6 +112,8 @@ void DriverProxy::OnRequestIMP(int fd_)
 
     bytes_read = read(fd_, &nbdRequest, sizeof(nbdRequest));
 
+    std::cout << "Expected request magic = " << htonl(NBD_REQUEST_MAGIC) << "\n";
+    std::cout << "Actual request magic = " << nbdRequest.magic << "\n";
     HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
     HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
                             0 : -1, "Request magic number is illegal");
@@ -203,6 +205,7 @@ void DriverProxy::DisconnectSystemIMP(int fd_)
 int DriverProxy::CreateNbdFdIMP()
 {
     int nbd = open("/dev/nbd0", O_RDWR);
+    //int nbd = open("/dev/nbd1", O_RDWR);
     HandleErrorIfExists(nbd, "create fd for nbd device path");
 
     return nbd;

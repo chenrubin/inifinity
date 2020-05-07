@@ -60,9 +60,9 @@ int UdpSocket::GetFd()
 struct sockaddr_in UdpSocket::InitServerIMP()
 {
     std::cout << "Inside initServer\n";
-    std::cout << "sizeof(m_sockaddr) = " << sizeof(m_sockaddr) << "\n";
-    struct sockaddr_in sockaddr;
- //   memset(&m_sockaddr, 0, sizeof(m_sockaddr));
+    struct sockaddr_in sockaddr/* = {0}*/;
+    std::cout << "sizeof(sockaddr) = " << sizeof(sockaddr) << "\n";
+ //   memset(&sockaddr, 0, sizeof(sockaddr));
 
     sockaddr.sin_family = AF_INET;
     sockaddr.sin_addr.s_addr = inet_addr(m_addr.c_str());

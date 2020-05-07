@@ -31,7 +31,8 @@ public:
 private:
 	UdpSocket m_socket;
 	Reactor m_reactor;
-	Storage* m_storage;
+//	Storage* m_storage;
+	int m_storageFd;
 
 	virtual void RecvRequestIMP(int fd_);
 	virtual void HandleRequestIMP(uint64_t uid, 
@@ -49,8 +50,11 @@ private:
 	void ParseMessageIMP(u_int64_t *uid, 
                      u_int64_t *blockIndex, 
                      unsigned char *type, 
-                     char *buff);					 
+                     char *buff);
+	int TruncateStorageIMP();
+	void StopMinionCallbackIMP(int fd_);
 	static void Callback(Minion *minion);
+
 
 //	virtual void EncryptDataIMP(char data_[Storage::s_BLOCK_SIZE]);
 //	virtual void DecryptDataIMP(char data_[Storage::s_BLOCK_SIZE]);	
