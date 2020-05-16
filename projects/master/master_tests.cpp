@@ -64,11 +64,15 @@ void TestMasterWithProxy()
     std::vector<std::pair<unsigned short, std::string> > myPairs;
     std::pair<unsigned short, std::string> pair1 = std::make_pair(12344, "127.0.0.1");
     std::pair<unsigned short, std::string> pair2 = std::make_pair(12345, "127.0.0.1"/*"192.168.1.20"*/);
+    std::pair<unsigned short, std::string> pair3 = std::make_pair(12346, "127.0.0.1");
 
     myPairs.push_back(pair1);
     myPairs.push_back(pair2);
+    myPairs.push_back(pair3);
 
     Reactor reactor;
     Timer timer(&reactor);
-    Master master(&reactor, myPairs, &timer);
+    ThreadPool tp;
+    Eventer eventer(&reactor);
+    Master master(&reactor, myPairs, &timer, &tp, &eventer);
 }

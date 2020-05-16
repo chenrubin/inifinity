@@ -1,6 +1,6 @@
 #include "minion.hpp"
 
-#define PORT 12344/*12345*/
+#define PORT 12344/*12345*//* 12346*/
 
 using namespace ilrd;
 

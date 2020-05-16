@@ -10,7 +10,7 @@
 
 #define STDIN (0)
 #define BLOCK_SIZE 4096
-#define NUM_OF_BLOCKS /*128*/64
+#define NUM_OF_BLOCKS /*128*/96
 #define PATH_LEN 100
 
 namespace
@@ -76,6 +76,7 @@ void DriverProxy::ReplyWrite(const ReplyPacketWrite& packet_)
     //LOG_DEBUG("inside ReplyWrite");
 
     CreateReplyPacketWriteIMP(&nbdReply, &packet_);
+    std::cout << "Inside ReplyWrite\n";
     WriteAllIMP(m_sockPair[0], (char *)&nbdReply, sizeof(nbdReply));
 
     //LOG_DEBUG("end of ReplyWrite");
@@ -107,18 +108,18 @@ void DriverProxy::OnRequestIMP(int fd_)
     size_t bytes_read = 0;
     std::cout << "std::cout inside OnRequestIMP before logger\n";
     //LOG_DEBUG("Inside OnRequestIMP");
-    std::cout << "std::cout inside OnRequestIMP After logger\n";
+//    std::cout << "std::cout inside OnRequestIMP After logger\n";
     struct nbd_request nbdRequest;
-
+    std::cout << "std::cout inside OnRequestIMP before read\n";
     bytes_read = read(fd_, &nbdRequest, sizeof(nbdRequest));
-
-    std::cout << "Expected request magic = " << htonl(NBD_REQUEST_MAGIC) << "\n";
-    std::cout << "Actual request magic = " << nbdRequest.magic << "\n";
+    std::cout << "std::cout inside OnRequestIMP after read, bytes = " << bytes_read << "\n";
+//    std::cout << "Expected request magic = " << htonl(NBD_REQUEST_MAGIC) << "\n";
+//    std::cout << "Actual request magic = " << nbdRequest.magic << "\n";
     HandleErrorIfExists(bytes_read, "error reading user side of nbd socket");
     HandleErrorIfExists(true == (nbdRequest.magic == htonl(NBD_REQUEST_MAGIC)) ?
                             0 : -1, "Request magic number is illegal");
     int type = htonl(nbdRequest.type);
-
+    std::cout << "std::cout inside OnRequestIMP after int type = htonl(nbdRequest.type);\n";
     switch (type)
     {
         case NBD_CMD_WRITE:
@@ -141,6 +142,7 @@ void DriverProxy::OnRequestIMP(int fd_)
         }
         case NBD_CMD_DISC:
         {
+            std::cout << "Inside NBD_CMD_DISC\n";
             //LOG_DEBUG("Inside NBD_CMD_DISC");
             m_reactor->RemoveFd(m_sockPair[0], m_reactor->READ);
             close(m_sockPair[0]);
@@ -203,9 +205,8 @@ void DriverProxy::DisconnectSystemIMP(int fd_)
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int DriverProxy::CreateNbdFdIMP()
-{
-    int nbd = open("/dev/nbd0", O_RDWR);
-    //int nbd = open("/dev/nbd1", O_RDWR);
+{ // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    int nbd = open("/dev/nbd2", O_RDWR);
     HandleErrorIfExists(nbd, "create fd for nbd device path");
 
     return nbd;
@@ -253,6 +254,8 @@ void WriteAllIMP(int fd, char *buff, size_t count)
         std::cout << "Inside While count\n";
         std::cout << "about to write to fd " << fd << "\n";
         std::cout << "fcntl = " << fcntl(fd, F_GETFD) << "\n";
+        std::cout << "Inside While count, count = " << count << "\n";
+        std::cout << "buff = " << buff << "\n"; 
         bytes_written = write(fd, buff, count);
 
         std::cout << "Inside While count after write\n";

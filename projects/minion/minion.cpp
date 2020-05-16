@@ -12,7 +12,7 @@
 
 #define DATA_OFFSET (17)
 #define DATA_LENGTH (4 * 1024)
-#define NUM_OF_BLOCKS (32)
+#define NUM_OF_BLOCKS (64)
 #define READ_RESPONSE_LENGTH ((10) + (DATA_LENGTH))
 #define WRITE_RESPONSE_LENGTH (10)
 #define IS_LITLLE_ENDIAN (1 == (*(int *)(&"\1\0\0\0"))? 1:0)
@@ -26,7 +26,6 @@ namespace ilrd
 Minion::Minion(unsigned short port_)
     : m_socket(port_, /*"192.168.1.20"*/"127.0.0.1", true)
     , m_reactor()
-   // , m_storage()
     , m_storageFd(TruncateStorageIMP())
 {
 //    m_storage = new Storage;

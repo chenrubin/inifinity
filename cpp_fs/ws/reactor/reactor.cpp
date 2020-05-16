@@ -88,7 +88,7 @@ void Reactor::RemoveAllMarkedElementsIMP()
         {
             if (it->second == DummyCallback1IMP)
             {
-                std::cout << "inside if about to erase\n";
+         //       std::cout << "inside if about to erase\n";
                 it = fd_types[i].erase(it);
                 --it;
             }
@@ -103,8 +103,8 @@ Reactor::error_t Reactor::Run()
 
     while (!m_stop)
     {
-        std::cout << "m_stop = " << m_stop << "\n";
-        std::cout << "start of while in reactor\n";
+    //    std::cout << "m_stop = " << m_stop << "\n";
+    //    std::cout << "start of while in reactor\n";
         maxSockId = GetMaxSocketIMP();
 
         FD_ZERO(&fdset_arr[0]);
@@ -113,7 +113,7 @@ Reactor::error_t Reactor::Run()
         UpdateFdSetsIMP(&fdset_arr[0], &fdset_arr[1], &fdset_arr[2]);
         static size_t counter = 0;
         ++counter;
-        std::cout << "counter = " << counter << "\n";
+        std::cout << "reactor counter = " << counter << "\n";
         std::cout << "before select\n";
         if (-1 == select(maxSockId + 1, &fdset_arr[0], &fdset_arr[1], &fdset_arr[2], NULL))
         {
@@ -129,18 +129,18 @@ Reactor::error_t Reactor::Run()
                                         iterator end = fd_types[i].end();
             for (it = fd_types[i].begin(); it < end; ++it)
             {
-                std::cout << "inside for\n";
+             //   std::cout << "inside for\n";
                 if (FD_ISSET(it->first, &fdset_arr[i]))
                 {
-                    std::cout << "inside if before\n";
+              //      std::cout << "inside if before\n";
                     it->second(it->first);
-                    std::cout << "inside if after\n";
+              //      std::cout << "inside if after\n";
                 }
             }
         }
-        std::cout << "before remove all elements\n";
+    //    std::cout << "before remove all elements\n";
         RemoveAllMarkedElementsIMP();
-        std::cout << "after remove all elements\n";
+    //    std::cout << "after remove all elements\n";
     }
    
     return SUCCESS;

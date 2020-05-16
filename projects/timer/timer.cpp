@@ -95,12 +95,12 @@ void Timer::SetTime()
     itimerspec itspec;
 
     ConvertChronoToiTimerspec(m_queue.top().first, &itspec);
-    std::cout << "timerFd = " << m_timerFd.GetFd() << "\n";
+/*    std::cout << "timerFd = " << m_timerFd.GetFd() << "\n";
     std::cout << "itspec.it_interval.tv_nsec = " << itspec.it_interval.tv_nsec << "\n";
     std::cout << "itspec.it_interval.tv_sec = " << itspec.it_interval.tv_sec << "\n";
     std::cout << "itspec.it_value.tv_nsec = " << itspec.it_value.tv_nsec << "\n";
     std::cout << "itspec.it_value.tv_sec = " << itspec.it_value.tv_sec << "\n";
-    HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
+*/    HandleErrorIfExists(timerfd_settime(m_timerFd.GetFd(), 0, &itspec, NULL),
                                                                     "settime");
 }
 }

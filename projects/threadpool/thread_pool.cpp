@@ -8,6 +8,7 @@
 #include <cstdio>                   /* perror*/
 
 #include "thread_pool.hpp"
+//#include "thread_pool_old.hpp"
 
 namespace ilrd
 {
@@ -20,7 +21,6 @@ ThreadPool::ThreadPool(size_t numOfThreads_)
     , m_queue()
     , m_IsRunning(true)
     , m_idThreadContainer()
-    , m_numOfThreads(0)
     , m_containerMutex()
     , m_cond()
 {
@@ -29,17 +29,7 @@ ThreadPool::ThreadPool(size_t numOfThreads_)
 
 ThreadPool::~ThreadPool()
 {    
-   std::cout << "inside dtor\n";
     Stop(stopTimeout);
-/*
-   std::map<boost::thread::id, boost::shared_ptr<boost::thread> >::iterator iter;
-    boost::unique_lock<boost::mutex> lock(m_containerMutex);
-    for (iter = m_idThreadContainer.begin(); 
-         iter != m_idThreadContainer.end(); 
-         ++iter)
-    {
-        iter->second->join();   
-    }*/
 }
 
 void ThreadPool::AddTask(boost::function<void(void)> func, Priority_t priority_)
@@ -50,57 +40,39 @@ void ThreadPool::AddTask(boost::function<void(void)> func, Priority_t priority_)
 void ThreadPool::SetThreadsNum(size_t numOfThreads_)
 {
     boost::unique_lock<boost::mutex> lock(m_threadsMutex);
+    size_t size = GetThreadsNum();
 
-    if (numOfThreads_ >= m_numOfThreads)
+    if (numOfThreads_ >= size)
     {
-        IncreaseThreadNumIMP(numOfThreads_ - m_numOfThreads);
+        IncreaseThreadNumIMP(numOfThreads_ - size);
     }
     else
     {
-        DecreaseThreadNumIMP(m_numOfThreads - numOfThreads_);
+        DecreaseThreadNumIMP(size - numOfThreads_);
     }
 }
 
 size_t ThreadPool::GetThreadsNum() const NOEXCEPT
 {
-    return m_numOfThreads.load();
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
+
+    return m_idThreadContainer.size();
 }
 
 void ThreadPool::Stop(boost::chrono::milliseconds endTime_)
 {
     m_IsRunning.store(false);
-    boost::chrono::system_clock::time_point current = 
-                                 boost::chrono::system_clock::now();
-
-    boost::chrono::system_clock::time_point stop_time = 
-            boost::chrono::time_point_cast<boost::chrono::milliseconds>(current + endTime_);
-
-    while (boost::chrono::system_clock::now() < stop_time)
-    {
-        boost::unique_lock<boost::mutex> lock(m_containerMutex);
-        if (m_idThreadContainer.empty())
-        {
-            std::cout << "><><><><><><><><><>num = 0><><><><><><><><><>\n";
-            break;
-        }
-    }
+    boost::this_thread::sleep_for(endTime_);
 
     std::map<boost::thread::id, boost::shared_ptr<boost::thread> >::iterator iter;
 
     boost::unique_lock<boost::mutex> lock(m_containerMutex);
-    std::cout << "size = " << m_idThreadContainer.size() << std::endl;
     for (iter = m_idThreadContainer.begin(); 
          iter != m_idThreadContainer.end(); 
          ++iter)
     {
-        std::cout << "pcancel\n";
         pthread_cancel(iter->second->native_handle());
-        std::cout << "before join\n";
-        iter->second->detach();
-        std::cout << "after join\n";
     }
-    
-    m_idThreadContainer.clear();
 }
 
 bool ThreadPool::CompareFunc::operator()(const Task &task1_, const Task &task2_)
@@ -110,11 +82,20 @@ bool ThreadPool::CompareFunc::operator()(const Task &task1_, const Task &task2_)
 
 void ThreadPool::DecreaseThreadNumIMP(size_t num)
 {
+    size_t size = GetThreadsNum();
+    
     for (size_t i = 0; i < num; ++i)
     {
         AddTaskIMP(boost::bind(&ThreadPool::BadAppleIMP, this),  BAD_APPLE);
-        --m_numOfThreads;
     }
+
+    boost::unique_lock<boost::mutex> lock(m_containerMutex);
+    m_cond.wait(lock, boost::bind(&ThreadPool::IsSizeMatchIMP, this, size - num));
+}
+
+bool ThreadPool::IsSizeMatchIMP(size_t size)
+{
+    return (m_idThreadContainer.size() == size);
 }
 
 void ThreadPool::IncreaseThreadNumIMP(size_t num)
@@ -126,7 +107,6 @@ void ThreadPool::IncreaseThreadNumIMP(size_t num)
 
         boost::unique_lock<boost::mutex> lock(m_containerMutex);
         m_idThreadContainer[thread_shared_ptr->get_id()] = thread_shared_ptr;
-        ++m_numOfThreads;                    
     }
 }
 
@@ -136,54 +116,35 @@ void ThreadPool::AddTaskIMP(boost::function<void(void)> func,
     m_queue.Push(Task(func, priority_));
 }
 
-void ThreadPool::Task::Wrapper(bool *isTerminated)
-{
-    if (m_priority > NUM_OF_PRIORITIES)
-    {
-        *isTerminated = true;
-    }
-
-    m_func();
-}
-
 void ThreadPool::ThreadRoutineIMP()
 {
-    bool isTerminated = false;
     boost::function<void(void)> dummy_func;
 
     if (0 != pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL))
     {
         std::perror("pthread_setcanceltype");
     }
-    while (m_IsRunning.load() && (false == isTerminated))
+    while (m_IsRunning.load())
     {
         Task task(dummy_func, static_cast<Extended_prio_t>(LOW));
         if (m_queue.Pop(task, popTimeout))
         {
-            task.InvokeFunction(&isTerminated);
+            task.InvokeFunction();
         }
     }
-    boost::unique_lock<boost::mutex> lock(m_containerMutex);
-    m_idThreadContainer[boost::this_thread::get_id()]->detach(); 
-    /*if (!isTerminated)
-    {
-        m_idThreadContainer.erase(boost::this_thread::get_id());
-    }*/
-    m_idThreadContainer.erase(boost::this_thread::get_id());
-    
 }
 
 void ThreadPool::BadAppleIMP()
 {
-    std::cout << "BadApple" << std::endl;
-
     boost::unique_lock<boost::mutex> lock(m_containerMutex);
-    m_idThreadContainer[boost::this_thread::get_id()]->detach(); 
-}
+    boost::shared_ptr<boost::thread> temp_ptr = 
+            m_idThreadContainer[boost::this_thread::get_id()];
 
-void ThreadPool::UpdateNumOfThreadsIMP(size_t num)
-{
-    m_numOfThreads.store(num);
+    m_idThreadContainer.erase(boost::this_thread::get_id());
+    m_cond.notify_one();
+    temp_ptr->interrupt();
+    
+    boost::this_thread::interruption_point();
 }
 /*-----------------------------------------------------------------------------
 Task functions
@@ -194,9 +155,9 @@ ThreadPool::Task::Task(boost::function<void(void)> func_,
     , m_priority(static_cast<int> (priority_))
 {}
 
-void ThreadPool::Task::InvokeFunction(bool *isTerminated)
+void ThreadPool::Task::InvokeFunction()
 {
-    Wrapper(isTerminated);
+    m_func();
 }
 
 int ThreadPool::Task::GetPriority() const
