@@ -8,11 +8,13 @@
 #include <cstddef>			// size_t
 #include <boost/cstdint.hpp>  /* uint64_t */
 
-#include "storage.hpp"		// class Storage
-#include "reactor.hpp"		// class Reactor
-#include "udp_socket.hpp"	// class UdpSocket
-#include "MyUtils.hpp"		// class Uncopyable
-#include "logger.hpp"		// class logger
+#include "storage.hpp"					// class Storage
+#include "reactor.hpp"					// class Reactor
+#include "udp_socket.hpp"				// class UdpSocket
+#include "../../cpp_fs/utils/MyUtils.hpp"					// class Uncopyable
+#include "logger.hpp"					// class logger
+#include "../task/factoryTask.hpp"		// class Task 
+#include "../factory/factory.hpp"		// class Factory 
 
 
 namespace ilrd
@@ -29,11 +31,6 @@ public:
 	void Stop();
 
 private:
-	UdpSocket m_socket;
-	Reactor m_reactor;
-//	Storage* m_storage;
-	int m_storageFd;
-
 	virtual void RecvRequestIMP(int fd_);
 	virtual void HandleRequestIMP(uint64_t uid, 
 								  uint64_t blockIndex, 
@@ -55,9 +52,11 @@ private:
 	void StopMinionCallbackIMP(int fd_);
 	static void Callback(Minion *minion);
 
-
-//	virtual void EncryptDataIMP(char data_[Storage::s_BLOCK_SIZE]);
-//	virtual void DecryptDataIMP(char data_[Storage::s_BLOCK_SIZE]);	
+	UdpSocket m_socket;
+	Reactor m_reactor;
+//	Storage* m_storage;
+	int m_storageFd;
+	Factory<Task, uint64_t, > m_task;
 };
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd

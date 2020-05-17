@@ -56,10 +56,10 @@ void Minion::Stop()
 
 void Minion::RecvRequestIMP(int fd_)
 {
-    char *read_buff = new char[/*m_storage->BLOCK_SIZE*/DATA_LENGTH + DATA_OFFSET];
+    char *read_buff = new char[DATA_LENGTH + DATA_OFFSET];
     struct sockaddr_in addr;
     socklen_t size = sizeof(addr);
-    ssize_t bytes = recvfrom(fd_, read_buff, /*m_storage->BLOCK_SIZE*/DATA_LENGTH + DATA_OFFSET, 0, (struct sockaddr *)&addr, &size);
+    ssize_t bytes = recvfrom(fd_, read_buff, DATA_LENGTH + DATA_OFFSET, 0, (struct sockaddr *)&addr, &size);
     std::cout << "\n!!!!!read_buffer = " << read_buff << "!!!!!\n";
     u_int64_t uid = 0;
     u_int64_t blockIndex = 0;
@@ -70,6 +70,7 @@ void Minion::RecvRequestIMP(int fd_)
         std::cout << "Starting parse, handle and send response\n";
         LOG_DEBUG("Starting parse, handle and send response");
         ParseMessageIMP(&uid, &blockIndex, &type, read_buff);
+        
         HandleRequestIMP(uid, blockIndex, type, read_buff);
         SendResponseIMP(type, uid, read_buff, &addr);
     }
@@ -77,7 +78,7 @@ void Minion::RecvRequestIMP(int fd_)
     {
         m_reactor.RemoveFd(fd_, m_reactor.READ);
         throw std::runtime_error("socket closed");
-        LOG_ERROR("socket closed");    ;
+        LOG_ERROR("socket closed");
     }
     else
     {

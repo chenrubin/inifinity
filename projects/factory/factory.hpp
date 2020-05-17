@@ -16,6 +16,8 @@ namespace ilrd
 namespace factory
 {
 /*----------------------------------------------------------------------------*/
+// K is the key type by which the factory knows which 
+// 
 template <typename T, typename K, typename P>
 class Factory : private Uncopyable
 {
@@ -23,16 +25,22 @@ public:
 	// If new key replaced an old one ,return value = false
 	// If new key was immediatly inserted return value = true
 	// throws bad::alloc
+	// This function teaches the factory "a receipe" to create something
+	// the receipe is createFunc_
 	bool AddClass(const K& key_, 
 			boost::function<boost::shared_ptr<T>(P)> createFunc_);
 	
 	//	throws BadCreate and BadKey
+	//  Create an object according to "receipe"
+	// receives key and param
+	// returns shared pointer of object from type T
 	boost::shared_ptr<T> Create(const K& key_, P param_) const NOEXCEPT; 
 	
 	// 2nd phase: unique_ptr c++11, 3rd? args...
 
 private:
-	/*mutable*/ std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
+	// A map of key and function (receipe for creating an object of type T)
+	std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
 
 	typedef typename 
 			std::map<K, boost::function<boost::shared_ptr<T>(P)> >::const_iterator

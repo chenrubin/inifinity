@@ -65,7 +65,7 @@ void Master::onRead(const RequestPacketRead &pk)
     }
     else
     {
-        minionIndex = (minionIndex + 1) % m_numOfMinions; 
+        minionIndex = (minionIndex + 1) % m_numOfMinions;
         if (m_minionSock[minionIndex].second == true)
         {
             reqPack.blockIndex += htobe64(s_NUM_OF_BLOCKS / m_numOfMinions);
