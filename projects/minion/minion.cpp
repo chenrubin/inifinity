@@ -70,7 +70,9 @@ void Minion::RecvRequestIMP(int fd_)
         std::cout << "Starting parse, handle and send response\n";
         LOG_DEBUG("Starting parse, handle and send response");
         ParseMessageIMP(&uid, &blockIndex, &type, read_buff);
-        
+        /*
+            create an object
+        */
         HandleRequestIMP(uid, blockIndex, type, read_buff);
         SendResponseIMP(type, uid, read_buff, &addr);
     }
@@ -160,9 +162,7 @@ void Minion::BuildBuffIMP(unsigned char type,
     LOG_DEBUG("Building response buffer");
 
     buffToBuild[0] = type;
-    *(uint64_t *)(buffToBuild + 1) = uid;
-    std::cout << "Inside BuildBuffIMP uid = " << uid << "\n";
-    buffToBuild[9] = status;
+    *(uint64_t *)(buffToBuild + 1) = uid;SendResponseIMP(type, uid, read_buff, &addr);
     if (0 == type)
     {
         memcpy(buffToBuild + 10, databuff + DATA_OFFSET, DATA_LENGTH);

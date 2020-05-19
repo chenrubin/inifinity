@@ -24,10 +24,7 @@ class Factory : private Uncopyable
 public:
 	// If new key replaced an old one ,return value = false
 	// If new key was immediatly inserted return value = true
-	// throws bad::alloc
-	// This function teaches the factory "a receipe" to create something
-	// the receipe is createFunc_
-	bool AddClass(const K& key_, 
+	// throws bad::alloc<stddef.h>
 			boost::function<boost::shared_ptr<T>(P)> createFunc_);
 	
 	//	throws BadCreate and BadKey

@@ -56,7 +56,7 @@ private:
 	Reactor m_reactor;
 //	Storage* m_storage;
 	int m_storageFd;
-	Factory<Task, uint64_t, > m_task;
+	factory::Factory<Task, uint64_t, MinionParams *> *m_task;
 };
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd
