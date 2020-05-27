@@ -206,7 +206,7 @@ void DriverProxy::DisconnectSystemIMP(int fd_)
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int DriverProxy::CreateNbdFdIMP()
 { // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    int nbd = open("/dev/nbd2", O_RDWR);
+    int nbd = open("/dev/nbd0", O_RDWR);
     HandleErrorIfExists(nbd, "create fd for nbd device path");
 
     return nbd;

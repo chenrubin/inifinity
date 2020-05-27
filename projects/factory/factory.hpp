@@ -25,13 +25,14 @@ public:
 	// If new key replaced an old one ,return value = false
 	// If new key was immediatly inserted return value = true
 	// throws bad::alloc<stddef.h>
+	bool AddClass(const K& key_, 
 			boost::function<boost::shared_ptr<T>(P)> createFunc_);
 	
 	//	throws BadCreate and BadKey
 	//  Create an object according to "receipe"
 	// receives key and param
 	// returns shared pointer of object from type T
-	boost::shared_ptr<T> Create(const K& key_, P param_) const NOEXCEPT; 
+	boost::shared_ptr<T> Create(const K& key_, P param_) const NOEXCEPT;
 	
 	// 2nd phase: unique_ptr c++11, 3rd? args...
 

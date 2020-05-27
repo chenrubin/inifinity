@@ -51,6 +51,8 @@ private:
 	int TruncateStorageIMP();
 	void StopMinionCallbackIMP(int fd_);
 	static void Callback(Minion *minion);
+	boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_);
+	boost::shared_ptr<Task> AddTaskRead(struct MinionParams *minionParams_);
 
 	UdpSocket m_socket;
 	Reactor m_reactor;

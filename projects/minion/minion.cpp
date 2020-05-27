@@ -27,10 +27,14 @@ Minion::Minion(unsigned short port_)
     : m_socket(port_, /*"192.168.1.20"*/"127.0.0.1", true)
     , m_reactor()
     , m_storageFd(TruncateStorageIMP())
+    , m_task()
 {
 //    m_storage = new Storage;
     m_reactor.AddFd(m_socket.GetFd(), m_reactor.READ, boost::bind(Callback, this));
     m_reactor.AddFd(STDIN, m_reactor.READ, boost::bind(&Minion::StopMinionCallbackIMP, this, _1));
+
+    m_task->AddClass(0, &Minion::AddTaskRead);    
+    m_task->AddClass(1, &Minion::AddTaskWrite);
 }
 
 Minion::~Minion()
@@ -73,8 +77,10 @@ void Minion::RecvRequestIMP(int fd_)
         /*
             create an object
         */
-        HandleRequestIMP(uid, blockIndex, type, read_buff);
+        m_task->create(type, );
+    /*    HandleRequestIMP(uid, blockIndex, type, read_buff);
         SendResponseIMP(type, uid, read_buff, &addr);
+    */    
     }
     else if (0 == bytes)
     {
@@ -162,7 +168,7 @@ void Minion::BuildBuffIMP(unsigned char type,
     LOG_DEBUG("Building response buffer");
 
     buffToBuild[0] = type;
-    *(uint64_t *)(buffToBuild + 1) = uid;SendResponseIMP(type, uid, read_buff, &addr);
+    *(uint64_t *)(buffToBuild + 1) = uid;
     if (0 == type)
     {
         memcpy(buffToBuild + 10, databuff + DATA_OFFSET, DATA_LENGTH);
@@ -217,10 +223,33 @@ void Minion::StopMinionCallbackIMP(int fd_)
 {
     char buff[20];
     std::fgets(buff, sizeof(buff), stdin);
-    if (0 == strcmp(buff, "stop\n"))
-    {
+    if (0 == strcmp(buff, "stop\n"))boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_)
+{
+    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
+                                                     minionParams_->dataLength_,
+                                                     minionParams_->responseLength));
+
+    return shared_ptr;
+}
         //LOG_DEBUG("inside stop");
        Stop();
     }
 }    
+boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_)
+{
+    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
+                                                     minionParams_->dataLength_,
+                                                     minionParams_->responseLength));
+
+    return shared_ptr;
+}
+
+boost::shared_ptr<Task> AddTaskRead(struct MinionParams *minionParams_)
+{
+    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
+                                                     minionParams_->dataLength_,
+                                                     minionParams_->responseLength));
+
+    return shared_ptr;
+}
 } // end of ilrd nemaspace

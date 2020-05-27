@@ -26,10 +26,10 @@ public:
                                            size_t responseLength_);
     virtual ~WriteTask();
 
-    virtual void ImplementTask(int fd_, char *buff, sockaddr_in *addr);
+    virtual void ImplementTask(int fd_, char *buff, sockaddr_in *addr, int minionFd);
 private:
-    BuildResponseBuffIMP(char *buff, char *buf_to_send);
-    SendResponseIMP(char *read_buff, &addr);
+    void BuildResponseBuffIMP(char *buff, char *buf_to_send);
+    void SendResponseIMP(char *read_buff, sockaddr_in *addr, int fdToSendTo);
 
     size_t m_dataOffset;
     size_t m_dataLength;
@@ -45,7 +45,8 @@ public:
 
     virtual void ImplementTask(int fd_, char *buff);
 private:
-    BuildResponseBuffIMP(buff, buf_to_send);
+    void BuildResponseBuffIMP(char *buff, char *buf_to_send);
+    void SendResponseIMP(char *read_buff, sockaddr_in * addr, int fdToSendTo);
 
     size_t m_dataOffset;
     size_t m_dataLength;
