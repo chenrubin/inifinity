@@ -5,7 +5,7 @@
 #ifndef __MINION_HPP__ 
 #define __MINION_HPP__
 /*----------------------------------------------------------------------------*/
-#include <cstddef>			// size_t
+#include <cstddef>				// size_t
 #include <boost/cstdint.hpp>  /* uint64_t */
 
 #include "storage.hpp"					// class Storage
@@ -53,12 +53,13 @@ private:
 	static void Callback(Minion *minion);
 	boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_);
 	boost::shared_ptr<Task> AddTaskRead(struct MinionParams *minionParams_);
+	void InitMinionParams();
 
 	UdpSocket m_socket;
 	Reactor m_reactor;
 //	Storage* m_storage;
 	int m_storageFd;
-	factory::Factory<Task, uint64_t, MinionParams *> *m_task;
+	factory::Factory<Task, int, int *> *m_task;
 };
 /*----------------------------------------------------------------------------*/
 } // namespace ilrd

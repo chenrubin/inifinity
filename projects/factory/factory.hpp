@@ -37,13 +37,11 @@ public:
 	// 2nd phase: unique_ptr c++11, 3rd? args...
 
 private:
-	// A map of key and function (receipe for creating an object of type T)
-	std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
-
-	typedef typename 
-			std::map<K, boost::function<boost::shared_ptr<T>(P)> >::const_iterator
-			 												  		map_iterator_t;
 	typedef boost::function<boost::shared_ptr<T>(P)> func_t;
+	typedef typename std::map<K, boost::function<boost::shared_ptr<T>(P)> >::iterator map_iterator_t; 
+	// A map of key and function (receipe for creating an object of type T)
+	//std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs/*AddTaskWrite_t*/;
+	mutable std::map<K, boost::function<boost::shared_ptr<T>(P)> > m_keyFuncPairs;
 };
 /*----------------------------------------------------------------------------*/
 class BadCreate : public std::runtime_error

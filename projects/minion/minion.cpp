@@ -1,4 +1,3 @@
-
 #include <arpa/inet.h> /* send, connect */
 #include <boost/bind.hpp> /* boost::bind */
 #include <stdio.h> /* perror */
@@ -20,9 +19,11 @@
 #define SIZEOF_BLOCKINDEX 8
 #define STDIN (0)
 
-
 namespace ilrd
 {
+boost::shared_ptr<Task> AddTaskWrite(int *param);
+boost::shared_ptr<Task> AddTaskRead(int *param);
+
 Minion::Minion(unsigned short port_)
     : m_socket(port_, /*"192.168.1.20"*/"127.0.0.1", true)
     , m_reactor()
@@ -33,8 +34,8 @@ Minion::Minion(unsigned short port_)
     m_reactor.AddFd(m_socket.GetFd(), m_reactor.READ, boost::bind(Callback, this));
     m_reactor.AddFd(STDIN, m_reactor.READ, boost::bind(&Minion::StopMinionCallbackIMP, this, _1));
 
-    m_task->AddClass(0, &Minion::AddTaskRead);    
-    m_task->AddClass(1, &Minion::AddTaskWrite);
+    m_task->AddClass(0, &ilrd::AddTaskRead);
+    m_task->AddClass(1, &ilrd::AddTaskWrite);
 }
 
 Minion::~Minion()
@@ -77,7 +78,8 @@ void Minion::RecvRequestIMP(int fd_)
         /*
             create an object
         */
-        m_task->create(type, );
+        boost::shared_ptr<Task> task_ptr = m_task->Create(type, 0);
+        task_ptr->ImplementTask(m_storageFd, read_buff, &addr, m_socket.GetFd());
     /*    HandleRequestIMP(uid, blockIndex, type, read_buff);
         SendResponseIMP(type, uid, read_buff, &addr);
     */    
@@ -205,7 +207,7 @@ void Minion::ParseMessageIMP(u_int64_t *uid,
 
 int Minion::TruncateStorageIMP()
 {
-    m_storageFd = open("/home/chenr/storage_minion1.txt", O_CREAT | O_RDWR, 0777);
+    m_storageFd = open("/home/student/storage_minion1.txt", O_CREAT | O_RDWR, 0777);
     if (-1 == m_storageFd)
     {
         std::cout << "error = " << strerror(errno) << "\n";
@@ -223,32 +225,23 @@ void Minion::StopMinionCallbackIMP(int fd_)
 {
     char buff[20];
     std::fgets(buff, sizeof(buff), stdin);
-    if (0 == strcmp(buff, "stop\n"))boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_)
-{
-    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
-                                                     minionParams_->dataLength_,
-                                                     minionParams_->responseLength));
-
-    return shared_ptr;
-}
+    if (0 == strcmp(buff, "stop\n"))
+    {
         //LOG_DEBUG("inside stop");
        Stop();
     }
-}    
-boost::shared_ptr<Task> AddTaskWrite(struct MinionParams *minionParams_)
+}
+
+boost::shared_ptr<Task> AddTaskWrite(int *param)
 {
-    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
-                                                     minionParams_->dataLength_,
-                                                     minionParams_->responseLength));
+    boost::shared_ptr<Task> shared_ptr(new WriteTask());
 
     return shared_ptr;
 }
 
-boost::shared_ptr<Task> AddTaskRead(struct MinionParams *minionParams_)
+boost::shared_ptr<Task> AddTaskRead(int *param)
 {
-    boost::shared_ptr<Task> shared_ptr(new WriteTask(minionParams_->dataOffset,
-                                                     minionParams_->dataLength_,
-                                                     minionParams_->responseLength));
+    boost::shared_ptr<Task> shared_ptr(new ReadTask());
 
     return shared_ptr;
 }
