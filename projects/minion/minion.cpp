@@ -34,6 +34,7 @@ Minion::Minion(unsigned short port_)
     m_reactor.AddFd(m_socket.GetFd(), m_reactor.READ, boost::bind(Callback, this));
     m_reactor.AddFd(STDIN, m_reactor.READ, boost::bind(&Minion::StopMinionCallbackIMP, this, _1));
 
+    m_task = new factory::Factory<Task, int, int *>;
     m_task->AddClass(0, &ilrd::AddTaskRead);
     m_task->AddClass(1, &ilrd::AddTaskWrite);
 }
@@ -207,7 +208,7 @@ void Minion::ParseMessageIMP(u_int64_t *uid,
 
 int Minion::TruncateStorageIMP()
 {
-    m_storageFd = open("/home/student/storage_minion1.txt", O_CREAT | O_RDWR, 0777);
+    m_storageFd = open("/home/chenr/storage_minion1.txt", O_CREAT | O_RDWR, 0777);
     if (-1 == m_storageFd)
     {
         std::cout << "error = " << strerror(errno) << "\n";

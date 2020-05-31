@@ -61,12 +61,12 @@ bool Factory<T,K,P>::AddClass(const K& key_, func_t createFunc_)
 {
 	std::pair<map_iterator_t, bool> res;
 									//boost::function<boost::shared_ptr<T>(P)>
-	res = m_keyFuncPairs.insert(std::pair<K, func_t>(key_, createFunc_));
-	if (res.second == false)
+	/*res = */m_keyFuncPairs.insert(std::pair<K, func_t>(key_, createFunc_));
+	/*if (res.second == false)
 	{
 		m_keyFuncPairs[key_] = createFunc_;
 	}
-
+*/
 	return res.second;
 }
 
