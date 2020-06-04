@@ -404,8 +404,8 @@ void Master::IncryptionFunc(uint64_t eventId)
     std::vector<char>& packet_data = boost::get<RequestPacketWrite>(m_requests[eventId/*host*/]).data;
     //std::cout << "First element in vector before incrypt = " << static_cast<int>(boost::get<RequestPacketWrite>(m_requests[eventId]).data[0]) << "\n";
    // std::cout << "First element in vector (packet_data) before incrypt = " << static_cast<int>(packet_data[0]) << "\n";
-   std::cout << "Inside incrypt before for each \n";
- //   std::for_each(packet_data.begin(), packet_data.end(), Incrypt_Algo());
+    std::cout << "Inside incrypt before for each \n";
+    std::for_each(packet_data.begin(), packet_data.end(), Incrypt_Algo());
 
  //  std::cout << "First element in vector after incrypt = " << static_cast<int>(boost::get<RequestPacketWrite>(m_requests[eventId]).data[0]) << "\n";
  //   std::cout << "First element in vector (packet_data) after incrypt = " << static_cast<int>(packet_data[0]) << "\n";
@@ -426,11 +426,11 @@ void Master::DecryptionFunc(uint64_t eventId)
     size_t len = strlen(packet_data);
  //   std::cout << "!!!   !!! !!! len of std::get.data to decrypt = " << strlen(boost::get<ReplyPacket>(m_requests[eventId]).data) << "\n";
  //   std::cout << "!!!   !!! !!! len of packet_data to decrypt = " << len << "\n";
- /*   for (size_t i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
     {
         packet_data[i] = DecryptAlgo(packet_data[i]);
     }
-*/
+
     m_eventer->SignalEvent(eventId);
 }
 

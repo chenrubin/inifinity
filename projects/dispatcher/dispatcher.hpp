@@ -22,7 +22,7 @@ class BaseCallback;
 
 /*----------------------------------------------------------------------------*/
 /*
-    Dispatcher is used to communicate bewteen observer and subject.
+    Dispatcher is used to communicate between observer and subject.
     Observer conditions:
     1) Must have ObserverCallback class as a member (by value meaning composition ).
        Class will include notify - action func which the observer wishes
