@@ -28,7 +28,7 @@ class BaseCallback;
        Class will include notify - action func which the observer wishes
        to be invoked when subject notifies regarding a change
        optional - notifyDeath , in case the observer wants function to be invoked 
-       before it unregisters from sunject
+       before it unregisters from subject
     Subject conditions:
     1) Must have dispatcher as a member (by value meaning compostion)
     2) Must have folowing public methods:
