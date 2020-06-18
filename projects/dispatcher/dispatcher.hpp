@@ -31,7 +31,7 @@ class BaseCallback;
        before it unregisters from subject
     Subject conditions:
     1) Must have dispatcher as a member (by value meaning compostion)
-    2) Must have folowing public methods:
+    2) Must have following public methods:
        - void Register(BaseCallback<MSG>* baseCallback_) which will call 
          dispatcher's Register method
 */

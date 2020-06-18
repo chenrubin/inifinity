@@ -97,7 +97,7 @@ void Master::onWrite(const RequestPacketWrite &pk)
 {
     std::cout << "onWrite function\n";
     m_uidToLength[pk.uid] = pk.len;
-    // enter uid and appropriate variant reuest packets to container m_requests
+    // enter uid and appropriate variant request packets to container m_requests
     // save pk in the m_requests map<uid, pair of variant of RequestPacketWrite/RequestPacketRead
     // and reply packet from minion>
     requestOrReplyPacket_t reqPackFromProxy = pk;

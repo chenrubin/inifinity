@@ -7,7 +7,7 @@
 
 namespace ilrd
 {
-class DirMonitor : private Uncopyable
+class Dlloader : private Uncopyable
 {
 public:
     explicit DirMonitor(std::string path);

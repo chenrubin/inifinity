@@ -276,7 +276,7 @@ void InitiateLogger()
     setenv("LOGGER_FILE", str.c_str(), 1);
 }
 
-template <typename T> 
+template <typename T> m_onRead
 void ReverseEndianessIMP(T *num1)
 {
     size_t byteSize = sizeof(T);
