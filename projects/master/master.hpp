@@ -25,11 +25,11 @@ public:
                     Eventer *eventer_);
     ~Master();
 
-    // When read action is wanted master recieves RequestPacketRead
+    // When read action is wanted master receives RequestPacketRead
     // and converts it to a packet the minion can understand
     void onRead(const RequestPacketRead& packet_);
 
-    // When write action is wanted master recieves RequestPacketRead
+    // When write action is wanted master receives RequestPacketRead
     // and converts it to a packet the minion can understand
     void onWrite(const RequestPacketWrite& packet_);
 

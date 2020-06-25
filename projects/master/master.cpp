@@ -43,7 +43,7 @@ Master::~Master()
     m_reactorRun.join();
 }
 
-// When read action is wanted master recieves RequestPacketRead (from proxy)
+// When read action is wanted master receives RequestPacketRead (from proxy)
 // and converts it to a packet the minion can understand
 void Master::onRead(const RequestPacketRead &pk)
 {
