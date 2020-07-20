@@ -119,19 +119,19 @@ void WD(void **vars)
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, SignalSenderRoutine, &app_pid)))
 	{
-		printf("SignalSenderRoutine faild to be added\n");
+		printf("SignalSenderRoutine failed to be added\n");
 		
 		ReturnFail(thread_status);
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, IsAliveRoutine, &live_param)))
 	{
-		printf("wd IsAliveRoutine faild to be added\n");
+		printf("wd IsAliveRoutine failed to be added\n");
 		
 		ReturnFail(thread_status);
 	}
 	if (UIDIsBad(SchedAdd(new_sched, (time_t)interval, CheckDNRFlagRoutine, new_sched)))
 	{
-		printf("wd IsAliveRoutine faild to be added\n");
+		printf("wd IsAliveRoutine failed to be added\n");
 		
 		ReturnFail(thread_status);
 	}

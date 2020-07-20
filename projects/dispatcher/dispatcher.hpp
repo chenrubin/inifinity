@@ -109,12 +109,7 @@ private:
     typedef void (OBSV::*obsNotify_t)(const MSG&);
     typedef void (OBSV::*obsBeforeDeath_t)();
     
-    // invoke observer m_notify
-    // Can throw whatever esceptions occur in user's functions
-    virtual void Notify(const MSG& message_);
-
-    // invoke observer m_death inside
-    // Can throw whatever esceptions occur in user's function
+    // invoke observer m_notifyObserverCallback
     virtual void NotifyDispatcherDeath();
 
     OBSV* m_observer;

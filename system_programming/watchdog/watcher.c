@@ -184,7 +184,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 			{
 				ReturnFail(thread_status);
 			}
-			printf("app inside dead_time == counter. counter = %d\n", counter);	
+			printf("app inside dead_time == counter. counter = %d\n", counter);
 			counter = 0;
 		}
 		printf("app before sem_post\n");
@@ -201,7 +201,7 @@ static void *ThreadFunctionRoutineIMP(void *vars)
 	}
 	
 	printf("app exited loop due to dnr\n");
-	/* app sends signal to wd to start rtermiante gracefully */
+	/* app sends signal to wd to start terminate gracefully */
 	printf("sending SIGUSR2 to pid %d\n", wd_pid);
 	kill(wd_pid, SIGUSR2);
 	
