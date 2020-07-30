@@ -41,7 +41,7 @@ private:
 
     public:
         //Incrypt_func(char )
-        void operator()(char &val);    
+        void operator()(char &val);
     };
 
     typedef boost::variant<RequestPacketWrite, ReplyPacket> 
@@ -88,7 +88,7 @@ private:
     void TimerCallback(struct RequestPacket *reqPack, size_t minionIndex, 
                                                       size_t count);
     // Create unique uid for master->minion packet since uid from nbd
-    // is not necessarily uniqie
+    // is not necessarily unique
     uint64_t CreateUniqueUid();
     // Erase key uid from m_requests and m_masterMinionToNbdUid
     void EraseSentPacketsInfoFromContainers(uint64_t uid);

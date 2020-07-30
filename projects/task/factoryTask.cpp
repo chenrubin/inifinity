@@ -85,7 +85,7 @@ void WriteTask::SendResponseIMP(char *read_buff, sockaddr_in *addr, int fdToSend
 ReadTask::ReadTask()
     : m_dataOffset(DATA_OFFSET)
     , m_dataLength(DATA_LENGTH)
-    , m_responseLength(READ_RESPONSE_LENGTH)                                       
+    , m_responseLength(READ_RESPONSE_LENGTH)
 {}
 
 ReadTask::~ReadTask()
